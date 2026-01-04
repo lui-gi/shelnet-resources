@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Key Cryptography (RSA) Visualizer</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #e2e8f0;
+            --accent-blue: #38bdf8;
+            --accent-green: #4ade80;
+            --accent-purple: #c084fc;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { margin-bottom: 10px; color: var(--accent-blue); }
+        p.subtitle { color: #94a3b8; margin-bottom: 30px; max-width: 600px; text-align: center; }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        /* Full width card for Key Gen */
+        .full-width { grid-column: 1 / -1; }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-badge {
+            background-color: var(--accent-blue);
+            color: var(--bg-color);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        input[type="number"] {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px;
+            border-radius: 6px;
+            width: 100px;
+            font-family: monospace;
+        }
+
+        .math-display {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--accent-green);
+            margin-top: 5px;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+
+        .highlight { color: var(--accent-purple); font-weight: bold; }
+        .result-box {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .arrow-down {
+            text-align: center;
+            font-size: 2rem;
+            color: var(--border-color);
+            margin: 10px 0;
+            grid-column: 1 / -1;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background-color: var(--accent-blue);
+            color: var(--bg-color);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+        button.secondary {
+            background-color: transparent;
+            border: 1px solid var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* Specific Role Colors */
+        .role-p1 { border-left: 4px solid var(--accent-purple); }
+        .role-p2 { border-left: 4px solid var(--accent-green); }
+
+    </style>
+</head>
+<body>
+
+    <h1>RSA Algorithm Laboratory</h1>
+    <p class="subtitle">An interactive demonstration of the math behind Public Key Cryptography.</p>
+
+    <div class="container">
+        
+        <div class="card full-width role-p1">
+            <h2><span class="step-badge">Step 1</span> Person 1: Generate Keys</h2>
+            <p style="font-size: 0.9rem; color: #ccc;">Person 1 needs to create a Public Key (to share) and a Private Key (to keep).</p>
+            
+            <div class="controls">
+                <div class="input-group">
+                    <label>Prime p</label>
+                    <input type="number" id="val-p" value="157" oninput="calculateKeys()">
+                </div>
+                <div class="input-group">
+                    <label>Prime q</label>
+                    <input type="number" id="val-q" value="199" oninput="calculateKeys()">
+                </div>
+                <div class="input-group">
+                    <label>Exponent e (Public)</label>
+                    <input type="number" id="val-e" value="163" oninput="calculateKeys()">
+                </div>
+                <button class="secondary" onclick="loadExample()">Reset to Example Values</button>
+            </div>
+
+            <div class="math-display" id="key-math">
+                </div>
+
+            <div class="result-box">
+                <div style="display: flex; gap: 20px;">
+                    <div>
+                        <label>🔑 Public Key (n, e)</label>
+                        <div class="math-display" style="color: var(--accent-blue)" id="pub-key-display">(31243, 163)</div>
+                        <small>Shared with Person 2</small>
+                    </div>
+                    <div>
+                        <label>🔒 Private Key (n, d)</label>
+                        <div class="math-display" style="color: var(--accent-purple)" id="priv-key-display">(31243, 379)</div>
+                        <small>Kept Secret</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="arrow-down">⬇</div>
+
+        <div class="card role-p2">
+            <h2><span class="step-badge">Step 2</span> Person 2: Encrypt</h2>
+            <p style="font-size: 0.9rem; color: #ccc;">Person 2 wants to send the number "13". They use Person 1's Public Key.</p>
+
+            <div class="input-group">
+                <label>Message (x)</label>
+                <input type="number" id="val-msg" value="13" oninput="encrypt()">
+            </div>
+
+            <div class="math-display" id="encrypt-math">
+                Calculating...
+            </div>
+
+            <div class="result-box">
+                <label>Ciphertext (y)</label>
+                <div class="math-display" style="font-size: 1.2rem; color: var(--accent-green);" id="ciphertext-display">
+                    16341
+                </div>
+                <small>This "scrambled" number is sent over the internet.</small>
+            </div>
+        </div>
+
+        <div class="card role-p1">
+            <h2><span class="step-badge">Step 3</span> Person 1: Decrypt</h2>
+            <p style="font-size: 0.9rem; color: #ccc;">Person 1 receives the ciphertext and uses their Private Key.</p>
+
+            <div class="input-group">
+                <label>Received Ciphertext (y)</label>
+                <input type="number" id="val-cipher" disabled value="16341" style="background: #334155; cursor: not-allowed;">
+            </div>
+
+            <div class="math-display" id="decrypt-math">
+                Calculating...
+            </div>
+
+            <div class="result-box">
+                <label>Decrypted Message (x)</label>
+                <div class="math-display" style="font-size: 1.2rem; color: var(--accent-purple);" id="decrypted-display">
+                    13
+                </div>
+                <small>The original message is recovered!</small>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Use BigInt for all RSA calculations to avoid precision errors with large numbers
+        
+        function power(base, exp, mod) {
+            let res = 1n;
+            base = base % mod;
+            while (exp > 0n) {
+                if (exp % 2n === 1n) res = (res * base) % mod;
+                exp = exp / 2n;
+                base = (base * base) % mod;
+            }
+            return res;
+        }
+
+        // Extended Euclidean Algorithm to find modular inverse (d)
+        function modInverse(e, phi) {
+            let m0 = phi, t, q;
+            let x0 = 0n, x1 = 1n;
+            if (phi === 1n) return 0n;
+            while (e > 1n) {
+                q = e / phi;
+                t = phi;
+                phi = e % phi;
+                e = t;
+                t = x0;
+                x0 = x1 - q * x0;
+                x1 = t;
+            }
+            if (x1 < 0n) x1 += m0;
+            return x1;
+        }
+
+        function calculateKeys() {
+            try {
+                const p = BigInt(document.getElementById('val-p').value);
+                const q = BigInt(document.getElementById('val-q').value);
+                let e = BigInt(document.getElementById('val-e').value);
+
+                const n = p * q;
+                const phi = (p - 1n) * (q - 1n);
+                
+                // Calculate d (Private Key Exponent)
+                const d = modInverse(e, phi);
+
+                // Update UI for Key Gen
+                document.getElementById('key-math').innerHTML = `
+                    n = p × q = ${p} × ${q} = <span class="highlight">${n}</span><br>
+                    φ(n) = (p-1)(q-1) = ${p-1n} × ${q-1n} = ${phi}<br>
+                    d calculated via modular inverse: <span class="highlight">${d}</span>
+                `;
+
+                document.getElementById('pub-key-display').textContent = `(${n}, ${e})`;
+                document.getElementById('priv-key-display').textContent = `(${n}, ${d})`;
+
+                // Trigger Encryption Update since Keys changed
+                encrypt(n, e, d);
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function encrypt(nInput, eInput, dInput) {
+            try {
+                // Fetch latest keys if not provided
+                const p = BigInt(document.getElementById('val-p').value);
+                const q = BigInt(document.getElementById('val-q').value);
+                const n = p * q;
+                const e = BigInt(document.getElementById('val-e').value);
+                const phi = (p - 1n) * (q - 1n);
+                const d = modInverse(e, phi);
+
+                const msg = BigInt(document.getElementById('val-msg').value);
+
+                // C = M^e mod n
+                const ciphertext = power(msg, e, n);
+
+                // Update Encryption UI
+                document.getElementById('encrypt-math').innerHTML = `
+                    y = x<sup>e</sup> mod n<br>
+                    y = ${msg}<sup>${e}</sup> mod ${n}<br>
+                    y = <span class="highlight">${ciphertext}</span>
+                `;
+                document.getElementById('ciphertext-display').innerText = ciphertext;
+                
+                // Update Decryption input
+                document.getElementById('val-cipher').value = ciphertext;
+                
+                decrypt(ciphertext, d, n);
+
+            } catch (err) {
+                 // Ignore incomplete inputs
+            }
+        }
+
+        function decrypt(ciphertext, d, n) {
+            try {
+                // M = C^d mod n
+                const decrypted = power(ciphertext, d, n);
+
+                document.getElementById('decrypt-math').innerHTML = `
+                    x = y<sup>d</sup> mod n<br>
+                    x = ${ciphertext}<sup>${d}</sup> mod ${n}<br>
+                    x = <span class="highlight">${decrypted}</span>
+                `;
+                document.getElementById('decrypted-display').innerText = decrypted;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function loadExample() {
+            document.getElementById('val-p').value = 157;
+            document.getElementById('val-q').value = 199;
+            document.getElementById('val-e').value = 163;
+            document.getElementById('val-msg').value = 13;
+            calculateKeys();
+        }
+
+        // Init
+        loadExample();
+
+    </script>
+</body>
+</html>
