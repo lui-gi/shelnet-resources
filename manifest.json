@@ -78,8 +78,8 @@
        "description": "Interactive demonstration of common nmap commands"
      },
      {
-       "id": "OSI Model",
-       "title": "3",
+       "id": "3",
+       "title": "OSI Model",
        "file": "osi.html",
        "description": "Side-by-side visualization of the OSI and TCP/IP model"
      }
