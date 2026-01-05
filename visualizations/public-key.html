@@ -25,10 +25,20 @@
                     animation: {
                         'blink': 'blink 1s step-end infinite',
                         'scan': 'scan 4s linear infinite',
+                        'glow-sec': 'glow-sec 2s ease-in-out infinite',
+                        'glow-theme': 'glow-theme 2s ease-in-out infinite',
                     },
                     keyframes: {
                         blink: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0' } },
-                        scan: { '0%': { backgroundPosition: '0% 0%' }, '100%': { backgroundPosition: '0% 100%' } }
+                        scan: { '0%': { backgroundPosition: '0% 0%' }, '100%': { backgroundPosition: '0% 100%' } },
+                        'glow-sec': {
+                            '0%, 100%': { boxShadow: '0 0 5px rgba(99, 102, 241, 0.2)', borderColor: 'rgba(99, 102, 241, 0.4)' },
+                            '50%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.6)', borderColor: 'rgba(129, 140, 248, 1)' }
+                        },
+                        'glow-theme': {
+                            '0%, 100%': { boxShadow: '0 0 5px rgba(14, 165, 233, 0.2)', borderColor: 'rgba(14, 165, 233, 0.4)' },
+                            '50%': { boxShadow: '0 0 20px rgba(14, 165, 233, 0.6)', borderColor: 'rgba(56, 189, 248, 1)' }
+                        }
                     }
                 }
             }
@@ -85,7 +95,7 @@
                 
                 <div id="stepInput" class="opacity-30 transition-opacity duration-500">
                     <label class="text-[10px] font-mono text-white/40 uppercase block mb-2">1. Compose Message</label>
-                    <input type="text" id="inputMsg" disabled placeholder="WAITING FOR KEY..." 
+                    <input type="text" id="inputMsg" disabled placeholder="WAITING FOR KEY..." autocomplete="off"
                            class="w-full bg-theme-900/10 border border-theme-500/30 rounded p-3 font-mono text-lg text-theme-400 focus:outline-none focus:border-theme-400 placeholder-theme-700/50 mb-2 uppercase">
                 </div>
 
@@ -104,8 +114,7 @@
 
                 <button id="btnSend" disabled onclick="actionEncrypt()" 
                         class="w-full py-3 font-mono text-sm border rounded transition-all duration-200 
-                               bg-theme-500/5 border-theme-500/20 text-theme-500/50 cursor-not-allowed
-                               group-enabled:hover:bg-theme-500/20 group-enabled:hover:border-theme-400">
+                               bg-theme-500/5 border-theme-500/20 text-theme-500/50 cursor-not-allowed">
                     [ ENCRYPT & TRANSMIT ]
                 </button>
             </div>
@@ -118,14 +127,20 @@
             <div class="absolute inset-0 scanlines opacity-20 pointer-events-none"></div>
 
             <div class="absolute top-2 left-0 right-0 text-center">
-                <span class="bg-black/80 px-2 py-1 text-[10px] font-mono text-danger-500 border border-danger-500/30 rounded">
+                <span class="bg-black/80 px-2 py-1 text-xs font-mono text-danger-500 border border-danger-500/30 rounded">
                     ⚠️ UNSECURE PUBLIC NETWORK
                 </span>
             </div>
 
-            <div class="mt-12 mx-4 mb-4 flex-grow border border-danger-900/50 bg-black/80 rounded font-mono text-[10px] p-2 overflow-hidden flex flex-col relative shadow-[0_0_20px_rgba(239,68,68,0.05)]">
-                <div class="border-b border-danger-900/50 pb-1 mb-1 text-danger-700 uppercase flex justify-between">
-                    <span>packet_sniffer.exe</span>
+            <div class="mt-12 mx-4 mb-4 flex-grow border border-danger-900/50 bg-black/80 rounded font-mono text-sm p-2 overflow-hidden flex flex-col relative shadow-[0_0_20px_rgba(239,68,68,0.05)]">
+                <div class="border-b border-danger-900/50 pb-1 mb-1 text-danger-700 uppercase flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span>packet_sniffer.exe</span>
+                        <label class="flex items-center gap-1 cursor-pointer hover:text-danger-500 select-none">
+                            <input type="checkbox" id="modeToggle" class="accent-danger-500 w-3 h-3" onchange="toggleMode()">
+                            <span class="text-[10px] tracking-tight">SIMPLE MODE</span>
+                        </label>
+                    </div>
                     <span class="animate-pulse">● REC</span>
                 </div>
                 <div id="snifferLog" class="flex-grow overflow-y-auto space-y-1 text-danger-400/80 p-1">
@@ -147,8 +162,8 @@
                 <div id="stepGen" class="text-center">
                     <button id="btnGen" onclick="actionGenerate()" 
                             class="w-full py-4 font-mono text-sm border rounded transition-all duration-200 
-                                   bg-sec-500/10 border-sec-500/50 text-sec-400 
-                                   hover:bg-sec-500/20 hover:shadow-[0_0_15px_rgba(129,140,248,0.3)]">
+                                   bg-sec-500/10 border-sec-500/50 text-sec-400 animate-glow-sec
+                                   hover:bg-sec-500/20">
                         [ 1. GENERATE KEYS ]
                     </button>
                     <p class="text-[10px] text-white/30 mt-2 font-mono">Create Public (Lock) & Private (Key)</p>
@@ -205,7 +220,8 @@
             state: 0, // 0:Idle, 1:KeysGen, 2:KeySent, 3:MsgReady, 4:MsgSent, 5:MsgRecv, 6:Done
             p: 11, q: 13, n: 143, e: 7, d: 103, // Hardcoded small primes for demo
             msgRaw: "",
-            msgEnc: []
+            msgEnc: [],
+            simpleMode: false
         };
 
         // --- DOM ELEMENTS ---
@@ -251,6 +267,15 @@
 
         // --- ACTIONS ---
 
+        function toggleMode() {
+            sys.simpleMode = document.getElementById('modeToggle').checked;
+            logSniff(sys.simpleMode ? "--- SWITCHED TO SIMPLE MODE ---" : "--- SWITCHED TO STANDARD MODE ---");
+        }
+
+        function logSmart(techMsg, simpleMsg, isDanger=false) {
+            logSniff(sys.simpleMode ? simpleMsg : techMsg, isDanger);
+        }
+
         function updateStatus(msg, color='text-theme-400') {
             els.status.className = `px-2 py-1 text-[10px] font-mono uppercase tracking-wider rounded border bg-${color.split('-')[1]}-500/10 border-${color.split('-')[1]}-500/50 ${color}`;
             els.status.innerText = msg;
@@ -272,9 +297,10 @@
             els.btnGen.style.display = 'none';
             els.vaultPriv.classList.remove('hidden');
             els.vaultPub.classList.remove('hidden'); // Show clickable public key
+            els.vaultPub.classList.add('animate-glow-sec'); // ADD GLOW TO NEXT STEP
             
             updateStatus("KEYS GENERATED. WAITING FOR TRANSFER.", "text-sec-400");
-            logSniff("Activity detected in NODE_BETA.");
+            logSmart("Activity detected in NODE_BETA.", "The Receiver is making a Lock and a Key.");
         }
 
         // STEP 2: SEND PUBLIC KEY (Right to Left)
@@ -284,6 +310,7 @@
             
             // 1. Hide original
             els.vaultPub.classList.add('hidden');
+            els.vaultPub.classList.remove('animate-glow-sec');
             
             // 2. Create Flying Clone
             const flyer = document.createElement('div');
@@ -300,8 +327,8 @@
                 
                 // Sniffer Event
                 setTimeout(() => {
-                    logSniff("INTERCEPTED: Public Key {N:143, E:7}");
-                    logSniff("ANALYSIS: Harmless. Cannot decrypt with this.");
+                    logSmart("INTERCEPTED: Public Key {N:143, E:7}", "I see an Open Lock passing by!");
+                    logSmart("ANALYSIS: Harmless. Cannot decrypt with this.", "It's just an empty lock. I can't steal anything.");
                 }, 1000);
             }, 50);
 
@@ -321,7 +348,7 @@
                 els.input.addEventListener('keyup', () => {
                     if(els.input.value.length > 0) {
                         els.btnSend.disabled = false;
-                        els.btnSend.className = "w-full py-3 font-mono text-sm border rounded transition-all duration-200 bg-theme-500/20 border-theme-500 text-theme-400 shadow-[0_0_15px_rgba(14,165,233,0.3)] hover:bg-theme-500/30 cursor-pointer";
+                        els.btnSend.className = "w-full py-3 font-mono text-sm border rounded transition-all duration-200 bg-theme-500/20 border-theme-500 text-theme-400 shadow-[0_0_15px_rgba(14,165,233,0.3)] hover:bg-theme-500/30 cursor-pointer animate-glow-theme";
                         els.btnSend.innerText = "[ ENCRYPT & TRANSMIT ]";
                     }
                 });
@@ -346,6 +373,7 @@
             // 1. Lock Sender
             els.input.disabled = true;
             els.btnSend.disabled = true;
+            els.btnSend.classList.remove('animate-glow-theme');
             els.btnSend.innerText = "TRANSMITTING...";
             
             // 2. Create Flying Payload
@@ -364,9 +392,9 @@
                 
                 // Sniffer Event
                 setTimeout(() => {
-                    logSniff(`INTERCEPTED: DATA [ ${sys.msgEnc.join(', ')} ]`, true);
-                    logSniff("ATTEMPTING BRUTE FORCE...");
-                    setTimeout(() => logSniff("FAIL: Missing Private Key."), 500);
+                    logSmart(`INTERCEPTED: DATA [ ${sys.msgEnc.join(', ')} ]`, "I see a Locked Box!", true);
+                    logSmart("ATTEMPTING BRUTE FORCE...", "Trying to break it open...", true);
+                    setTimeout(() => logSmart("FAIL: Missing Private Key.", "Failed! I don't have the Key."), 500);
                 }, 1000);
             }, 50);
 
@@ -380,7 +408,7 @@
                 
                 // Enable Decrypt
                 els.btnDecrypt.disabled = false;
-                els.btnDecrypt.className = "mt-2 w-full py-2 font-mono text-xs border rounded bg-sec-500/20 border-sec-500 text-sec-300 hover:bg-sec-500/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.5)] cursor-pointer";
+                els.btnDecrypt.className = "mt-2 w-full py-2 font-mono text-xs border rounded bg-sec-500/20 border-sec-500 text-sec-300 hover:bg-sec-500/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.5)] cursor-pointer animate-glow-sec";
                 els.btnDecrypt.innerHTML = "[ USE PRIVATE KEY TO DECRYPT ]";
 
                 sys.state = 5;
@@ -393,6 +421,7 @@
             if(sys.state !== 5) return;
             
             // Animation
+            els.btnDecrypt.classList.remove('animate-glow-sec');
             els.btnDecrypt.innerText = "CALCULATING M = C^d mod N...";
             
             setTimeout(() => {
