@@ -63,6 +63,26 @@
         "filename": "practice-quiz-1.html",
         "description": "15 Questions covering Objective 1.1 [Compare and contrast various types of security controls]"
       }
+    ],
+    "visualizations": [
+        {
+       "id": "public-key-crypto",
+       "title": "Public Key Cryptography",
+       "file": "public-key-cryptography.html",
+       "description": "Visual explanation of asymmetric encryption, key pairs, and digital signatures"
+     },
+     {
+       "id": "network-attacks",
+       "title": "Network Attack Vectors",
+       "file": "network-attack-vectors.html",
+       "description": "Interactive demonstration of common network-based attacks and defense mechanisms"
+     },
+     {
+       "id": "auth-flows",
+       "title": "Authentication Flows",
+       "file": "authentication-flows.html",
+       "description": "Step-by-step visualization of various authentication protocols and methods"
+     }
     ]
   }
 }
