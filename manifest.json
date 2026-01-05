@@ -66,22 +66,22 @@
     ],
     "visualizations": [
         {
-       "id": "public-key-crypto",
+       "id": "1",
        "title": "Public Key Cryptography",
-       "file": "public-key-cryptography.html",
+       "file": "public-key.html",
        "description": "Visual explanation of asymmetric encryption, key pairs, and digital signatures"
      },
      {
-       "id": "network-attacks",
-       "title": "Network Attack Vectors",
-       "file": "network-attack-vectors.html",
-       "description": "Interactive demonstration of common network-based attacks and defense mechanisms"
+       "id": "2",
+       "title": "Nmap Flags",
+       "file": "nmap.html",
+       "description": "Interactive demonstration of common nmap commands"
      },
      {
-       "id": "auth-flows",
-       "title": "Authentication Flows",
-       "file": "authentication-flows.html",
-       "description": "Step-by-step visualization of various authentication protocols and methods"
+       "id": "OSI Model",
+       "title": "3",
+       "file": "osi.html",
+       "description": "Side-by-side visualization of the OSI and TCP/IP model"
      }
     ]
   }

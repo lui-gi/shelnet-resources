@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelnet OSI Visualizer</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* SHELNET DESIGN - LOOSE ADHERENCE */
+        :root {
+            --bg: #000000;
+            --border: rgba(255, 255, 255, 0.15);
+            --text-main: #ffffff;
+            --text-mute: rgba(255, 255, 255, 0.5);
+            --accent: #22c55e; /* Green-500 */
+            --accent-glow: rgba(34, 197, 94, 0.2);
+            --font-main: 'Helvetica Neue', Arial, sans-serif;
+            --font-mono: 'Courier New', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* HEADER */
+        header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 { font-size: 1.2rem; text-transform: uppercase; letter-spacing: -0.05em; }
+        .subtitle { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-mute); }
+
+        /* MAIN LAYOUT */
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            gap: 4rem; /* Space between stacks */
+        }
+
+        /* STACKS */
+        .stack-container {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+        }
+
+        .stack-title {
+            text-align: center;
+            margin-bottom: 1rem;
+            font-family: var(--font-mono);
+            color: var(--text-mute);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .layer-box {
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.02);
+            margin-bottom: 4px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .layer-box:hover {
+            background: var(--accent-glow);
+            border-color: var(--accent);
+            transform: translateX(-5px);
+        }
+
+        /* Number badge */
+        .layer-num {
+            font-family: var(--font-mono);
+            color: var(--text-mute);
+            font-size: 0.8rem;
+            margin-right: 10px;
+        }
+
+        /* Active State (triggered by JS mapping) */
+        .layer-box.highlight {
+            background: var(--accent-glow);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* TCP/IP Specific Sizing to match OSI height */
+        /* OSI is 7 layers x (height + margin). Let's make TCP/IP layers taller to match visually */
+        .tcp-app { height: calc((60px * 3) + 8px); } /* Covers L7, L6, L5 */
+        .tcp-trans { height: 60px; } /* Covers L4 */
+        .tcp-net { height: 60px; } /* Covers L3 */
+        .tcp-link { height: calc((60px * 2) + 4px); } /* Covers L2, L1 */
+        
+        .osi-layer { height: 60px; }
+
+        /* MAPPING LINES (SVG) */
+        #connections {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* POPUP MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal {
+            background: #0a0a0a;
+            border: 1px solid var(--accent);
+            width: 500px;
+            max-width: 90%;
+            padding: 2rem;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .modal-title { color: var(--accent); font-size: 1.5rem; text-transform: uppercase; font-weight: bold; }
+        .close-btn { background: none; border: none; color: var(--text-mute); cursor: pointer; }
+        .close-btn:hover { color: var(--text-main); }
+
+        .modal-content p { margin-bottom: 1rem; line-height: 1.5; color: var(--text-mute); }
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+        .data-item { background: rgba(255,255,255,0.05); padding: 0.75rem; border: 1px solid var(--border); }
+        .data-label { display: block; font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent); margin-bottom: 5px; }
+        .data-val { font-weight: bold; }
+
+        /* INSTRUCTION */
+        .instruction {
+            position: absolute;
+            bottom: 2rem;
+            font-family: var(--font-mono);
+            color: var(--text-mute);
+            font-size: 0.8rem;
+            background: rgba(255,255,255,0.05);
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>OSI // <span style="color: var(--accent)">TCP/IP</span></h1>
+        </div>
+        <div class="subtitle">Reference: ISO/OSI vs TCP/IP (DoD)</div>
+    </header>
+
+    <main>
+        <div class="stack-container">
+            <div class="stack-title">OSI Model (Conceptual)</div>
+            <div id="osi-7" class="layer-box osi-layer" data-map="tcp-4">
+                <span class="layer-num">07</span> Application
+            </div>
+            <div id="osi-6" class="layer-box osi-layer" data-map="tcp-4">
+                <span class="layer-num">06</span> Presentation
+            </div>
+            <div id="osi-5" class="layer-box osi-layer" data-map="tcp-4">
+                <span class="layer-num">05</span> Session
+            </div>
+            <div id="osi-4" class="layer-box osi-layer" data-map="tcp-3">
+                <span class="layer-num">04</span> Transport
+            </div>
+            <div id="osi-3" class="layer-box osi-layer" data-map="tcp-2">
+                <span class="layer-num">03</span> Network
+            </div>
+            <div id="osi-2" class="layer-box osi-layer" data-map="tcp-1">
+                <span class="layer-num">02</span> Data Link
+            </div>
+            <div id="osi-1" class="layer-box osi-layer" data-map="tcp-1">
+                <span class="layer-num">01</span> Physical
+            </div>
+        </div>
+
+        <div class="stack-container">
+            <div class="stack-title">TCP/IP Model (Practical)</div>
+            
+            <div id="tcp-4" class="layer-box tcp-app" data-map="osi-7,osi-6,osi-5">
+                <span class="layer-num">04</span> Application
+                <i data-lucide="layers" style="opacity:0.3"></i>
+            </div>
+            
+            <div id="tcp-3" class="layer-box tcp-trans" data-map="osi-4">
+                <span class="layer-num">03</span> Transport
+                <i data-lucide="container" style="opacity:0.3"></i>
+            </div>
+            
+            <div id="tcp-2" class="layer-box tcp-net" data-map="osi-3">
+                <span class="layer-num">02</span> Internet
+                <i data-lucide="globe" style="opacity:0.3"></i>
+            </div>
+            
+            <div id="tcp-1" class="layer-box tcp-link" data-map="osi-2,osi-1">
+                <span class="layer-num">01</span> Network Interface
+                <i data-lucide="cable" style="opacity:0.3"></i>
+            </div>
+        </div>
+
+        <div class="instruction">
+            HOVER to map connections. CLICK for layer details.
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">LAYER NAME</div>
+                <button class="close-btn" onclick="closeModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-content">
+                <p id="modalDesc">Description goes here.</p>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <span class="data-label">PROTOCOLS</span>
+                        <span class="data-val" id="modalProto">HTTP, FTP</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">PDU (UNIT)</span>
+                        <span class="data-val" id="modalPdu">Packet</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">DEVICE</span>
+                        <span class="data-val" id="modalDevice">Router</span>
+                    </div>
+                    <div class="data-item">
+                        <span class="data-label">FUNCTION</span>
+                        <span class="data-val" id="modalFunc">Path Selection</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // LAYER DATA DATABASE
+        const layerData = {
+            // OSI
+            "osi-7": { title: "Application Layer", desc: "The layer the user actually interacts with. It provides network services to applications (like a web browser or email client).", proto: "HTTP, DNS, SMTP", pdu: "Data", device: "PC / Phone", func: "User Interface" },
+            "osi-6": { title: "Presentation Layer", desc: "Ensures data is readable by the receiving system. Handles encryption, decryption, and formatting (e.g., turning binary into a JPEG).", proto: "SSL/TLS, JPEG, ASCII", pdu: "Data", device: "PC / Gateway", func: "Encryption/Format" },
+            "osi-5": { title: "Session Layer", desc: "Manages the conversation (session) between two devices. Controls when connections start, stop, or restart.", proto: "NetBIOS, RPC", pdu: "Data", device: "PC / Gateway", func: "Session Mgmt" },
+            "osi-4": { title: "Transport Layer", desc: "Responsible for end-to-end communication. Decides how much data to send and checks if it arrived correctly.", proto: "TCP, UDP", pdu: "Segment/Datagram", device: "Firewall", func: "Reliability" },
+            "osi-3": { title: "Network Layer", desc: "Determines the best path for data to travel across different networks (Routing). Uses logical addressing (IP).", proto: "IPv4, IPv6, ICMP", pdu: "Packet", device: "Router", func: "Routing (Path)" },
+            "osi-2": { title: "Data Link Layer", desc: "Handles physical addressing (MAC) and moves data between devices on the SAME network.", proto: "Ethernet, Wi-Fi", pdu: "Frame", device: "Switch", func: "Switching" },
+            "osi-1": { title: "Physical Layer", desc: "The physical hardware and transmission medium. Turns binary data into electrical, light, or radio signals.", proto: "100Base-T, 802.11", pdu: "Bits", device: "Hub/Cable", func: "Transmission" },
+            
+            // TCP/IP
+            "tcp-4": { title: "TCP/IP Application", desc: "Combines OSI Layers 5, 6, and 7 into one. It handles all high-level logic, including formatting and session management.", proto: "HTTP, FTP, SSH", pdu: "Data", device: "Host", func: "High-level Logic" },
+            "tcp-3": { title: "TCP/IP Transport", desc: "Directly maps to OSI Transport. Handles flow control and error checking.", proto: "TCP, UDP", pdu: "Segment", device: "Host/Firewall", func: "End-to-End Conn" },
+            "tcp-2": { title: "TCP/IP Internet", desc: "Equivalent to OSI Network. Handles IP addressing and routing packets across networks.", proto: "IP, ARP, ICMP", pdu: "Packet", device: "Router", func: "Logical Addressing" },
+            "tcp-1": { title: "Network Interface", desc: "Combines OSI Layers 1 and 2. Handles the physical hardware and the MAC addressing logic together.", proto: "Ethernet, DSL", pdu: "Frame/Bits", device: "NIC/Switch", func: "Physical Access" }
+        };
+
+        // INTERACTION LOGIC
+        const boxes = document.querySelectorAll('.layer-box');
+        const modal = document.getElementById('modalOverlay');
+
+        // Hover Mapping
+        boxes.forEach(box => {
+            box.addEventListener('mouseenter', () => {
+                const targetIds = box.getAttribute('data-map').split(',');
+                targetIds.forEach(id => {
+                    document.getElementById(id).classList.add('highlight');
+                });
+            });
+
+            box.addEventListener('mouseleave', () => {
+                const targetIds = box.getAttribute('data-map').split(',');
+                targetIds.forEach(id => {
+                    document.getElementById(id).classList.remove('highlight');
+                });
+            });
+
+            // Click for Details
+            box.addEventListener('click', () => {
+                const data = layerData[box.id];
+                if(data) {
+                    document.getElementById('modalTitle').innerText = data.title;
+                    document.getElementById('modalDesc').innerText = data.desc;
+                    document.getElementById('modalProto').innerText = data.proto;
+                    document.getElementById('modalPdu').innerText = data.pdu;
+                    document.getElementById('modalDevice').innerText = data.device;
+                    document.getElementById('modalFunc').innerText = data.func;
+                    modal.style.display = 'flex';
+                }
+            });
+        });
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Close on clicking background
+        modal.addEventListener('click', (e) => {
+            if(e.target === modal) closeModal();
+        });
+
+    </script>
+</body>
+</html>
