@@ -3,361 +3,416 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Public Key Cryptography (RSA) Visualizer</title>
+    <title>Shelnet // Pipeline Protocol</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // PRIMARY THEME: BLUE (Cyan/Sky)
+                        theme: { 400: '#38bdf8', 500: '#0ea5e9', 900: '#0c4a6e' },
+                        // SECONDARY: INDIGO (For Receiver distinction)
+                        sec: { 400: '#818cf8', 500: '#6366f1', 900: '#312e81' },
+                        // DANGER: RED
+                        danger: { 400: '#f87171', 500: '#ef4444' }
+                    },
+                    fontFamily: {
+                        sans: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+                        mono: ['Courier New', 'Courier', 'monospace'],
+                    },
+                    animation: {
+                        'blink': 'blink 1s step-end infinite',
+                        'scan': 'scan 4s linear infinite',
+                    },
+                    keyframes: {
+                        blink: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0' } },
+                        scan: { '0%': { backgroundPosition: '0% 0%' }, '100%': { backgroundPosition: '0% 100%' } }
+                    }
+                }
+            }
+        }
+    </script>
+    
     <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-color: #e2e8f0;
-            --accent-blue: #38bdf8;
-            --accent-green: #4ade80;
-            --accent-purple: #c084fc;
-            --border-color: #334155;
+        body { background-color: #000; color: #fff; }
+        
+        /* CRT Scanline Effect for the "Internet" Zone */
+        .scanlines {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        h1 { margin-bottom: 10px; color: var(--accent-blue); }
-        p.subtitle { color: #94a3b8; margin-bottom: 30px; max-width: 600px; text-align: center; }
-
-        .container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            max-width: 1000px;
-            width: 100%;
-        }
-
-        /* Full width card for Key Gen */
-        .full-width { grid-column: 1 / -1; }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-            position: relative;
-        }
-
-        .card h2 {
-            margin-top: 0;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .step-badge {
-            background-color: var(--accent-blue);
-            color: var(--bg-color);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-            color: #94a3b8;
-        }
-
-        input[type="number"] {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 8px;
-            border-radius: 6px;
-            width: 100px;
-            font-family: monospace;
-        }
-
-        .math-display {
-            background: rgba(0,0,0,0.3);
-            padding: 10px;
-            border-radius: 6px;
-            font-family: 'Courier New', Courier, monospace;
-            color: var(--accent-green);
-            margin-top: 5px;
-            font-size: 0.9rem;
-            word-break: break-all;
-        }
-
-        .highlight { color: var(--accent-purple); font-weight: bold; }
-        .result-box {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px dashed var(--border-color);
-        }
-
-        .arrow-down {
-            text-align: center;
-            font-size: 2rem;
-            color: var(--border-color);
-            margin: 10px 0;
-            grid-column: 1 / -1;
-        }
-
-        .controls {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        button {
-            background-color: var(--accent-blue);
-            color: var(--bg-color);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: opacity 0.2s;
-        }
-        button:hover { opacity: 0.9; }
-        button.secondary {
-            background-color: transparent;
-            border: 1px solid var(--accent-blue);
-            color: var(--accent-blue);
-        }
-
-        /* Specific Role Colors */
-        .role-p1 { border-left: 4px solid var(--accent-purple); }
-        .role-p2 { border-left: 4px solid var(--accent-green); }
-
+        /* Utility */
+        .glass-panel { background: rgba(56, 189, 248, 0.03); backdrop-filter: blur(2px); }
+        .dashed-zone { background-image: radial-gradient(#38bdf8 1px, transparent 1px); background-size: 20px 20px; opacity: 0.1; }
+        
+        /* Animation Classes */
+        .travel-left { transition: all 1.5s ease-in-out; transform: translateX(-220%); } /* Moves from Right to Left */
+        .travel-right { transition: all 1.5s ease-in-out; transform: translateX(220%); }  /* Moves from Left to Right */
+        .travel-reset { transition: none; transform: translateX(0); }
     </style>
 </head>
-<body>
+<body class="bg-black text-white min-h-screen font-sans selection:bg-theme-500/30 flex flex-col p-4 overflow-x-hidden">
 
-    <h1>RSA Algorithm Laboratory</h1>
-    <p class="subtitle">An interactive demonstration of the math behind Public Key Cryptography.</p>
+    <header class="mb-4 border-b border-white/10 pb-4 flex justify-between items-end max-w-7xl mx-auto w-full">
+        <div>
+            <h1 class="text-2xl md:text-4xl font-bold text-white mb-1 tracking-tight uppercase">
+                <span class="text-theme-400">SECURE</span> PIPELINE
+            </h1>
+            <div class="text-[10px] md:text-xs text-white/40 uppercase tracking-widest font-mono">
+                ./protocols/transport_layer_security.sh
+            </div>
+        </div>
+        <div class="text-right">
+             <span id="statusIndicator" class="px-2 py-1 text-[10px] font-mono uppercase tracking-wider rounded border
+             bg-theme-500/10 border-theme-500/50 text-theme-400 animate-pulse">
+                CHANNEL IDLE
+            </span>
+        </div>
+    </header>
 
-    <div class="container">
-        
-        <div class="card full-width role-p1">
-            <h2><span class="step-badge">Step 1</span> Person 1: Generate Keys</h2>
-            <p style="font-size: 0.9rem; color: #ccc;">Person 1 needs to create a Public Key (to share) and a Private Key (to keep).</p>
+    <main class="flex-grow flex flex-col lg:flex-row gap-4 max-w-7xl mx-auto w-full relative">
+
+        <section class="flex-1 border border-theme-500/30 rounded-lg p-4 flex flex-col relative bg-black z-20">
+            <div class="flex items-center gap-2 mb-4 border-b border-theme-500/20 pb-2">
+                <div class="w-2 h-2 bg-theme-500 rounded-full"></div>
+                <h2 class="font-mono text-theme-400 text-sm tracking-wider">NODE_ALPHA (SENDER)</h2>
+            </div>
+
+            <div class="space-y-6 flex-grow flex flex-col justify-center">
+                
+                <div id="stepInput" class="opacity-30 transition-opacity duration-500">
+                    <label class="text-[10px] font-mono text-white/40 uppercase block mb-2">1. Compose Message</label>
+                    <input type="text" id="inputMsg" disabled placeholder="WAITING FOR KEY..." 
+                           class="w-full bg-theme-900/10 border border-theme-500/30 rounded p-3 font-mono text-lg text-theme-400 focus:outline-none focus:border-theme-400 placeholder-theme-700/50 mb-2 uppercase">
+                </div>
+
+                <div class="border border-dashed border-white/20 rounded p-3 h-24 flex items-center justify-center relative bg-white/5">
+                    <div id="slotPubKey" class="text-xs font-mono text-white/20 text-center">
+                        [ PUBLIC KEY SLOT ]<br>EMPTY
+                    </div>
+                    
+                    <div id="objPubKey_Alpha" class="absolute inset-0 m-1 bg-sec-900/90 border border-sec-400 rounded flex items-center justify-center hidden shadow-[0_0_15px_rgba(99,102,241,0.4)]">
+                        <div class="text-center">
+                            <div class="text-[10px] text-sec-300 uppercase">Public Key</div>
+                            <div class="font-mono text-white font-bold text-lg">🔑 (N, E)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btnSend" disabled onclick="actionEncrypt()" 
+                        class="w-full py-3 font-mono text-sm border rounded transition-all duration-200 
+                               bg-theme-500/5 border-theme-500/20 text-theme-500/50 cursor-not-allowed
+                               group-enabled:hover:bg-theme-500/20 group-enabled:hover:border-theme-400">
+                    [ ENCRYPT & TRANSMIT ]
+                </button>
+            </div>
+        </section>
+
+
+        <section class="flex-[1.5] border-y lg:border-x lg:border-y-0 border-dashed border-white/10 bg-[#050505] relative overflow-hidden flex flex-col justify-between z-10 min-h-[300px]">
             
-            <div class="controls">
-                <div class="input-group">
-                    <label>Prime p</label>
-                    <input type="number" id="val-p" value="157" oninput="calculateKeys()">
-                </div>
-                <div class="input-group">
-                    <label>Prime q</label>
-                    <input type="number" id="val-q" value="199" oninput="calculateKeys()">
-                </div>
-                <div class="input-group">
-                    <label>Exponent e (Public)</label>
-                    <input type="number" id="val-e" value="163" oninput="calculateKeys()">
-                </div>
-                <button class="secondary" onclick="loadExample()">Reset to Example Values</button>
+            <div class="absolute inset-0 dashed-zone"></div>
+            <div class="absolute inset-0 scanlines opacity-20 pointer-events-none"></div>
+
+            <div class="absolute top-2 left-0 right-0 text-center">
+                <span class="bg-black/80 px-2 py-1 text-[10px] font-mono text-danger-500 border border-danger-500/30 rounded">
+                    ⚠️ UNSECURE PUBLIC NETWORK
+                </span>
             </div>
 
-            <div class="math-display" id="key-math">
+            <div class="mt-12 mx-4 mb-4 flex-grow border border-danger-900/50 bg-black/80 rounded font-mono text-[10px] p-2 overflow-hidden flex flex-col relative shadow-[0_0_20px_rgba(239,68,68,0.05)]">
+                <div class="border-b border-danger-900/50 pb-1 mb-1 text-danger-700 uppercase flex justify-between">
+                    <span>packet_sniffer.exe</span>
+                    <span class="animate-pulse">● REC</span>
+                </div>
+                <div id="snifferLog" class="flex-grow overflow-y-auto space-y-1 text-danger-400/80 p-1">
+                    <div class="opacity-50">> Monitoring traffic...</div>
+                </div>
+            </div>
+
+            </section>
+
+
+        <section class="flex-1 border border-sec-500/30 rounded-lg p-4 flex flex-col relative bg-black z-20">
+            <div class="flex items-center gap-2 mb-4 border-b border-sec-500/20 pb-2 justify-end">
+                <h2 class="font-mono text-sec-400 text-sm tracking-wider">NODE_BETA (RECEIVER)</h2>
+                <div class="w-2 h-2 bg-sec-500 rounded-full"></div>
+            </div>
+
+            <div class="space-y-6 flex-grow flex flex-col justify-center">
+                
+                <div id="stepGen" class="text-center">
+                    <button id="btnGen" onclick="actionGenerate()" 
+                            class="w-full py-4 font-mono text-sm border rounded transition-all duration-200 
+                                   bg-sec-500/10 border-sec-500/50 text-sec-400 
+                                   hover:bg-sec-500/20 hover:shadow-[0_0_15px_rgba(129,140,248,0.3)]">
+                        [ 1. GENERATE KEYS ]
+                    </button>
+                    <p class="text-[10px] text-white/30 mt-2 font-mono">Create Public (Lock) & Private (Key)</p>
                 </div>
 
-            <div class="result-box">
-                <div style="display: flex; gap: 20px;">
-                    <div>
-                        <label>🔑 Public Key (n, e)</label>
-                        <div class="math-display" style="color: var(--accent-blue)" id="pub-key-display">(31243, 163)</div>
-                        <small>Shared with Person 2</small>
+                <div class="border border-sec-500/20 bg-sec-900/5 rounded p-3 min-h-[100px] relative">
+                    <div class="text-[10px] text-sec-500/50 uppercase mb-2 border-b border-sec-500/10">Secure Vault</div>
+                    
+                    <div id="objPrivKey" class="hidden flex items-center gap-2 text-sec-400 mb-2">
+                        <span class="text-xl">🗝️</span>
+                        <span class="font-mono text-xs">PRIVATE KEY<br><span class="opacity-50 text-[10px]">(d=103) KEEP SAFE</span></span>
                     </div>
-                    <div>
-                        <label>🔒 Private Key (n, d)</label>
-                        <div class="math-display" style="color: var(--accent-purple)" id="priv-key-display">(31243, 379)</div>
-                        <small>Kept Secret</small>
+
+                    <div id="objPubKey_Beta" class="hidden absolute top-10 right-2 w-3/4 p-2 bg-sec-900 border border-sec-400 rounded cursor-pointer hover:bg-sec-800 transition-colors z-30 shadow-lg"
+                         onclick="actionSendKey()">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-xs font-bold text-white">🔑 PUBLIC KEY</span>
+                            <span class="text-[10px] text-sec-300 animate-pulse">CLICK TO SEND &larr;</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="arrow-down">⬇</div>
-
-        <div class="card role-p2">
-            <h2><span class="step-badge">Step 2</span> Person 2: Encrypt</h2>
-            <p style="font-size: 0.9rem; color: #ccc;">Person 2 wants to send the number "13". They use Person 1's Public Key.</p>
-
-            <div class="input-group">
-                <label>Message (x)</label>
-                <input type="number" id="val-msg" value="13" oninput="encrypt()">
-            </div>
-
-            <div class="math-display" id="encrypt-math">
-                Calculating...
-            </div>
-
-            <div class="result-box">
-                <label>Ciphertext (y)</label>
-                <div class="math-display" style="font-size: 1.2rem; color: var(--accent-green);" id="ciphertext-display">
-                    16341
+                <div class="mt-auto pt-4 border-t border-white/10">
+                    <label class="text-[10px] font-mono text-white/40 uppercase block mb-2">Inbox</label>
+                    <div id="inbox" class="bg-black border border-white/10 p-3 min-h-[60px] rounded font-mono text-center flex items-center justify-center text-white/20 text-xs">
+                        [ EMPTY ]
+                    </div>
+                    
+                    <button id="btnDecrypt" disabled onclick="actionDecrypt()" 
+                            class="mt-2 w-full py-2 font-mono text-xs border rounded opacity-50 cursor-not-allowed
+                                   border-white/10 text-white/30">
+                        [ DECRYPT ]
+                    </button>
                 </div>
-                <small>This "scrambled" number is sent over the internet.</small>
+
             </div>
-        </div>
+            
+            <button id="btnReset" onclick="location.reload()" class="hidden absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center text-white font-mono backdrop-blur-sm">
+                <div class="text-theme-400 text-xl mb-2">TRANSMISSION COMPLETE</div>
+                <div class="border border-white/30 px-4 py-2 hover:bg-white/10 text-xs">[ RESET SYSTEM ]</div>
+            </button>
+        </section>
 
-        <div class="card role-p1">
-            <h2><span class="step-badge">Step 3</span> Person 1: Decrypt</h2>
-            <p style="font-size: 0.9rem; color: #ccc;">Person 1 receives the ciphertext and uses their Private Key.</p>
+    </main>
 
-            <div class="input-group">
-                <label>Received Ciphertext (y)</label>
-                <input type="number" id="val-cipher" disabled value="16341" style="background: #334155; cursor: not-allowed;">
-            </div>
-
-            <div class="math-display" id="decrypt-math">
-                Calculating...
-            </div>
-
-            <div class="result-box">
-                <label>Decrypted Message (x)</label>
-                <div class="math-display" style="font-size: 1.2rem; color: var(--accent-purple);" id="decrypted-display">
-                    13
-                </div>
-                <small>The original message is recovered!</small>
-            </div>
-        </div>
-
+    <div id="animContainer" class="fixed inset-0 pointer-events-none z-50 overflow-hidden hidden">
+        <div id="animObject" class="absolute shadow-2xl transition-transform ease-linear"></div>
     </div>
 
+
     <script>
-        // Use BigInt for all RSA calculations to avoid precision errors with large numbers
-        
-        function power(base, exp, mod) {
+        // --- CONFIG ---
+        const sys = {
+            state: 0, // 0:Idle, 1:KeysGen, 2:KeySent, 3:MsgReady, 4:MsgSent, 5:MsgRecv, 6:Done
+            p: 11, q: 13, n: 143, e: 7, d: 103, // Hardcoded small primes for demo
+            msgRaw: "",
+            msgEnc: []
+        };
+
+        // --- DOM ELEMENTS ---
+        const els = {
+            status: document.getElementById('statusIndicator'),
+            btnGen: document.getElementById('btnGen'),
+            stepGen: document.getElementById('stepGen'),
+            vaultPriv: document.getElementById('objPrivKey'),
+            vaultPub: document.getElementById('objPubKey_Beta'),
+            
+            inputDiv: document.getElementById('stepInput'),
+            input: document.getElementById('inputMsg'),
+            slotPub: document.getElementById('slotPubKey'),
+            slotPubObj: document.getElementById('objPubKey_Alpha'),
+            btnSend: document.getElementById('btnSend'),
+            
+            log: document.getElementById('snifferLog'),
+            
+            inbox: document.getElementById('inbox'),
+            btnDecrypt: document.getElementById('btnDecrypt'),
+            btnReset: document.getElementById('btnReset')
+        };
+
+        // --- MATH ENGINE (Standard RSA) ---
+        const modPow = (base, exp, mod) => {
             let res = 1n;
-            base = base % mod;
-            while (exp > 0n) {
-                if (exp % 2n === 1n) res = (res * base) % mod;
-                exp = exp / 2n;
-                base = (base * base) % mod;
+            base = BigInt(base) % BigInt(mod);
+            let e = BigInt(exp);
+            let m = BigInt(mod);
+            while (e > 0n) {
+                if (e % 2n === 1n) res = (res * base) % m;
+                e = e / 2n;
+                base = (base * base) % m;
             }
-            return res;
+            return Number(res);
+        };
+
+        const stringToChuncks = (str) => {
+            const arr = [];
+            for(let i=0; i<str.length; i++) arr.push(str.charCodeAt(i));
+            return arr;
+        };
+
+        // --- ACTIONS ---
+
+        function updateStatus(msg, color='text-theme-400') {
+            els.status.className = `px-2 py-1 text-[10px] font-mono uppercase tracking-wider rounded border bg-${color.split('-')[1]}-500/10 border-${color.split('-')[1]}-500/50 ${color}`;
+            els.status.innerText = msg;
         }
 
-        // Extended Euclidean Algorithm to find modular inverse (d)
-        function modInverse(e, phi) {
-            let m0 = phi, t, q;
-            let x0 = 0n, x1 = 1n;
-            if (phi === 1n) return 0n;
-            while (e > 1n) {
-                q = e / phi;
-                t = phi;
-                phi = e % phi;
-                e = t;
-                t = x0;
-                x0 = x1 - q * x0;
-                x1 = t;
-            }
-            if (x1 < 0n) x1 += m0;
-            return x1;
+        function logSniff(msg, isDanger=false) {
+            const line = document.createElement('div');
+            line.className = isDanger ? 'text-danger-500 font-bold bg-danger-900/20' : 'text-danger-400/80';
+            line.innerText = `> ${msg}`;
+            els.log.appendChild(line);
+            els.log.scrollTop = els.log.scrollHeight;
         }
 
-        function calculateKeys() {
-            try {
-                const p = BigInt(document.getElementById('val-p').value);
-                const q = BigInt(document.getElementById('val-q').value);
-                let e = BigInt(document.getElementById('val-e').value);
+        // STEP 1: GENERATE KEYS
+        function actionGenerate() {
+            sys.state = 1;
+            
+            // Visual Update
+            els.btnGen.style.display = 'none';
+            els.vaultPriv.classList.remove('hidden');
+            els.vaultPub.classList.remove('hidden'); // Show clickable public key
+            
+            updateStatus("KEYS GENERATED. WAITING FOR TRANSFER.", "text-sec-400");
+            logSniff("Activity detected in NODE_BETA.");
+        }
 
-                const n = p * q;
-                const phi = (p - 1n) * (q - 1n);
+        // STEP 2: SEND PUBLIC KEY (Right to Left)
+        function actionSendKey() {
+            if(sys.state !== 1) return;
+            sys.state = 2;
+            
+            // 1. Hide original
+            els.vaultPub.classList.add('hidden');
+            
+            // 2. Create Flying Clone
+            const flyer = document.createElement('div');
+            flyer.className = "fixed z-50 bg-sec-500 text-white font-mono text-xs px-4 py-2 rounded shadow-[0_0_20px_rgba(99,102,241,0.8)] border border-white top-1/2 left-[75%]";
+            flyer.style.transition = "all 2s ease-in-out";
+            flyer.innerHTML = "🔑 PUB_KEY (143, 7)";
+            document.body.appendChild(flyer);
+            
+            updateStatus("TRANSFERRING PUBLIC KEY...", "text-white");
+            
+            // 3. Trigger Animation (Wait for DOM render)
+            setTimeout(() => {
+                flyer.style.left = "25%"; // Move to Sender Zone
                 
-                // Calculate d (Private Key Exponent)
-                const d = modInverse(e, phi);
+                // Sniffer Event
+                setTimeout(() => {
+                    logSniff("INTERCEPTED: Public Key {N:143, E:7}");
+                    logSniff("ANALYSIS: Harmless. Cannot decrypt with this.");
+                }, 1000);
+            }, 50);
 
-                // Update UI for Key Gen
-                document.getElementById('key-math').innerHTML = `
-                    n = p × q = ${p} × ${q} = <span class="highlight">${n}</span><br>
-                    φ(n) = (p-1)(q-1) = ${p-1n} × ${q-1n} = ${phi}<br>
-                    d calculated via modular inverse: <span class="highlight">${d}</span>
-                `;
-
-                document.getElementById('pub-key-display').textContent = `(${n}, ${e})`;
-                document.getElementById('priv-key-display').textContent = `(${n}, ${d})`;
-
-                // Trigger Encryption Update since Keys changed
-                encrypt(n, e, d);
-
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        function encrypt(nInput, eInput, dInput) {
-            try {
-                // Fetch latest keys if not provided
-                const p = BigInt(document.getElementById('val-p').value);
-                const q = BigInt(document.getElementById('val-q').value);
-                const n = p * q;
-                const e = BigInt(document.getElementById('val-e').value);
-                const phi = (p - 1n) * (q - 1n);
-                const d = modInverse(e, phi);
-
-                const msg = BigInt(document.getElementById('val-msg').value);
-
-                // C = M^e mod n
-                const ciphertext = power(msg, e, n);
-
-                // Update Encryption UI
-                document.getElementById('encrypt-math').innerHTML = `
-                    y = x<sup>e</sup> mod n<br>
-                    y = ${msg}<sup>${e}</sup> mod ${n}<br>
-                    y = <span class="highlight">${ciphertext}</span>
-                `;
-                document.getElementById('ciphertext-display').innerText = ciphertext;
+            // 4. Land
+            setTimeout(() => {
+                flyer.remove();
+                els.slotPub.style.display = 'none';
+                els.slotPubObj.classList.remove('hidden');
                 
-                // Update Decryption input
-                document.getElementById('val-cipher').value = ciphertext;
+                // Unlock Input
+                els.inputDiv.classList.remove('opacity-30');
+                els.input.disabled = false;
+                els.input.placeholder = "ENTER MESSAGE...";
+                els.input.focus();
                 
-                decrypt(ciphertext, d, n);
+                // Listen for input to enable button
+                els.input.addEventListener('keyup', () => {
+                    if(els.input.value.length > 0) {
+                        els.btnSend.disabled = false;
+                        els.btnSend.className = "w-full py-3 font-mono text-sm border rounded transition-all duration-200 bg-theme-500/20 border-theme-500 text-theme-400 shadow-[0_0_15px_rgba(14,165,233,0.3)] hover:bg-theme-500/30 cursor-pointer";
+                        els.btnSend.innerText = "[ ENCRYPT & TRANSMIT ]";
+                    }
+                });
 
-            } catch (err) {
-                 // Ignore incomplete inputs
-            }
+                sys.state = 3;
+                updateStatus("SECURE CHANNEL ESTABLISHED", "text-theme-400");
+            }, 2000);
         }
 
-        function decrypt(ciphertext, d, n) {
-            try {
-                // M = C^d mod n
-                const decrypted = power(ciphertext, d, n);
+        // STEP 3: ENCRYPT & SEND (Left to Right)
+        function actionEncrypt() {
+            if(sys.state !== 3) return;
+            const text = els.input.value.toUpperCase();
+            if(!text) return;
 
-                document.getElementById('decrypt-math').innerHTML = `
-                    x = y<sup>d</sup> mod n<br>
-                    x = ${ciphertext}<sup>${d}</sup> mod ${n}<br>
-                    x = <span class="highlight">${decrypted}</span>
-                `;
-                document.getElementById('decrypted-display').innerText = decrypted;
-            } catch (err) {
-                console.error(err);
-            }
+            sys.msgRaw = text;
+            const chunks = stringToChuncks(text);
+            sys.msgEnc = chunks.map(c => modPow(c, sys.e, sys.n)); // Encrypt
+            
+            sys.state = 4;
+            
+            // 1. Lock Sender
+            els.input.disabled = true;
+            els.btnSend.disabled = true;
+            els.btnSend.innerText = "TRANSMITTING...";
+            
+            // 2. Create Flying Payload
+            const flyer = document.createElement('div');
+            flyer.className = "fixed z-50 bg-danger-600 text-white font-mono text-xs px-4 py-3 rounded shadow-[0_0_20px_rgba(239,68,68,0.8)] border border-white top-1/2 left-[25%]";
+            flyer.style.transition = "all 2s ease-in-out";
+            // Show Ciphertext in flyer
+            flyer.innerHTML = `<div class='flex items-center gap-2'><span>🔒</span> <span>[ ${sys.msgEnc.slice(0,3).join(' ')}... ]</span></div>`;
+            document.body.appendChild(flyer);
+            
+            updateStatus("TRANSMITTING ENCRYPTED PAYLOAD...", "text-danger-400");
+
+            // 3. Trigger Animation
+            setTimeout(() => {
+                flyer.style.left = "75%"; // Move to Receiver Zone
+                
+                // Sniffer Event
+                setTimeout(() => {
+                    logSniff(`INTERCEPTED: DATA [ ${sys.msgEnc.join(', ')} ]`, true);
+                    logSniff("ATTEMPTING BRUTE FORCE...");
+                    setTimeout(() => logSniff("FAIL: Missing Private Key."), 500);
+                }, 1000);
+            }, 50);
+
+            // 4. Land
+            setTimeout(() => {
+                flyer.remove();
+                
+                // Populate Inbox
+                els.inbox.className = "bg-danger-900/20 border border-danger-500/50 p-3 min-h-[60px] rounded font-mono text-center flex flex-col items-center justify-center text-danger-400 text-xs";
+                els.inbox.innerHTML = `<div class="font-bold mb-1">🔒 ENCRYPTED DATA</div><div class="opacity-70 break-all">[ ${sys.msgEnc.join(' ')} ]</div>`;
+                
+                // Enable Decrypt
+                els.btnDecrypt.disabled = false;
+                els.btnDecrypt.className = "mt-2 w-full py-2 font-mono text-xs border rounded bg-sec-500/20 border-sec-500 text-sec-300 hover:bg-sec-500/30 hover:shadow-[0_0_10px_rgba(99,102,241,0.5)] cursor-pointer";
+                els.btnDecrypt.innerHTML = "[ USE PRIVATE KEY TO DECRYPT ]";
+
+                sys.state = 5;
+                updateStatus("PACKAGE RECEIVED. LOCKED.", "text-sec-400");
+            }, 2000);
         }
 
-        function loadExample() {
-            document.getElementById('val-p').value = 157;
-            document.getElementById('val-q').value = 199;
-            document.getElementById('val-e').value = 163;
-            document.getElementById('val-msg').value = 13;
-            calculateKeys();
+        // STEP 4: DECRYPT
+        function actionDecrypt() {
+            if(sys.state !== 5) return;
+            
+            // Animation
+            els.btnDecrypt.innerText = "CALCULATING M = C^d mod N...";
+            
+            setTimeout(() => {
+                // Reveal
+                els.inbox.className = "bg-theme-500/10 border border-theme-500 p-3 min-h-[60px] rounded font-mono text-center flex flex-col items-center justify-center text-white text-lg font-bold shadow-[0_0_20px_rgba(14,165,233,0.3)]";
+                els.inbox.innerText = sys.msgRaw;
+                
+                els.btnDecrypt.style.display = 'none';
+                updateStatus("DECRYPTION SUCCESSFUL", "text-theme-400");
+                
+                // Show Reset
+                setTimeout(() => {
+                    els.btnReset.classList.remove('hidden');
+                }, 1000);
+            }, 800);
         }
 
         // Init
-        loadExample();
+        logSniff("Network Initialized.");
+        logSniff("Waiting for handshake...");
 
     </script>
 </body>
