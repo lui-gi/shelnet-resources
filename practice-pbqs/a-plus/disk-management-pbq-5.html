@@ -178,7 +178,7 @@
                 <!-- Bottom Pane: Graphical View -->
                 <div class="flex-grow h-2/3 overflow-auto p-4 space-y-4">
                     <!-- Disk 0 -->
-                    <div class="flex h-20">
+                    <div class="flex h-20" oncontextmenu="showContextMenu(event)">
                         <div class="w-28 text-sm p-2 bg-gray-100 border-r border-gray-300/50 flex flex-col justify-center">
                             <strong>Disk 0</strong>
                             <span class="text-xs">Basic</span>
@@ -193,7 +193,7 @@
                         </div>
                     </div>
                     <!-- Disk 1 (The Target) -->
-                    <div class="flex h-20">
+                    <div class="flex h-20" oncontextmenu="showContextMenu(event)">
                         <div class="w-28 text-sm p-2 bg-gray-100 border-r border-gray-300/50 flex flex-col justify-center">
                             <strong>Disk 1</strong>
                             <span class="text-xs">Basic</span>
@@ -201,7 +201,7 @@
                             <span class="text-xs">Online</span>
                         </div>
                         <div id="disk1Graphical" class="flex-grow border border-gray-400">
-                            <div id="disk1Partition" class="disk-partition unallocated w-full" oncontextmenu="showContextMenu(event)">
+                            <div id="disk1Partition" class="disk-partition unallocated w-full">
                                 <span></span>
                                 <span class="text-xs">1024.0 GB<br>Unallocated</span>
                             </div>
