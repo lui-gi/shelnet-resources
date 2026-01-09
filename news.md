@@ -1,2 +1,2 @@
-News 1/5/26:
-• Completed CTF writeup and released "Visualizations" section
+News 1/9/26:
+• Worked on Metasploit notes, drafting YouTube Sec+ video
