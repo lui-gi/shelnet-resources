@@ -128,7 +128,7 @@
                 flags: [
                     { code: "-sS", name: "TCP SYN Scan", desc: "The default 'Stealth' scan. Sends a SYN packet. If a SYN/ACK is received, the port is open, but nmap sends a RST to cancel the connection immediately.", noise: "Stealthy", tip: "Requires root privileges (sudo)." },
                     { code: "-sT", name: "TCP Connect", desc: "Completes the full 3-way handshake. Used when you don't have raw packet privileges. It logs a connection on the target machine.", noise: "Loud", tip: "Default for non-root users." },
-                    { code: "-sU", name: "UDP Scan", desc: "Scans UDP ports (DNS, SNMP, DHCP). Sends empty packets. If no response, port is Open|Filtered. If ICMP Unreachable, it's Closed.", noise: "Slow", tip: "Can be very slow without -F." },
+                    { code: "-sU", name: "UDP Scan", desc: "Scans UDP ports (DNS, SNMP, DHCP). Sends empty packets. If no response, port is Open|Filtered. If ICMP unreachable, it's closed.", noise: "Slow", tip: "Can be very slow without -F." },
                     { code: "-sA", name: "ACK Scan", desc: "Used to map firewall rules. Sends ACK packets to trick the firewall. Helps determine if ports are filtered.", noise: "Stealthy", tip: "Does not detect open ports, only filtered status." }
                 ]
             },
@@ -151,7 +151,7 @@
             {
                 category: "Service / OS",
                 flags: [
-                    { code: "-sV", name: "Version Det.", desc: "Interrogates open ports to determine what service and version is running.", noise: "Loud", tip: "Essential for finding CVEs." },
+                    { code: "-sV", name: "Version Detection", desc: "Interrogates open ports to determine what service and version is running.", noise: "Loud", tip: "Essential for finding CVEs." },
                     { code: "-O", name: "OS Detect", desc: "Analyzes TCP/IP stack behavior to guess the operating system.", noise: "Loud", tip: "Requires one open and one closed port for best results." },
                     { code: "-A", name: "Aggressive", desc: "Enable OS detection, Version detection, Script scanning, and Traceroute.", noise: "Very Loud", tip: "The 'kitchen sink' scan." }
                 ]
