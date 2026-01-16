@@ -82,6 +82,12 @@
        "title": "OSI Model",
        "file": "osi.html",
        "description": "Side-by-side visualization of the OSI and TCP/IP model"
+     },
+     {
+       "id": "4",
+       "title": "Linux Command Practice",
+       "file": "linux-commands.html",
+       "description": "Interactive terminal to practice basic Linux filesystem navigation."
      }
     ]
   }
