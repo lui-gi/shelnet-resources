@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shelnet Linux Command Practice</title>
+  <style>
+    /* ========== CSS RESET & BASE ========== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      /* Core Colors */
+      --bg-black: #000000;
+      --white: #ffffff;
+      
+      /* Green Theme */
+      --green-500: #22c55e;
+      --green-400: #4ade80;
+      
+      /* Blue Theme */
+      --blue-500: #3b82f6;
+      --blue-400: #60a5fa;
+      
+      /* Purple Theme */
+      --purple-500: #a855f7;
+      --purple-400: #c084fc;
+      
+      /* Utility */
+      --border-subtle: rgba(255, 255, 255, 0.1);
+      --glass-static: rgba(255, 255, 255, 0.02);
+      --glass-hover: rgba(255, 255, 255, 0.05);
+      --text-muted: rgba(255, 255, 255, 0.4);
+      --grid-bg: rgba(255, 255, 255, 0.03);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-black);
+      color: var(--white);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* Grid Background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        linear-gradient(var(--grid-bg) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-bg) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* ========== TYPOGRAPHY ========== */
+    .font-mono {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    .brutal-header {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+      color: var(--white);
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    .brutal-subtitle {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+    }
+
+    /* ========== LAYOUT ========== */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* ========== HEADER ========== */
+    header {
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 3rem 0;
+      margin-bottom: 3rem;
+    }
+
+    .header-terminal {
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .header-path {
+      color: var(--green-400);
+    }
+
+    /* ========== SECTIONS ========== */
+    section {
+      margin-bottom: 4rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .section-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      font-size: 1.25rem;
+    }
+
+    .section-icon.green {
+      background: rgba(34, 197, 94, 0.2);
+      color: var(--green-400);
+    }
+
+    .section-icon.blue {
+      background: rgba(59, 130, 246, 0.2);
+      color: var(--blue-400);
+    }
+
+    .section-icon.purple {
+      background: rgba(168, 85, 247, 0.2);
+      color: var(--purple-400);
+    }
+
+    /* ========== COMMAND CARDS ========== */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+
+    .command-card {
+      background: var(--glass-static);
+      border: 1px solid var(--border-subtle);
+      padding: 1.5rem;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .command-card:hover {
+      background: var(--glass-hover);
+    }
+
+    .command-card.green:hover {
+      border-color: var(--green-500);
+    }
+
+    .command-card.blue:hover {
+      border-color: var(--blue-500);
+    }
+
+    .command-card.purple:hover {
+      border-color: var(--purple-500);
+    }
+
+    .command-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .command-name.green { color: var(--green-400); }
+    .command-name.blue { color: var(--blue-400); }
+    .command-name.purple { color: var(--purple-400); }
+
+    .command-desc {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    .command-syntax {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border-subtle);
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.875rem;
+      overflow-x: auto;
+    }
+
+    .command-syntax code {
+      color: var(--green-400);
+    }
+
+    .command-examples {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .command-examples code {
+      color: var(--white);
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.1rem 0.4rem;
+      border-radius: 2px;
+    }
+
+    /* ========== TERMINAL ========== */
+    .terminal-container {
+      background: #0a0a0a;
+      border: 1px solid var(--border-subtle);
+      overflow: hidden;
+    }
+
+    .terminal-header {
+      background: #1a1a1a;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .terminal-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot.red { background: #ef4444; }
+    .terminal-dot.yellow { background: #eab308; }
+    .terminal-dot.green { background: #22c55e; }
+
+    .terminal-title {
+      margin-left: 0.5rem;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    .terminal-body {
+      padding: 1rem;
+      min-height: 350px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .terminal-output {
+      margin-bottom: 0.5rem;
+    }
+
+    .terminal-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+      font-size: 0.875rem;
+    }
+
+    .terminal-prompt {
+      color: var(--green-400);
+      white-space: nowrap;
+    }
+
+    .terminal-command {
+      color: var(--white);
+    }
+
+    .terminal-result {
+      color: rgba(255, 255, 255, 0.7);
+      padding-left: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .terminal-result.error {
+      color: #ef4444;
+    }
+
+    .terminal-result.success {
+      color: var(--green-400);
+    }
+
+    .terminal-result.info {
+      color: var(--blue-400);
+    }
+
+    .terminal-input-line {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #terminal-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--white);
+      font-family: inherit;
+      font-size: 0.875rem;
+      caret-color: var(--green-400);
+    }
+
+    .cursor-blink {
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* File tree styling */
+    .file-tree {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .file-tree .dir {
+      color: var(--blue-400);
+    }
+
+    .file-tree .file {
+      color: var(--white);
+    }
+
+    .file-tree .exec {
+      color: var(--green-400);
+    }
+
+    /* ========== INTRO BOX ========== */
+    .intro-box {
+      background: var(--glass-static);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--green-500);
+      padding: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .intro-box p {
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 0.5rem;
+    }
+
+    .intro-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    .intro-box code {
+      color: var(--green-400);
+      background: rgba(34, 197, 94, 0.1);
+      padding: 0.1rem 0.4rem;
+      border-radius: 2px;
+    }
+
+    /* ========== HINTS ========== */
+    .hint-bar {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 1rem;
+      margin-top: 1rem;
+      font-size: 0.875rem;
+    }
+
+    .hint-bar strong {
+      color: var(--blue-400);
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 640px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .brutal-header {
+        font-size: 1.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <header>
+      <div class="header-terminal font-mono">
+        <span class="header-path">student@linux-trainer</span>:<span style="color: var(--blue-400)">~</span>$ ./learn-commands.sh
+      </div>
+      <h1 class="brutal-header">Linux Command Trainer</h1>
+      <p class="brutal-subtitle font-mono">Master the terminal // File system navigation & management</p>
+    </header>
+
+    <!-- INTRO -->
+    <div class="intro-box">
+      <p><strong style="color: var(--white);">Welcome, student.</strong> This interactive trainer will help you learn essential Linux commands.</p>
+      <p>Start practicing in the <strong style="color: var(--green-400);">live terminal</strong> below, then scroll down for the command reference.</p>
+      <p>Try commands like <code>ls</code>, <code>cd documents</code>, <code>pwd</code>, or <code>cat readme.txt</code> to explore the virtual file system.</p>
+    </div>
+
+    <!-- INTERACTIVE TERMINAL -->
+    <section>
+      <div class="section-header">
+        <div class="section-icon green">⌨</div>
+        <div>
+          <h2 class="brutal-header" style="font-size: 1.5rem;">Practice Terminal</h2>
+          <p class="brutal-subtitle font-mono">Try commands in the simulated environment</p>
+        </div>
+      </div>
+      
+      <div class="terminal-container">
+        <div class="terminal-header">
+          <div class="terminal-dot red"></div>
+          <div class="terminal-dot yellow"></div>
+          <div class="terminal-dot green"></div>
+          <span class="terminal-title font-mono">student@linux-trainer: ~</span>
+        </div>
+        <div class="terminal-body font-mono" id="terminal-body">
+          <div class="terminal-output" id="terminal-output">
+            <div class="terminal-result info">Welcome to Linux Command Trainer!</div>
+            <div class="terminal-result info">Type 'help' for available commands, or try exploring with 'ls' and 'cd'.</div>
+            <div class="terminal-result" style="margin-bottom: 1rem;">─────────────────────────────────────────</div>
+          </div>
+          <div class="terminal-input-line">
+            <span class="terminal-prompt" id="prompt">student@linux:~$</span>
+            <input type="text" id="terminal-input" autofocus autocomplete="off" spellcheck="false">
+          </div>
+        </div>
+      </div>
+      
+      <div class="hint-bar font-mono">
+        <strong>💡 Hint:</strong> Try <code>ls</code> to see files, <code>cd documents</code> to change directory, <code>cat readme.txt</code> to read a file, or <code>clear</code> to reset the terminal.
+      </div>
+    </section>
+
+    <!-- NAVIGATION COMMANDS -->
+    <section>
+      <div class="section-header">
+        <div class="section-icon green">📂</div>
+        <div>
+          <h2 class="brutal-header" style="font-size: 1.5rem;">Navigation</h2>
+          <p class="brutal-subtitle font-mono">Moving through the file system</p>
+        </div>
+      </div>
+      <div class="card-grid">
+        <!-- pwd -->
+        <div class="command-card green">
+          <div class="command-name green font-mono">pwd</div>
+          <div class="command-desc">Print Working Directory — shows your current location in the file system</div>
+          <div class="command-syntax font-mono"><code>pwd</code></div>
+          <div class="command-examples">Returns: <code>/home/student</code></div>
+        </div>
+        <!-- ls -->
+        <div class="command-card green">
+          <div class="command-name green font-mono">ls</div>
+          <div class="command-desc">List directory contents — see what files and folders exist</div>
+          <div class="command-syntax font-mono"><code>ls [options] [path]</code></div>
+          <div class="command-examples">
+            <code>ls</code> — current dir &nbsp;
+            <code>ls -la</code> — detailed + hidden
+          </div>
+        </div>
+        <!-- cd -->
+        <div class="command-card green">
+          <div class="command-name green font-mono">cd</div>
+          <div class="command-desc">Change Directory — navigate to a different folder</div>
+          <div class="command-syntax font-mono"><code>cd [directory]</code></div>
+          <div class="command-examples">
+            <code>cd ..</code> — parent &nbsp;
+            <code>cd ~</code> — home &nbsp;
+            <code>cd /</code> — root
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILE MANAGEMENT COMMANDS -->
+    <section>
+      <div class="section-header">
+        <div class="section-icon blue">🔧</div>
+        <div>
+          <h2 class="brutal-header" style="font-size: 1.5rem;">File Management</h2>
+          <p class="brutal-subtitle font-mono">Creating, moving, and deleting files</p>
+        </div>
+      </div>
+      <div class="card-grid">
+        <!-- touch -->
+        <div class="command-card blue">
+          <div class="command-name blue font-mono">touch</div>
+          <div class="command-desc">Create an empty file or update file timestamps</div>
+          <div class="command-syntax font-mono"><code>touch [filename]</code></div>
+          <div class="command-examples"><code>touch notes.txt</code> — creates notes.txt</div>
+        </div>
+        <!-- mkdir -->
+        <div class="command-card blue">
+          <div class="command-name blue font-mono">mkdir</div>
+          <div class="command-desc">Make Directory — create a new folder</div>
+          <div class="command-syntax font-mono"><code>mkdir [directory]</code></div>
+          <div class="command-examples"><code>mkdir projects</code> — creates projects/</div>
+        </div>
+        <!-- cp -->
+        <div class="command-card blue">
+          <div class="command-name blue font-mono">cp</div>
+          <div class="command-desc">Copy files or directories to a new location</div>
+          <div class="command-syntax font-mono"><code>cp [source] [destination]</code></div>
+          <div class="command-examples">
+            <code>cp file.txt backup.txt</code> &nbsp;
+            <code>cp -r dir/ newdir/</code>
+          </div>
+        </div>
+        <!-- mv -->
+        <div class="command-card blue">
+          <div class="command-name blue font-mono">mv</div>
+          <div class="command-desc">Move or rename files and directories</div>
+          <div class="command-syntax font-mono"><code>mv [source] [destination]</code></div>
+          <div class="command-examples">
+            <code>mv old.txt new.txt</code> — rename &nbsp;
+            <code>mv file.txt dir/</code> — move
+          </div>
+        </div>
+        <!-- rm -->
+        <div class="command-card blue">
+          <div class="command-name blue font-mono">rm</div>
+          <div class="command-desc">Remove files or directories (use with caution!)</div>
+          <div class="command-syntax font-mono"><code>rm [options] [file]</code></div>
+          <div class="command-examples">
+            <code>rm file.txt</code> &nbsp;
+            <code>rm -r folder/</code> — recursive
+          </div>
+        </div>
+        <!-- rmdir -->
+        <div class="command-card blue">
+          <div class="command-name blue font-mono">rmdir</div>
+          <div class="command-desc">Remove empty directories only</div>
+          <div class="command-syntax font-mono"><code>rmdir [directory]</code></div>
+          <div class="command-examples"><code>rmdir empty_folder</code></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILE VIEWING COMMANDS -->
+    <section>
+      <div class="section-header">
+        <div class="section-icon purple">👁</div>
+        <div>
+          <h2 class="brutal-header" style="font-size: 1.5rem;">File Viewing</h2>
+          <p class="brutal-subtitle font-mono">Reading and inspecting file contents</p>
+        </div>
+      </div>
+      <div class="card-grid">
+        <!-- cat -->
+        <div class="command-card purple">
+          <div class="command-name purple font-mono">cat</div>
+          <div class="command-desc">Concatenate and display file contents</div>
+          <div class="command-syntax font-mono"><code>cat [filename]</code></div>
+          <div class="command-examples"><code>cat readme.txt</code> — display entire file</div>
+        </div>
+        <!-- head -->
+        <div class="command-card purple">
+          <div class="command-name purple font-mono">head</div>
+          <div class="command-desc">Display the first lines of a file (default: 10)</div>
+          <div class="command-syntax font-mono"><code>head [options] [file]</code></div>
+          <div class="command-examples"><code>head -n 5 file.txt</code> — first 5 lines</div>
+        </div>
+        <!-- tail -->
+        <div class="command-card purple">
+          <div class="command-name purple font-mono">tail</div>
+          <div class="command-desc">Display the last lines of a file (default: 10)</div>
+          <div class="command-syntax font-mono"><code>tail [options] [file]</code></div>
+          <div class="command-examples"><code>tail -n 5 file.txt</code> — last 5 lines</div>
+        </div>
+        <!-- echo -->
+        <div class="command-card purple">
+          <div class="command-name purple font-mono">echo</div>
+          <div class="command-desc">Display text or write to files</div>
+          <div class="command-syntax font-mono"><code>echo [text]</code></div>
+          <div class="command-examples"><code>echo "Hello"</code> &nbsp; <code>echo $HOME</code></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // ==================== VIRTUAL FILE SYSTEM ====================
+    const fileSystem = {
+      '/': {
+        type: 'dir',
+        contents: {
+          'home': {
+            type: 'dir',
+            contents: {
+              'student': {
+                type: 'dir',
+                contents: {
+                  'readme.txt': {
+                    type: 'file',
+                    content: 'Welcome to Linux Command Trainer!\n\nThis is a simulated Linux environment.\nPractice navigating with cd, ls, pwd.\nTry creating files with touch and mkdir.\n\nHappy learning!'
+                  },
+                  'documents': {
+                    type: 'dir',
+                    contents: {
+                      'notes.txt': {
+                        type: 'file',
+                        content: 'Study Notes:\n- Linux is case-sensitive\n- Use Tab for auto-completion\n- Ctrl+C cancels commands\n- man [command] shows help'
+                      },
+                      'todo.txt': {
+                        type: 'file',
+                        content: '[ ] Learn basic navigation (cd, ls, pwd)\n[ ] Practice file management (touch, mkdir, rm)\n[ ] Understand file permissions\n[x] Start Linux training!'
+                      }
+                    }
+                  },
+                  'projects': {
+                    type: 'dir',
+                    contents: {
+                      'hello.sh': {
+                        type: 'file',
+                        executable: true,
+                        content: '#!/bin/bash\necho "Hello, World!"\necho "This is a simple bash script."'
+                      },
+                      'data.csv': {
+                        type: 'file',
+                        content: 'name,score,grade\nAlice,95,A\nBob,87,B\nCharlie,92,A\nDiana,78,C'
+                      }
+                    }
+                  },
+                  '.hidden': {
+                    type: 'file',
+                    content: 'This is a hidden file!\nFiles starting with . are hidden by default.\nUse ls -a to see them.'
+                  },
+                  '.config': {
+                    type: 'dir',
+                    contents: {
+                      'settings.conf': {
+                        type: 'file',
+                        content: '# User configuration\ntheme=dark\neditor=nano\nshell=/bin/bash'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          'etc': {
+            type: 'dir',
+            contents: {
+              'hostname': {
+                type: 'file',
+                content: 'linux-trainer'
+              },
+              'passwd': {
+                type: 'file',
+                content: 'root:x:0:0:root:/root:/bin/bash\nstudent:x:1000:1000:Student User:/home/student:/bin/bash'
+              }
+            }
+          },
+          'tmp': {
+            type: 'dir',
+            contents: {}
+          }
+        }
+      }
+    };
+
+    // ==================== TERMINAL STATE ====================
+    let currentPath = '/home/student';
+    let commandHistory = [];
+    let historyIndex = -1;
+
+    const terminalOutput = document.getElementById('terminal-output');
+    const terminalInput = document.getElementById('terminal-input');
+    const terminalBody = document.getElementById('terminal-body');
+    const promptElement = document.getElementById('prompt');
+
+    // ==================== HELPER FUNCTIONS ====================
+    function getPathDisplay() {
+      if (currentPath === '/home/student') return '~';
+      if (currentPath.startsWith('/home/student/')) return '~' + currentPath.slice(13);
+      return currentPath;
+    }
+
+    function updatePrompt() {
+      promptElement.textContent = `student@linux:${getPathDisplay()}$`;
+    }
+
+    function resolvePath(path) {
+      if (!path || path === '') return currentPath;
+      if (path === '~') return '/home/student';
+      if (path.startsWith('~/')) return '/home/student/' + path.slice(2);
+      if (path.startsWith('/')) return path;
+      
+      let parts = currentPath.split('/').filter(p => p);
+      const newParts = path.split('/');
+      
+      for (const part of newParts) {
+        if (part === '..') {
+          parts.pop();
+        } else if (part !== '.' && part !== '') {
+          parts.push(part);
+        }
+      }
+      
+      return '/' + parts.join('/');
+    }
+
+    function getNode(path) {
+      const resolved = resolvePath(path);
+      if (resolved === '/') return fileSystem['/'];
+      
+      const parts = resolved.split('/').filter(p => p);
+      let current = fileSystem['/'];
+      
+      for (const part of parts) {
+        if (!current || current.type !== 'dir' || !current.contents[part]) {
+          return null;
+        }
+        current = current.contents[part];
+      }
+      
+      return current;
+    }
+
+    function getParentNode(path) {
+      const resolved = resolvePath(path);
+      const parts = resolved.split('/').filter(p => p);
+      parts.pop();
+      return getNode('/' + parts.join('/'));
+    }
+
+    function getFileName(path) {
+      const parts = path.split('/').filter(p => p);
+      return parts[parts.length - 1] || '';
+    }
+
+    function addOutput(text, className = '') {
+      const div = document.createElement('div');
+      div.className = `terminal-result ${className}`;
+      div.textContent = text;
+      terminalOutput.appendChild(div);
+      terminalBody.scrollTop = terminalBody.scrollHeight;
+    }
+
+    function addCommandLine(cmd) {
+      const div = document.createElement('div');
+      div.className = 'terminal-line';
+      div.innerHTML = `<span class="terminal-prompt">${promptElement.textContent}</span><span class="terminal-command">${escapeHtml(cmd)}</span>`;
+      terminalOutput.appendChild(div);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ==================== COMMAND IMPLEMENTATIONS ====================
+    const commands = {
+      help: () => {
+        return `Available commands:
+  Navigation:    pwd, ls, cd
+  File Mgmt:     touch, mkdir, rm, rmdir, cp, mv
+  File Viewing:  cat, head, tail, echo
+  Utility:       clear, help, whoami, date
+
+Examples:
+  ls -la          List all files with details
+  cd documents    Change to documents directory
+  cat readme.txt  Display file contents
+  touch newfile   Create empty file`;
+      },
+
+      pwd: () => currentPath,
+
+      ls: (args) => {
+        let showHidden = false;
+        let showLong = false;
+        let targetPath = currentPath;
+        
+        for (const arg of args) {
+          if (arg === '-a' || arg === '-la' || arg === '-al') showHidden = true;
+          if (arg === '-l' || arg === '-la' || arg === '-al') showLong = true;
+          if (!arg.startsWith('-')) targetPath = arg;
+        }
+        
+        const node = getNode(targetPath);
+        if (!node) return { error: `ls: cannot access '${targetPath}': No such file or directory` };
+        if (node.type !== 'dir') return { error: `ls: '${targetPath}': Not a directory` };
+        
+        let items = Object.keys(node.contents);
+        if (!showHidden) items = items.filter(i => !i.startsWith('.'));
+        if (items.length === 0) return '';
+        
+        items.sort();
+        
+        if (showLong) {
+          const lines = items.map(name => {
+            const item = node.contents[name];
+            const isDir = item.type === 'dir';
+            const isExec = item.executable;
+            const perms = isDir ? 'drwxr-xr-x' : (isExec ? '-rwxr-xr-x' : '-rw-r--r--');
+            const size = item.content ? item.content.length : 4096;
+            const display = isDir ? `\x1b[blue]${name}\x1b[reset]` : (isExec ? `\x1b[green]${name}\x1b[reset]` : name);
+            return `${perms}  1 student student  ${String(size).padStart(5)}  Jan 15 12:00  ${name}`;
+          });
+          return { formatted: lines.join('\n'), items, node };
+        }
+        
+        return { formatted: items.join('  '), items, node };
+      },
+
+      cd: (args) => {
+        const target = args[0] || '/home/student';
+        const newPath = resolvePath(target);
+        const node = getNode(newPath);
+        
+        if (!node) return { error: `cd: ${target}: No such file or directory` };
+        if (node.type !== 'dir') return { error: `cd: ${target}: Not a directory` };
+        
+        currentPath = newPath;
+        updatePrompt();
+        return '';
+      },
+
+      cat: (args) => {
+        if (args.length === 0) return { error: 'cat: missing operand' };
+        const node = getNode(args[0]);
+        if (!node) return { error: `cat: ${args[0]}: No such file or directory` };
+        if (node.type === 'dir') return { error: `cat: ${args[0]}: Is a directory` };
+        return node.content;
+      },
+
+      head: (args) => {
+        let lines = 10;
+        let file = null;
+        
+        for (let i = 0; i < args.length; i++) {
+          if (args[i] === '-n' && args[i + 1]) {
+            lines = parseInt(args[++i]) || 10;
+          } else if (!args[i].startsWith('-')) {
+            file = args[i];
+          }
+        }
+        
+        if (!file) return { error: 'head: missing operand' };
+        const node = getNode(file);
+        if (!node) return { error: `head: ${file}: No such file or directory` };
+        if (node.type === 'dir') return { error: `head: ${file}: Is a directory` };
+        
+        return node.content.split('\n').slice(0, lines).join('\n');
+      },
+
+      tail: (args) => {
+        let lines = 10;
+        let file = null;
+        
+        for (let i = 0; i < args.length; i++) {
+          if (args[i] === '-n' && args[i + 1]) {
+            lines = parseInt(args[++i]) || 10;
+          } else if (!args[i].startsWith('-')) {
+            file = args[i];
+          }
+        }
+        
+        if (!file) return { error: 'tail: missing operand' };
+        const node = getNode(file);
+        if (!node) return { error: `tail: ${file}: No such file or directory` };
+        if (node.type === 'dir') return { error: `tail: ${file}: Is a directory` };
+        
+        const allLines = node.content.split('\n');
+        return allLines.slice(-lines).join('\n');
+      },
+
+      touch: (args) => {
+        if (args.length === 0) return { error: 'touch: missing operand' };
+        
+        const fileName = getFileName(args[0]);
+        const parentPath = resolvePath(args[0]).split('/').slice(0, -1).join('/') || '/';
+        const parent = getNode(parentPath);
+        
+        if (!parent) return { error: `touch: cannot touch '${args[0]}': No such file or directory` };
+        if (parent.type !== 'dir') return { error: `touch: cannot touch '${args[0]}': Not a directory` };
+        
+        if (!parent.contents[fileName]) {
+          parent.contents[fileName] = { type: 'file', content: '' };
+        }
+        return { success: `Created: ${fileName}` };
+      },
+
+      mkdir: (args) => {
+        if (args.length === 0) return { error: 'mkdir: missing operand' };
+        
+        const dirName = getFileName(args[0]);
+        const parentPath = resolvePath(args[0]).split('/').slice(0, -1).join('/') || '/';
+        const parent = getNode(parentPath);
+        
+        if (!parent) return { error: `mkdir: cannot create directory '${args[0]}': No such file or directory` };
+        if (parent.contents[dirName]) return { error: `mkdir: cannot create directory '${args[0]}': File exists` };
+        
+        parent.contents[dirName] = { type: 'dir', contents: {} };
+        return { success: `Created directory: ${dirName}` };
+      },
+
+      rm: (args) => {
+        let recursive = false;
+        let files = [];
+        
+        for (const arg of args) {
+          if (arg === '-r' || arg === '-rf' || arg === '-fr') recursive = true;
+          else if (!arg.startsWith('-')) files.push(arg);
+        }
+        
+        if (files.length === 0) return { error: 'rm: missing operand' };
+        
+        for (const file of files) {
+          const node = getNode(file);
+          if (!node) return { error: `rm: cannot remove '${file}': No such file or directory` };
+          if (node.type === 'dir' && !recursive) return { error: `rm: cannot remove '${file}': Is a directory` };
+          
+          const fileName = getFileName(file);
+          const parent = getParentNode(file);
+          if (parent && parent.contents) {
+            delete parent.contents[fileName];
+          }
+        }
+        return { success: `Removed: ${files.join(', ')}` };
+      },
+
+      rmdir: (args) => {
+        if (args.length === 0) return { error: 'rmdir: missing operand' };
+        
+        const node = getNode(args[0]);
+        if (!node) return { error: `rmdir: failed to remove '${args[0]}': No such file or directory` };
+        if (node.type !== 'dir') return { error: `rmdir: failed to remove '${args[0]}': Not a directory` };
+        if (Object.keys(node.contents).length > 0) return { error: `rmdir: failed to remove '${args[0]}': Directory not empty` };
+        
+        const dirName = getFileName(args[0]);
+        const parent = getParentNode(args[0]);
+        if (parent && parent.contents) {
+          delete parent.contents[dirName];
+        }
+        return { success: `Removed directory: ${dirName}` };
+      },
+
+      cp: (args) => {
+        if (args.length < 2) return { error: 'cp: missing operand' };
+        
+        const src = getNode(args[0]);
+        if (!src) return { error: `cp: cannot stat '${args[0]}': No such file or directory` };
+        if (src.type === 'dir') return { error: `cp: omitting directory '${args[0]}'` };
+        
+        const destName = getFileName(args[1]);
+        const destParentPath = resolvePath(args[1]).split('/').slice(0, -1).join('/') || currentPath;
+        let destParent = getNode(destParentPath);
+        
+        // Check if destination is a directory
+        const destNode = getNode(args[1]);
+        if (destNode && destNode.type === 'dir') {
+          destParent = destNode;
+          const srcName = getFileName(args[0]);
+          destParent.contents[srcName] = JSON.parse(JSON.stringify(src));
+          return { success: `Copied: ${args[0]} → ${args[1]}/${srcName}` };
+        }
+        
+        if (!destParent) return { error: `cp: cannot create '${args[1]}': No such file or directory` };
+        
+        destParent.contents[destName] = JSON.parse(JSON.stringify(src));
+        return { success: `Copied: ${args[0]} → ${args[1]}` };
+      },
+
+      mv: (args) => {
+        if (args.length < 2) return { error: 'mv: missing operand' };
+        
+        const src = getNode(args[0]);
+        if (!src) return { error: `mv: cannot stat '${args[0]}': No such file or directory` };
+        
+        const srcName = getFileName(args[0]);
+        const srcParent = getParentNode(args[0]);
+        
+        const destNode = getNode(args[1]);
+        if (destNode && destNode.type === 'dir') {
+          destNode.contents[srcName] = src;
+          delete srcParent.contents[srcName];
+          return { success: `Moved: ${args[0]} → ${args[1]}/${srcName}` };
+        }
+        
+        const destName = getFileName(args[1]);
+        const destParentPath = resolvePath(args[1]).split('/').slice(0, -1).join('/') || currentPath;
+        const destParent = getNode(destParentPath);
+        
+        if (!destParent) return { error: `mv: cannot move '${args[0]}' to '${args[1]}': No such file or directory` };
+        
+        destParent.contents[destName] = src;
+        delete srcParent.contents[srcName];
+        return { success: `Moved: ${args[0]} → ${args[1]}` };
+      },
+
+      echo: (args) => {
+        const text = args.join(' ').replace(/^["']|["']$/g, '');
+        if (text === '$HOME') return '/home/student';
+        if (text === '$USER') return 'student';
+        if (text === '$PWD') return currentPath;
+        return text;
+      },
+
+      whoami: () => 'student',
+      
+      date: () => new Date().toString(),
+
+      clear: () => {
+        terminalOutput.innerHTML = '';
+        return '';
+      }
+    };
+
+    // ==================== COMMAND EXECUTION ====================
+    function executeCommand(input) {
+      const trimmed = input.trim();
+      if (!trimmed) return;
+      
+      addCommandLine(trimmed);
+      
+      if (trimmed && (commandHistory.length === 0 || commandHistory[commandHistory.length - 1] !== trimmed)) {
+        commandHistory.push(trimmed);
+      }
+      historyIndex = commandHistory.length;
+      
+      const parts = trimmed.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) || [];
+      const cmd = parts[0]?.toLowerCase();
+      const args = parts.slice(1).map(a => a.replace(/^["']|["']$/g, ''));
+      
+      if (!cmd) return;
+      
+      if (commands[cmd]) {
+        const result = commands[cmd](args);
+        
+        if (result === '') {
+          // No output
+        } else if (typeof result === 'string') {
+          addOutput(result);
+        } else if (result?.error) {
+          addOutput(result.error, 'error');
+        } else if (result?.success) {
+          addOutput(result.success, 'success');
+        } else if (result?.formatted) {
+          // Handle ls output with colors
+          const node = result.node;
+          const items = result.items;
+          if (result.formatted.includes('rwx')) {
+            // Long format
+            result.formatted.split('\n').forEach(line => {
+              const name = line.split(/\s+/).pop();
+              const item = node.contents[name];
+              const lineDiv = document.createElement('div');
+              lineDiv.className = 'terminal-result';
+              if (item?.type === 'dir') {
+                lineDiv.innerHTML = line.replace(name, `<span style="color: var(--blue-400)">${name}</span>`);
+              } else if (item?.executable) {
+                lineDiv.innerHTML = line.replace(name, `<span style="color: var(--green-400)">${name}</span>`);
+              } else {
+                lineDiv.textContent = line;
+              }
+              terminalOutput.appendChild(lineDiv);
+            });
+          } else {
+            // Short format
+            const coloredItems = items.map(name => {
+              const item = node.contents[name];
+              if (item?.type === 'dir') return `<span style="color: var(--blue-400)">${name}</span>`;
+              if (item?.executable) return `<span style="color: var(--green-400)">${name}</span>`;
+              return name;
+            });
+            const div = document.createElement('div');
+            div.className = 'terminal-result';
+            div.innerHTML = coloredItems.join('  ');
+            terminalOutput.appendChild(div);
+          }
+        }
+      } else {
+        addOutput(`${cmd}: command not found. Type 'help' for available commands.`, 'error');
+      }
+      
+      terminalBody.scrollTop = terminalBody.scrollHeight;
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    terminalInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        executeCommand(terminalInput.value);
+        terminalInput.value = '';
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (historyIndex > 0) {
+          historyIndex--;
+          terminalInput.value = commandHistory[historyIndex];
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex < commandHistory.length - 1) {
+          historyIndex++;
+          terminalInput.value = commandHistory[historyIndex];
+        } else {
+          historyIndex = commandHistory.length;
+          terminalInput.value = '';
+        }
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        // Simple tab completion
+        const val = terminalInput.value;
+        const parts = val.split(' ');
+        const lastPart = parts[parts.length - 1];
+        
+        if (lastPart) {
+          const dirPath = lastPart.includes('/') ? lastPart.substring(0, lastPart.lastIndexOf('/') + 1) : '';
+          const prefix = lastPart.includes('/') ? lastPart.substring(lastPart.lastIndexOf('/') + 1) : lastPart;
+          const searchDir = dirPath ? resolvePath(dirPath) : currentPath;
+          const node = getNode(searchDir);
+          
+          if (node && node.type === 'dir') {
+            const matches = Object.keys(node.contents).filter(name => name.startsWith(prefix));
+            if (matches.length === 1) {
+              parts[parts.length - 1] = dirPath + matches[0];
+              if (node.contents[matches[0]].type === 'dir') parts[parts.length - 1] += '/';
+              terminalInput.value = parts.join(' ');
+            } else if (matches.length > 1) {
+              addCommandLine(val);
+              addOutput(matches.join('  '));
+            }
+          }
+        }
+      } else if (e.key === 'l' && e.ctrlKey) {
+        e.preventDefault();
+        executeCommand('clear');
+      }
+    });
+
+    // Keep focus on input
+    terminalBody.addEventListener('click', () => {
+      terminalInput.focus();
+    });
+
+    // Initial prompt update
+    updatePrompt();
+  </script>
+</body>
+</html>
