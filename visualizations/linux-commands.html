@@ -397,15 +397,14 @@
     <!-- HEADER -->
     <header>
       <div class="header-terminal font-mono">
-        <span class="header-path">student@linux-trainer</span>:<span style="color: var(--blue-400)">~</span>$ ./learn-commands.sh
+        <span class="header-path">student@linux-practice</span>:<span style="color: var(--blue-400)">~</span>$ ./learn-commands.sh
       </div>
-      <h1 class="brutal-header">Linux Command Trainer</h1>
-      <p class="brutal-subtitle font-mono">Master the terminal // File system navigation & management</p>
+      <h1 class="brutal-header">Linux Command Practice</h1>
+      <p class="brutal-subtitle font-mono">File system navigation & management practice</p>
     </header>
 
     <!-- INTRO -->
     <div class="intro-box">
-      <p><strong style="color: var(--white);">Welcome, student.</strong> This interactive trainer will help you learn essential Linux commands.</p>
       <p>Start practicing in the <strong style="color: var(--green-400);">live terminal</strong> below, then scroll down for the command reference.</p>
       <p>Try commands like <code>ls</code>, <code>cd documents</code>, <code>pwd</code>, or <code>cat readme.txt</code> to explore the virtual file system.</p>
     </div>
@@ -425,11 +424,11 @@
           <div class="terminal-dot red"></div>
           <div class="terminal-dot yellow"></div>
           <div class="terminal-dot green"></div>
-          <span class="terminal-title font-mono">student@linux-trainer: ~</span>
+          <span class="terminal-title font-mono">student@linux-practice: ~</span>
         </div>
         <div class="terminal-body font-mono" id="terminal-body">
           <div class="terminal-output" id="terminal-output">
-            <div class="terminal-result info">Welcome to Linux Command Trainer!</div>
+            <div class="terminal-result info">Welcome to Linux Command Practice!</div>
             <div class="terminal-result info">Type 'help' for available commands, or try exploring with 'ls' and 'cd'.</div>
             <div class="terminal-result" style="margin-bottom: 1rem;">─────────────────────────────────────────</div>
           </div>
@@ -440,9 +439,6 @@
         </div>
       </div>
       
-      <div class="hint-bar font-mono">
-        <strong>💡 Hint:</strong> Try <code>ls</code> to see files, <code>cd documents</code> to change directory, <code>cat readme.txt</code> to read a file, or <code>clear</code> to reset the terminal.
-      </div>
     </section>
 
     <!-- NAVIGATION COMMANDS -->
@@ -607,7 +603,7 @@
                 contents: {
                   'readme.txt': {
                     type: 'file',
-                    content: 'Welcome to Linux Command Trainer!\n\nThis is a simulated Linux environment.\nPractice navigating with cd, ls, pwd.\nTry creating files with touch and mkdir.\n\nHappy learning!'
+                    content: 'Welcome to Linux Command Practice!\n\nThis is a simulated Linux environment.\nPractice navigating with cd, ls, pwd.\nTry creating files with touch and mkdir.\n\nHappy learning!'
                   },
                   'documents': {
                     type: 'dir',
@@ -658,7 +654,7 @@
             contents: {
               'hostname': {
                 type: 'file',
-                content: 'linux-trainer'
+                content: 'linux-practice'
               },
               'passwd': {
                 type: 'file',
