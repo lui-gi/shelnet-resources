@@ -1,2 +1,2 @@
-News 1/9/26:
-• Worked on Metasploit notes, drafting YouTube Sec+ video
+News 1/22/26:
+• Released Sec+ Quiz 1.1 walkthrough; planned: Wireshark tool visual
