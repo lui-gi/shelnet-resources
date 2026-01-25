@@ -62,6 +62,12 @@
         "title": "Security+ SY0-701 Practice Quiz 1.1",
         "filename": "practice-quiz-1.html",
         "description": "15 Questions covering Objective 1.1 [Compare and contrast various types of security controls]"
+      },
+      {
+        "id": 2,
+        "title": "Security+ SY0-701 Practice Quiz 1.2",
+        "filename": "practice-quiz-2.html",
+        "description": "15 Questions covering Objective 1.2 [Summarize fundamental security concepts]"
       }
     ],
     "visualizations": [
