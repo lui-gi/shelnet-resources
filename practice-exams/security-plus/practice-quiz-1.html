@@ -11,8 +11,8 @@
             --text-main: #ffffff;
             --text-muted: rgba(255, 255, 255, 0.6);
             --border-color: rgba(255, 255, 255, 0.15);
-            --accent-green: #4ade80; /* Tailwind green-400 */
-            --accent-green-dim: rgba(74, 222, 128, 0.1);
+            --accent-blue: #3b82f6; /* Tailwind blue-500 */
+            --accent-blue-dim: rgba(59, 130, 246, 0.1);
             --accent-red: #ef4444;
             --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             --font-mono: 'Courier New', Courier, monospace;
@@ -40,8 +40,8 @@
 
         /* Selection Color */
         ::selection {
-            background: rgba(74, 222, 128, 0.3);
-            color: #d1fae5;
+            background: rgba(59, 130, 246, 0.3);
+            color: #dbeafe;
         }
 
         .container {
@@ -113,10 +113,10 @@
 
         .progress-fill {
             height: 100%;
-            background: var(--accent-green);
+            background: var(--accent-blue);
             width: 0%;
             transition: width 0.3s ease;
-            box-shadow: 0 0 10px var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-blue);
         }
 
         /* --- Content Area --- */
@@ -138,7 +138,7 @@
 
         .question-number {
             font-family: var(--font-mono);
-            color: var(--accent-green);
+            color: var(--accent-blue);
             font-size: 0.9rem;
         }
 
@@ -179,13 +179,13 @@
         }
 
         .option:hover {
-            border-color: var(--accent-green);
+            border-color: var(--accent-blue);
             background: rgba(255,255,255,0.04);
         }
 
         .option.selected {
-            background: var(--accent-green-dim);
-            border-color: var(--accent-green);
+            background: var(--accent-blue-dim);
+            border-color: var(--accent-blue);
         }
 
         .option-label {
@@ -197,7 +197,7 @@
         }
 
         .option.selected .option-label {
-            color: var(--accent-green);
+            color: var(--accent-blue);
         }
 
         .option-text {
@@ -241,14 +241,14 @@
         }
 
         .btn-primary {
-            border-color: var(--accent-green);
-            color: var(--accent-green);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
         }
 
         .btn-primary:hover:not(:disabled) {
-            background: var(--accent-green);
+            background: var(--accent-blue);
             color: #000;
-            box-shadow: 0 0 15px rgba(74, 222, 128, 0.4);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
         }
 
         .btn:disabled {
@@ -304,7 +304,7 @@
             margin-top: 20px;
         }
 
-        .pass { color: var(--accent-green); }
+        .pass { color: var(--accent-blue); }
         .fail { color: var(--accent-red); }
 
         /* Stats Grid */
@@ -346,7 +346,7 @@
             border-left: 4px solid transparent;
         }
 
-        .review-question.correct { border-left-color: var(--accent-green); }
+        .review-question.correct { border-left-color: var(--accent-blue); }
         .review-question.incorrect { border-left-color: var(--accent-red); }
 
         .review-header {
@@ -358,7 +358,7 @@
             font-size: 0.9rem;
         }
 
-        .review-status.correct { color: var(--accent-green); }
+        .review-status.correct { color: var(--accent-blue); }
         .review-status.incorrect { color: var(--accent-red); }
 
         .review-text {
@@ -406,6 +406,25 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0c0c0c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #3b82f6 #0c0c0c;
         }
 
         /* Mobile Adjustments */
@@ -764,13 +783,13 @@
                                 <div class="review-answers">
                                     <div class="answer-line">
                                         <strong>Your Answer:</strong>
-                                        <span style="color: ${isCorrect ? 'var(--accent-green)' : 'var(--accent-red)'}">
+                                        <span style="color: ${isCorrect ? 'var(--accent-blue)' : 'var(--accent-red)'}">
                                             ${labelUser}. ${q.options[userAnswer]}
                                         </span>
                                     </div>
                                     <div class="answer-line">
                                         <strong>Correct Answer:</strong>
-                                        <span style="color: var(--accent-green)">
+                                        <span style="color: var(--accent-blue)">
                                             ${labelCorrect}. ${q.options[q.correct]}
                                         </span>
                                     </div>
