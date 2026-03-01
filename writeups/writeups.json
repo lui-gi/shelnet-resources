@@ -1,6 +1,6 @@
 [
   {
-    "file": "vsftpd-backdoor.md",
+    "file": "vsftpd-backdoor.txt",
     "title": "VSFTPD 2.3.4 Backdoor",
     "cve": "CVE-2011-2523",
     "severity": "critical",
@@ -12,7 +12,7 @@
     "description": "Exploitation of the malicious backdoor injected into VSFTPD 2.3.4, allowing unauthenticated remote code execution via a crafted FTP username trigger. The backdoor listens on port 6200/tcp and grants a root shell without authentication."
   },
   {
-    "file": "unrealircd-backdoor.md",
+    "file": "unrealircd-backdoor.txt",
     "title": "UnrealIRCd 3.2.8.1 Backdoor",
     "cve": "CVE-2010-2075",
     "severity": "critical",
@@ -24,7 +24,7 @@
     "description": "Exploitation of the backdoor present in UnrealIRCd 3.2.8.1, allowing unauthenticated remote command execution via a specially crafted connection string containing the AB prefix."
   },
   {
-    "file": "samba-usermap-script.md",
+    "file": "samba-usermap-script.txt",
     "title": "Samba usermap_script",
     "cve": "CVE-2007-2447",
     "severity": "critical",
@@ -36,7 +36,7 @@
     "description": "Remote command injection via the Samba username map script configuration option, allowing unauthenticated code execution as root through crafted SMB requests."
   },
   {
-    "file": "distcc-daemon-rce.md",
+    "file": "distcc-daemon-rce.txt",
     "title": "Distcc Daemon RCE",
     "cve": "CVE-2004-2687",
     "severity": "high",
@@ -48,7 +48,7 @@
     "description": "Remote code execution via the distcc distributed compiler daemon, which runs arbitrary commands without authentication when the service is improperly exposed to the network."
   },
   {
-    "file": "postgresql-default-credentials.md",
+    "file": "postgresql-default-credentials.txt",
     "title": "PostgreSQL Default Credentials",
     "cve": "N/A",
     "severity": "medium",

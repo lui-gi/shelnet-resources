@@ -858,13 +858,13 @@
       if (!doc) {
         showError(
           'Missing Parameter',
-          'No document specified. Use <code>viewer.html?doc=filename.md</code> in the URL.'
+          'No document specified. Use <code>viewer.html?doc=filename.txt</code> in the URL.'
         );
         return;
       }
 
-      // Validate: only allow simple filenames (alphanumeric, hyphens, underscores + .md)
-      if (!/^[\w-]+\.md$/i.test(doc)) {
+      // Validate: only allow simple filenames (alphanumeric, hyphens, underscores + .txt)
+      if (!/^[\w-]+\.txt$/i.test(doc)) {
         showError('Invalid Filename', 'The document name <code>' + esc(doc) + '</code> is not valid.');
         return;
       }
