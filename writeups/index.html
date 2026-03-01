@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Write-ups Wiki // shelnet</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #0645ad;
+      --accent-dim: rgba(6, 69, 173, 0.2);
+      --accent-hover: #3366cc;
+      --bg: #ffffff;
+      --text: #202122;
+      --text-muted: #636363;
+      --mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+      --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --critical: #ef4444;
+      --high: #f97316;
+      --medium: #eab308;
+      --low: #22c55e;
+    }
+
+    html {
+      font-size: 16px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent) var(--bg);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); border: 1px solid rgba(0,0,0,0.1); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent-hover); }
+
+    /* ── Navbar ── */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #a2a9b1;
+      padding: 0.75rem 1.5rem;
+    }
+
+    .navbar-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .navbar a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .navbar a:hover { color: var(--accent); }
+    .navbar .sep { color: #c8ccd1; }
+    .navbar .current { color: var(--accent); }
+
+    /* ── Container ── */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ── Two-column wiki layout ── */
+    .wiki-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: sticky;
+      top: 4rem;
+      border: 1px solid #a2a9b1;
+      padding: 1rem;
+      background: #f8f9fa;
+    }
+
+    .sidebar-section {
+      margin-bottom: 1.25rem;
+    }
+
+    .sidebar-section:last-child { margin-bottom: 0; }
+
+    .sidebar-label {
+      font-family: var(--mono);
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .sidebar-nav {
+      list-style: none;
+    }
+
+    .sidebar-nav li {
+      border-bottom: 1px solid #eaecf0;
+    }
+
+    .sidebar-nav li:last-child { border-bottom: none; }
+
+    .sidebar-nav a {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.3rem 0;
+      transition: color 0.2s;
+    }
+
+    .sidebar-nav a:hover { color: var(--accent); }
+
+    /* ── Sidebar category tree ── */
+    .cat-group {
+      border: 1px solid #a2a9b1;
+      margin-bottom: 0.5rem;
+    }
+
+    .cat-group:last-child { margin-bottom: 0; }
+
+    .cat-group summary {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text);
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #eaecf0;
+      transition: background 0.2s;
+    }
+
+    .cat-group summary:hover { background: #dce1ea; }
+    .cat-group summary::-webkit-details-marker { display: none; }
+
+    .cat-group summary .chevron {
+      transition: transform 0.2s;
+      color: var(--accent);
+      width: 10px;
+      height: 10px;
+      flex-shrink: 0;
+    }
+
+    .cat-group[open] summary .chevron { transform: rotate(90deg); }
+
+    .cat-links {
+      list-style: none;
+      padding: 0.25rem 0;
+    }
+
+    .cat-links li a {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.2rem 0.75rem;
+      border-left: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .cat-links li a:hover {
+      color: var(--accent);
+      border-left-color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      margin-bottom: 1.75rem;
+    }
+
+    .hero-title {
+      font-family: var(--mono);
+      font-size: 2rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+
+    .hero-sub {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Section labels ── */
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── Search bar ── */
+    .search-wrap {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      background: #f8f9fa;
+      border: 1px solid #a2a9b1;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      padding: 0.6rem 0.75rem 0.6rem 2.25rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input::placeholder { color: var(--text-muted); }
+    .search-input:focus { border-color: var(--accent); }
+
+    /* ── Welcome banner ── */
+    .welcome {
+      position: relative;
+      border: 1px solid #a2a9b1;
+      border-left: 3px solid var(--accent);
+      background: #f8f9fa;
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .welcome::before,
+    .welcome::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-color: rgba(6,69,173,0.4);
+      border-style: solid;
+    }
+
+    .welcome::before { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+    .welcome::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+    .welcome-title {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .welcome p {
+      font-size: 0.875rem;
+      color: #636363;
+      line-height: 1.6;
+    }
+
+    /* ── Featured card ── */
+    .featured {
+      position: relative;
+      border: 1px solid #a2a9b1;
+      border-left: 3px solid var(--accent);
+      background: #f8f9fa;
+      padding: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .featured::before,
+    .featured::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-color: rgba(6,69,173,0.4);
+      border-style: solid;
+    }
+
+    .featured::before { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+    .featured::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+    .featured-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .featured-title {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .featured-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .featured-desc {
+      font-size: 0.875rem;
+      color: #636363;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Shared tag / badge styles ── */
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
+    .meta-label {
+      font-family: var(--mono);
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #636363;
+    }
+
+    .meta-value {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: #636363;
+    }
+
+    .severity {
+      font-family: var(--mono);
+      font-size: 0.625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.5rem;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+
+    .severity-critical { color: var(--critical); border-color: rgba(239,68,68,0.5); background: rgba(239,68,68,0.1); }
+    .severity-high     { color: var(--high);     border-color: rgba(249,115,22,0.5); background: rgba(249,115,22,0.1); }
+    .severity-medium   { color: var(--medium);   border-color: rgba(234,179,8,0.5);  background: rgba(234,179,8,0.1);  }
+    .severity-low      { color: var(--low);      border-color: rgba(34,197,94,0.5);  background: rgba(34,197,94,0.1);  }
+
+    .read-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .read-link:hover { color: var(--accent-hover); }
+    .read-link svg { width: 12px; height: 12px; }
+
+    /* ── Portal grid ── */
+    .portal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .portal-card {
+      border: 1px solid #a2a9b1;
+      background: #f8f9fa;
+      padding: 1rem;
+      transition: background 0.2s, border-color 0.2s;
+      cursor: default;
+    }
+
+    .portal-card:hover {
+      background: #eaf0fb;
+      border-color: rgba(6,69,173,0.5);
+    }
+
+    .portal-icon {
+      font-family: var(--mono);
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: var(--accent);
+    }
+
+    .portal-name {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+
+    .portal-count {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Target group (details/summary) ── */
+    .target-group {
+      border: 1px solid #a2a9b1;
+      margin-bottom: 1rem;
+    }
+
+    .target-group summary {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      user-select: none;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #eaecf0;
+      transition: background 0.2s;
+    }
+
+    .target-group summary:hover { background: #dce1ea; }
+    .target-group summary::-webkit-details-marker { display: none; }
+
+    .target-group summary .chevron {
+      transition: transform 0.2s;
+      color: var(--accent);
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .target-group[open] summary .chevron { transform: rotate(90deg); }
+
+    .target-group .count {
+      font-size: 0.625rem;
+      color: var(--text-muted);
+      margin-left: auto;
+      margin-right: 0.75rem;
+      font-weight: 400;
+    }
+
+    /* ── Entry rows ── */
+    .entry-list { list-style: none; }
+
+    .entry-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto auto;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.6rem 1rem;
+      border-top: 1px solid #eaecf0;
+      transition: background 0.15s;
+    }
+
+    .entry-row:hover { background: #eaecf0; }
+
+    .entry-title {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .entry-cve {
+      font-family: var(--mono);
+      font-size: 0.675rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .entry-port {
+      font-family: var(--mono);
+      font-size: 0.675rem;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+
+    .entry-sev {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 0.15rem 0.4rem;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+
+    .entry-link {
+      color: var(--accent);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+    .entry-link:hover { color: var(--accent-hover); }
+    .entry-link svg { width: 14px; height: 14px; }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 2.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #a2a9b1;
+      font-family: var(--mono);
+      font-size: 0.625rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── No-results message ── */
+    .no-results {
+      display: none;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      padding: 0.75rem 1rem;
+      border-top: 1px solid #eaecf0;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .wiki-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .hero-title { font-size: 1.4rem; }
+      .container { padding: 1.25rem 1rem; }
+
+      .featured-header { flex-direction: column; gap: 0.5rem; }
+      .featured-meta { flex-direction: column; gap: 0.5rem; }
+
+      .portal-grid { grid-template-columns: 1fr 1fr; }
+
+      .entry-row {
+        grid-template-columns: 1fr auto auto;
+        gap: 0.5rem;
+      }
+      .entry-cve, .entry-port { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html">home</a>
+      <span class="sep">/</span>
+      <span class="current">write-ups</span>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="wiki-layout">
+
+      <!-- ── Sidebar ── -->
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <p class="sidebar-label">// Navigation</p>
+          <ul class="sidebar-nav">
+            <li><a href="#welcome">Main Page</a></li>
+            <li><a href="#categories">Categories</a></li>
+            <li><a href="#recent">Recent</a></li>
+          </ul>
+        </div>
+
+        <div class="sidebar-section" id="categories">
+          <p class="sidebar-label">// Categories</p>
+          <div id="sidebarCategoryTree"><!-- populated by JS --></div>
+        </div>
+      </aside>
+
+      <!-- ── Main content ── -->
+      <main>
+
+        <!-- Hero -->
+        <header class="hero" id="welcome">
+          <h1 class="hero-title">Write-ups</h1>
+          <p class="hero-sub">Homelab vulnerability research &amp; exploitation documentation</p>
+        </header>
+
+        <!-- Search -->
+        <div class="search-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input
+            type="search"
+            class="search-input"
+            id="searchInput"
+            placeholder="Search write-ups..."
+            aria-label="Search write-ups"
+          >
+        </div>
+
+        <!-- Welcome banner -->
+        <div class="welcome">
+          <p class="welcome-title">// Welcome to the shelnet write-up wiki</p>
+          <p>A structured knowledge base of vulnerability research, exploitation techniques, and post-exploitation documentation from homelab environments. Entries follow a standardized format covering discovery, exploitation, and remediation.</p>
+        </div>
+
+        <!-- Featured Write-up (populated by JS) -->
+        <p class="section-label">// Featured Article</p>
+        <article class="featured" id="featuredCard">
+          <!-- populated dynamically from writeups.json -->
+        </article>
+
+        <!-- Portals -->
+        <p class="section-label">// Portals</p>
+        <div class="portal-grid">
+          <div class="portal-card">
+            <div class="portal-icon">[SVC]</div>
+            <p class="portal-name">Network Services</p>
+            <p class="portal-count" id="portalNetSvc">FTP · SMB · IRC · SSH</p>
+          </div>
+          <div class="portal-card">
+            <div class="portal-icon">[BCK]</div>
+            <p class="portal-name">Backdoors</p>
+            <p class="portal-count" id="portalBackdoor">VSFTPD · UnrealIRCd</p>
+          </div>
+          <div class="portal-card">
+            <div class="portal-icon">[WEB]</div>
+            <p class="portal-name">Web Vulnerabilities</p>
+            <p class="portal-count" id="portalWeb">SQLi · XSS · LFI</p>
+          </div>
+          <div class="portal-card">
+            <div class="portal-icon">[EXP]</div>
+            <p class="portal-name">Exploit Dev</p>
+            <p class="portal-count" id="portalExploit">BOF · ROP · Shellcode</p>
+          </div>
+        </div>
+
+        <!-- Recent Write-ups (populated by JS) -->
+        <p class="section-label" id="recent">// Recent Write-ups</p>
+        <div id="entryGroups"><!-- populated dynamically from writeups.json --></div>
+        <p class="no-results" id="noResults">No write-ups match your search.</p>
+
+        <!-- Footer -->
+        <footer class="footer">
+          Last updated: February 2026
+        </footer>
+
+      </main>
+    </div><!-- /wiki-layout -->
+  </div>
+
+  <script>
+    const ARROW_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+    const CHEVRON_SVG = `<svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>`;
+
+    function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+
+    function esc(s) {
+      return String(s || '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderFeatured(entry) {
+      document.getElementById('featuredCard').innerHTML = `
+        <div class="featured-header">
+          <h2 class="featured-title">${esc(entry.title)}</h2>
+          <span class="severity severity-${esc(entry.severity)}">${cap(entry.severity)}</span>
+        </div>
+        <div class="featured-meta">
+          <div class="meta-item"><span class="meta-label">CVE:</span><span class="meta-value">${esc(entry.cve)}</span></div>
+          <div class="meta-item"><span class="meta-label">Port:</span><span class="meta-value">${esc(entry.port)}</span></div>
+          <div class="meta-item"><span class="meta-label">Service:</span><span class="meta-value">${esc(entry.service)}</span></div>
+          <div class="meta-item"><span class="meta-label">Target:</span><span class="meta-value">${esc(entry.target)}</span></div>
+        </div>
+        <p class="featured-desc">${esc(entry.description)}</p>
+        <a href="viewer.html?doc=${esc(entry.file)}" class="read-link">
+          Read Write-up ${ARROW_SVG}
+        </a>`;
+    }
+
+    function renderGroups(entries) {
+      const container = document.getElementById('entryGroups');
+      const groups = {};
+      entries.forEach(e => { (groups[e.target] = groups[e.target] || []).push(e); });
+
+      let html = '';
+      let first = true;
+      for (const [target, items] of Object.entries(groups)) {
+        const rows = items.map(e => `
+          <li class="entry-row" data-search="${esc([e.title, e.cve, e.service, e.severity, e.target, e.port].join(' ').toLowerCase())}">
+            <span class="entry-title">${esc(e.title)}</span>
+            <span class="entry-cve">${esc(e.cve)}</span>
+            <span class="entry-port">${esc(e.port)}</span>
+            <span class="entry-sev severity-${esc(e.severity)}">${cap(e.severity)}</span>
+            <a href="viewer.html?doc=${esc(e.file)}" class="entry-link" aria-label="Read ${esc(e.title)}">
+              ${ARROW_SVG}
+            </a>
+          </li>`).join('');
+
+        html += `
+          <details class="target-group"${first ? ' open' : ''}>
+            <summary>
+              ${esc(target)}
+              <span class="count">${items.length} write-up${items.length !== 1 ? 's' : ''}</span>
+              ${CHEVRON_SVG}
+            </summary>
+            <ul class="entry-list">${rows}</ul>
+          </details>`;
+        first = false;
+      }
+      container.innerHTML = html;
+    }
+
+    function renderSidebar(writeups) {
+      const groups = {};
+      writeups.forEach(e => { (groups[e.target] = groups[e.target] || []).push(e); });
+
+      let html = '';
+      let first = true;
+      for (const [target, items] of Object.entries(groups)) {
+        const links = items.map(e =>
+          `<li><a href="viewer.html?doc=${esc(e.file)}">${esc(e.title)}</a></li>`
+        ).join('');
+        html += `
+          <details class="cat-group"${first ? ' open' : ''}>
+            <summary>
+              ${esc(target)}
+              ${CHEVRON_SVG}
+            </summary>
+            <ul class="cat-links">${links}</ul>
+          </details>`;
+        first = false;
+      }
+      document.getElementById('sidebarCategoryTree').innerHTML = html;
+    }
+
+    function updatePortalCounts(writeups) {
+      const portals = [
+        { id: 'portalNetSvc',  keywords: ['ftp', 'smb', 'irc', 'ssh', 'postgresql', 'distcc', 'telnet', 'smtp'] },
+        { id: 'portalBackdoor', keywords: ['backdoor'] },
+        { id: 'portalWeb',     keywords: ['http', 'web', 'xss', 'sqli', 'lfi', 'rfi', 'tomcat', 'php'] },
+        { id: 'portalExploit', keywords: ['bof', 'rop', 'shellcode', 'overflow'] },
+      ];
+      portals.forEach(({ id, keywords }) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const count = writeups.filter(w =>
+          keywords.some(kw =>
+            w.service.toLowerCase().includes(kw) || w.title.toLowerCase().includes(kw)
+          )
+        ).length;
+        if (count > 0) el.textContent = count + ' write-up' + (count !== 1 ? 's' : '');
+      });
+    }
+
+    function initSearch() {
+      const input    = document.getElementById('searchInput');
+      const noResult = document.getElementById('noResults');
+
+      input.addEventListener('input', () => {
+        const q = input.value.trim().toLowerCase();
+        let visibleTotal = 0;
+
+        document.querySelectorAll('#entryGroups .target-group').forEach(group => {
+          let groupVisible = 0;
+          group.querySelectorAll('.entry-row').forEach(row => {
+            const match = !q || row.dataset.search.includes(q);
+            row.style.display = match ? '' : 'none';
+            if (match) groupVisible++;
+          });
+          group.style.display = (q && groupVisible === 0) ? 'none' : '';
+          visibleTotal += groupVisible;
+        });
+
+        noResult.style.display = (q && visibleTotal === 0) ? 'block' : 'none';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch('writeups.json');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const writeups = await res.json();
+
+        const featured = writeups.find(w => w.featured);
+        if (featured) renderFeatured(featured);
+
+        renderGroups(writeups.filter(w => !w.featured));
+        renderSidebar(writeups);
+        updatePortalCounts(writeups);
+        initSearch();
+      } catch (err) {
+        document.getElementById('featuredCard').innerHTML =
+          `<p style="padding:1rem;font-family:monospace;font-size:0.8rem;color:#ef4444">
+            // Error loading write-ups. Make sure a local HTTP server is running
+            (e.g. <code>python3 -m http.server</code>) — fetch() is blocked on file:// URLs.
+           </p>`;
+        console.error('Failed to load writeups.json:', err);
+      }
+    });
+  </script>
+
+</body>
+</html>

