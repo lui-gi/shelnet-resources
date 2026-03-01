@@ -1,2 +1,2 @@
-News 1/22/26:
-• Released Sec+ Quiz 1.2. Planned: Wireshark tool visual
+News 2/25/26:
+• Released Shelnet-Wiki! Hosts lab write-ups and other relevant documentation.
