@@ -731,7 +731,7 @@
           <div class="meta-item"><span class="meta-label">Target:</span><span class="meta-value">${esc(entry.target)}</span></div>
         </div>
         <p class="featured-desc">${esc(entry.description)}</p>
-        <a href="viewer.html?doc=${esc(entry.file)}" class="read-link">
+        <a href="viewer.html?doc=${esc(entry.file)}" class="read-link" target="_blank" rel="noopener noreferrer">
           Read Write-up ${ARROW_SVG}
         </a>`;
     }
@@ -750,7 +750,7 @@
             <span class="entry-cve">${esc(e.cve)}</span>
             <span class="entry-port">${esc(e.port)}</span>
             <span class="entry-sev severity-${esc(e.severity)}">${cap(e.severity)}</span>
-            <a href="viewer.html?doc=${esc(e.file)}" class="entry-link" aria-label="Read ${esc(e.title)}">
+            <a href="viewer.html?doc=${esc(e.file)}" class="entry-link" aria-label="Read ${esc(e.title)}" target="_blank" rel="noopener noreferrer">
               ${ARROW_SVG}
             </a>
           </li>`).join('');
@@ -777,7 +777,7 @@
       let first = true;
       for (const [target, items] of Object.entries(groups)) {
         const links = items.map(e =>
-          `<li><a href="viewer.html?doc=${esc(e.file)}">${esc(e.title)}</a></li>`
+          `<li><a href="viewer.html?doc=${esc(e.file)}" target="_blank" rel="noopener noreferrer">${esc(e.title)}</a></li>`
         ).join('');
         html += `
           <details class="cat-group"${first ? ' open' : ''}>
