@@ -1,0 +1,140 @@
+---
+title: SDR RF Recon — ISM Band Passive Surveillance
+cve: N/A
+severity: medium
+port: 433 MHz / 868 MHz
+service: OOK/FSK ISM Band
+target: ISM 433 MHz Band
+date: 2026-03-03
+description: Passive RF reconnaissance using an RTL-SDR v3 dongle and GNU Radio 3.10. Surveyed the 433 MHz ISM band, decoded a wireless weather station protocol using Universal Radio Hacker, and measured a 42 PPM frequency offset in the uncalibrated dongle.
+---
+
+## Overview
+
+The RTL-SDR v3 is a sub-$30 USB dongle that was originally designed as a DVB-T TV tuner. A few years ago it was discovered that with the right drivers, it can be used as a general-purpose software-defined radio receiver covering roughly 500 kHz to 1.75 GHz. That range covers most of the ISM bands (433 MHz, 868 MHz, 915 MHz), amateur radio bands, aviation ADSB, weather balloons, and a lot of other interesting things.
+
+This lab is entirely passive — receive-only. No transmission, no injection, no disruption. The goal was to survey the 433 MHz ISM band, characterize what's transmitting, capture raw IQ samples, and reverse-engineer a real protocol from a device I could observe from my workbench: a neighboring wireless weather station.
+
+Passive RF reception of unencrypted transmissions is lawful in most jurisdictions (EU, US) as long as you're not decrypting encrypted communications or acting on intercepted data in a prohibited way. Weather station sensor data is neither encrypted nor private.
+
+## Environment
+
+- **SDR:** RTL-SDR v3 — 500 kHz–1.75 GHz receive range, 8-bit ADC, R820T2 tuner chip, SMA antenna connector
+- **Host:** GNU Radio Workstation — x86_64, 16 GB RAM, GNU Radio 3.10, gr-osmosdr 0.2.0, rtl-sdr 0.6.0 userspace driver
+- **Antenna:** 1/4-wave whip antenna, SMA connector, tuned for 433 MHz, positioned at 2 m elevation indoors
+- **Software:** GQRX 2.17 (spectrum/waterfall visualization), Universal Radio Hacker 2.9.x (protocol analysis)
+
+## Driver Setup & Calibration
+
+The RTL-SDR v3 hardware is straightforward, but there's a kernel conflict to resolve first. Linux ships with a DVB-T driver (`dvb_usb_rtl28xxu`) that automatically claims the device. You need to blacklist it:
+
+```bash
+echo 'blacklist dvb_usb_rtl28xxu' | sudo tee /etc/modprobe.d/blacklist-rtl.conf
+sudo modprobe -r dvb_usb_rtl28xxu
+```
+
+With that done, `rtl_test` from the rtl-sdr package can claim the device and run a PPM offset measurement:
+
+```bash
+rtl_test -p
+```
+
+```
+Found 1 device(s):
+  0:  Realtek, RTL2838UHIDIR, SN: 00000001
+
+Using device 0: Generic RTL2832U OEM
+...
+real sample rate: 2048000 +/- 9 ppm
+Cumulative PPM error: 42
+```
+
+**42 PPM.** That's the frequency accuracy of the uncalibrated R820T2 tuner. At 433 MHz, 42 PPM translates to approximately 18.2 kHz of frequency error — more than enough to miss a narrowband FSK signal whose total bandwidth might be only 20–30 kHz. This needs to be corrected in software before doing any serious narrowband work.
+
+In GQRX: `Tools → I/O Devices → RTL-SDR → PPM correction: 42`. In GNU Radio Companion, it's the `ppm` parameter on the RTL-SDR Source block.
+
+## Wideband Survey
+
+With calibration set, I opened GQRX centered at 433.92 MHz (the primary ISM center frequency for Europe), sample rate 2.048 MSPS, waterfall enabled. The waterfall gives a time-frequency display — you see each transmission as a colored stripe as it appears.
+
+I stepped through 300–900 MHz over about an hour, logging every active transmitter I could characterize:
+
+- **433.05–434.79 MHz:** 12 active transmitters identified. RSSI ranging from −65 dBm (nearby weather station) to −92 dBm (probable remote at the edge of range). Mix of periodic sensor beacons (regular 30–60 second intervals, characteristic of temperature/humidity sensors) and event-driven transmitters (irregular timing, characteristic of remote controls).
+- **868.0–868.6 MHz:** Periodic chirp-spread-spectrum activity — LoRa preamble signature visible in the waterfall as the characteristic swept-frequency shape. Likely smart meters or building automation. Deferred to a future lab.
+
+## NBFM Demodulation Flowgraph
+
+Before getting into OOK capture, I validated the setup by demodulating a local NBFM repeater. The GNU Radio Companion flowgraph:
+
+```
+RTL-SDR Source
+  ↓ (2.048 MSPS, complex)
+Low-Pass Filter (cutoff: 100 kHz, transition: 25 kHz, window: Hamming)
+  ↓ (2.048 MSPS, filtered)
+Rational Resampler (decimation: 20, interpolation: 1)
+  ↓ (~102.4 kSPS, complex)
+NBFM Receive (audio rate: 48 kHz, max deviation: 5 kHz, tau: 75e-6)
+  ↓ (48 kSPS, float)
+Audio Sink
+```
+
+Clean audio confirmed the PPM correction was effective and the signal path was working correctly.
+
+## ISM Band IQ Capture
+
+For protocol analysis, I needed raw IQ samples, not demodulated audio. Back in GNU Radio Companion, I replaced the NBFM receive and audio blocks with a File Sink:
+
+```
+RTL-SDR Source (tuned: 433.92 MHz, rate: 250 kSPS)
+  ↓
+File Sink (format: complex float32, filename: capture_433mhz.iq)
+```
+
+250 kSPS gives enough bandwidth to see the full OOK burst while keeping file sizes manageable (~2 MB/s).
+
+I watched the GQRX waterfall for the weather station beacon pattern (approximately 60-second intervals) and triggered the flowgraph to capture a 30-second window. Result: 10 complete transmissions captured with clean burst boundaries visible in the file.
+
+## Protocol Reverse Engineering
+
+I imported `capture_433mhz.iq` into Universal Radio Hacker (URH). URH auto-detected the signal as OOK (on-off keying) based on the amplitude envelope. The demodulation view showed the bit stream clearly.
+
+Working through the frame structure manually, comparing across the 10 captured transmissions:
+
+```
+Preamble (8 bits):  10101010  — alternating, clock sync
+Sync word (8 bits): 01101001  — constant across all frames
+Device ID (8 bits): varies per device, constant per device
+Temperature (12 bits): varies, 0.1 °C resolution, signed integer
+Checksum (8 bits): XOR of preceding bytes
+```
+
+Total frame: **36 bits**, transmitted at approximately 2400 bps.
+
+I confirmed the temperature encoding by comparing the decoded 12-bit value against a reference thermometer reading at the time of capture. The formula was straightforward: signed 12-bit integer × 0.1 gives temperature in °C. Three independent captures at different times all decoded consistently.
+
+The device ID field is static — it's set once at the factory and doesn't change. Combined with the lack of any rolling code or authentication, this means the device is trivially fingerprinted: same ID in every transmission.
+
+## Findings
+
+1. **12 active ISM transmitters detected in 433 MHz band** — RSSI range −65 to −92 dBm; mix of periodic sensor beacons and event-driven remote controls
+2. **Weather station protocol fully decoded** — OOK modulation, ~2400 bps, 36-bit frame (8-bit preamble, 8-bit sync, 8-bit device ID, 12-bit temperature, 8-bit XOR checksum); temperature readings confirmed accurate
+3. **42 PPM frequency error measured** — software correction via GQRX/GRC PPM parameter required for reliable narrowband FSK demodulation; uncorrected causes ~18 kHz error at 433 MHz
+4. **LoRa activity detected at 868 MHz** — chirp-spread-spectrum signatures visible in waterfall, consistent with smart meter or building automation traffic; protocol decoding deferred
+
+## Lessons Learned
+
+The main security takeaway from this lab is that the ISM bands are a rich source of cleartext, unauthenticated device data. Weather stations, temperature sensors, door/window sensors, and similar devices overwhelmingly use simple OOK modulation with static device IDs and no encryption. An observer with a $30 dongle can fingerprint every such device in range, track their presence/absence, and in some cases infer behavioral patterns from the data (temperature changes, door events).
+
+For defenders building IoT systems: at minimum, use rolling device identifiers rather than static IDs. For anything with security implications (door sensors, alarm zones), encryption and authentication are non-negotiable — but the ISM band is populated almost entirely by devices that weren't designed with those properties.
+
+Rolling codes like KEELOQ (used on many garage door remotes) do provide meaningful protection against replay attacks. Weather station sensors typically don't bother, which is understandable for their use case but worth being aware of.
+
+The 42 PPM offset is a common characteristic of cheap RTL-SDR dongles. Temperature-compensated crystal oscillator (TCXO) variants are available for ~$5 more and offer <1 PPM stability — worth it for any serious narrowband work.
+
+## References
+
+- RTL-SDR Blog v3 setup guide and driver installation
+- GNU Radio Companion documentation, gr-osmosdr source block reference
+- Universal Radio Hacker GitHub repository
+- ETSI EN 300 220: Short Range Devices, EU ISM band allocations
+- RTL-SDR PPM calibration methodology — rtl-sdr.com/measuring-the-frequency-error-of-a-rtl-sdr-dongle/

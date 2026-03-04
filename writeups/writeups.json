@@ -58,5 +58,41 @@
     "date": "2026-02-20",
     "featured": false,
     "description": "Exploitation of default credentials on the PostgreSQL database server, enabling unauthorized database access and OS-level command execution via COPY TO/FROM PROGRAM."
+  },
+  {
+    "file": "rp2040-hid-implant.txt",
+    "title": "RP2040 Rogue HID Implant",
+    "cve": "N/A",
+    "severity": "high",
+    "port": "USB 3.0 / TCP 4444",
+    "service": "USB HID / PowerShell",
+    "target": "ThinkPad P53 (Windows 11)",
+    "date": "2026-03-03",
+    "featured": false,
+    "description": "RP2040-based rogue USB HID keyboard implant that autonomously injects a base64-encoded PowerShell reverse shell payload. Includes USB descriptor analysis via Wireshark/USBPcap and measurement of plug-to-execution latency."
+  },
+  {
+    "file": "sdr-rf-recon.txt",
+    "title": "SDR RF Recon — ISM Band Passive Surveillance",
+    "cve": "N/A",
+    "severity": "medium",
+    "port": "433 MHz / 868 MHz",
+    "service": "OOK/FSK ISM Band",
+    "target": "ISM 433 MHz Band",
+    "date": "2026-03-03",
+    "featured": false,
+    "description": "Passive RF reconnaissance using an RTL-SDR v3 dongle and GNU Radio 3.10. Surveyed the 433 MHz ISM band, decoded a wireless weather station protocol using Universal Radio Hacker, and measured a 42 PPM frequency offset in the uncalibrated dongle."
+  },
+  {
+    "file": "fpga-logic-analyzer.txt",
+    "title": "FPGA Logic Analyzer — Verilog on Artix-7",
+    "cve": "N/A",
+    "severity": "low",
+    "port": "JTAG / USB-UART",
+    "service": "Verilog HDL / UART",
+    "target": "Digilent Arty A7-35T",
+    "date": "2026-03-03",
+    "featured": false,
+    "description": "Custom 8-channel logic analyzer implemented from scratch in Verilog HDL on a Xilinx Artix-7 FPGA. Covers FSM design, BRAM circular buffer, UART TX module, and timing closure at 100 MHz using Xilinx Vivado 2023.2."
   }
 ]
