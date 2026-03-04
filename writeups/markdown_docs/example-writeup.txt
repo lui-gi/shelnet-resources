@@ -20,7 +20,7 @@ The vulnerability allows an attacker to perform **unauthenticated remote code ex
 This write-up was performed in an isolated homelab environment. No live or production systems were targeted.
 
 - **Attacker:** Kali Linux (192.168.56.10)
-- **Target:** Metasploitable 2 (192.168.56.11) — host-only adapter
+- **Target:** Metasploitable 2 (192.168.56.11) - host-only adapter
 - **Tools:** Nmap, Netcat, Metasploit Framework (optional)
 
 ## Discovery
@@ -56,7 +56,7 @@ nc 192.168.56.11 21
 nc 192.168.56.11 6200
 ```
 
-Explain what happens internally when the exploit fires — what code path is triggered, what privileges are gained, etc.
+Explain what happens internally when the exploit fires - what code path is triggered, what privileges are gained, etc.
 
 ## Proof of Concept
 
@@ -76,11 +76,11 @@ Include any relevant output that demonstrates the impact.
 
 List concrete, actionable remediation steps:
 
-1. **Upgrade the software** — Replace the vulnerable version with a patched release. Verify checksums against trusted sources.
-2. **Apply vendor patches** — Check the vendor advisory for official patches.
-3. **Network segmentation** — Restrict service access to trusted hosts via firewall rules.
-4. **Disable if unused** — If the service is not required, disable it entirely.
-5. **Monitor for indicators of compromise** — Set up alerts for unusual activity on the affected port.
+1. **Upgrade the software** - Replace the vulnerable version with a patched release. Verify checksums against trusted sources.
+2. **Apply vendor patches** - Check the vendor advisory for official patches.
+3. **Network segmentation** - Restrict service access to trusted hosts via firewall rules.
+4. **Disable if unused** - If the service is not required, disable it entirely.
+5. **Monitor for indicators of compromise** - Set up alerts for unusual activity on the affected port.
 
 ## References
 

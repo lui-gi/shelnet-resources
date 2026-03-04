@@ -11,31 +11,31 @@ description: Full-scope penetration test of a Metasploitable 2 target in an isol
 
 ## Overview
 
-Metasploitable 2 is a deliberately vulnerable Linux VM distributed by Rapid7 as a training target. It's old — kernel 2.6.24, released 2008 — and it's packed with unpatched services, default credentials, and misconfigured SUID binaries. That makes it a good controlled environment for working through the full exploitation lifecycle end-to-end: reconnaissance, service enumeration, exploitation, post-exploitation, and lateral movement.
+Metasploitable 2 is a deliberately vulnerable Linux VM distributed by Rapid7 as a training target. It's old - kernel 2.6.24, released 2008 - and it's packed with unpatched services, default credentials, and misconfigured SUID binaries. That makes it a good controlled environment for working through the full exploitation lifecycle end-to-end: reconnaissance, service enumeration, exploitation, post-exploitation, and lateral movement.
 
-The goal wasn't to pop it as fast as possible. The goal was to document the process methodically — understand each vulnerability, understand why it exists, understand what detection or remediation looks like. There are writeups for individual exploits (vsftpd, Samba, UnrealIRCd, distcc, PostgreSQL) but this document covers the full engagement as a single narrative.
+The goal wasn't to pop it as fast as possible. The goal was to document the process methodically - understand each vulnerability, understand why it exists, understand what detection or remediation looks like. There are writeups for individual exploits (vsftpd, Samba, UnrealIRCd, distcc, PostgreSQL) but this document covers the full engagement as a single narrative.
 
 ## Environment
 
 The lab runs entirely offline in an isolated KVM/QEMU environment on a ThinkPad P53 host running Fedora. Three VMs:
 
-- **Kali Linux** — attacker, bridged to the host network at `192.168.1.x`
-- **pfSense** — dual-NIC firewall, WAN on the host bridge, LAN on `192.168.100.0/24`
-- **Metasploitable 2** — target, isolated LAN only at `192.168.100.10`
+- **Kali Linux** - attacker, bridged to the host network at `192.168.1.x`
+- **pfSense** - dual-NIC firewall, WAN on the host bridge, LAN on `192.168.100.0/24`
+- **Metasploitable 2** - target, isolated LAN only at `192.168.100.10`
 
-The pfSense VM enforces the network boundary between Kali and the target. Kali reaches the target through a pfSense NAT/port-forward configuration — intentionally misconfigured to simulate the kind of "convenient but insecure" firewall rules that show up in real environments. Neither the target nor the attacker has internet access.
+The pfSense VM enforces the network boundary between Kali and the target. Kali reaches the target through a pfSense NAT/port-forward configuration - intentionally misconfigured to simulate the kind of "convenient but insecure" firewall rules that show up in real environments. Neither the target nor the attacker has internet access.
 
 ```
-[Kali — 192.168.1.x]
+[Kali - 192.168.1.x]
         |
-    [Host bridge — virbr0]
+    [Host bridge - virbr0]
         |
     [pfSense WAN]
-    [pfSense LAN — 192.168.100.1]
+    [pfSense LAN - 192.168.100.1]
         |
-    [isolated bridge — virbr1]
+    [isolated bridge - virbr1]
         |
-    [Metasploitable 2 — 192.168.100.10]
+    [Metasploitable 2 - 192.168.100.10]
 ```
 
 ## Reconnaissance
@@ -86,9 +86,9 @@ That's a lot of surface. I prioritized by known severity and ease of exploitatio
 
 ## Exploitation
 
-### vsftpd 2.3.4 Backdoor — CVE-2011-2523
+### vsftpd 2.3.4 Backdoor - CVE-2011-2523
 
-The vsftpd 2.3.4 backdoor is the cleanest entry point. A compromised source tarball was distributed via the official mirror in July 2011. The backdoor checks if the FTP username contains `:)` — if so, it forks a root shell on port 6200.
+The vsftpd 2.3.4 backdoor is the cleanest entry point. A compromised source tarball was distributed via the official mirror in July 2011. The backdoor checks if the FTP username contains `:)` - if so, it forks a root shell on port 6200.
 
 ```bash
 ncat 192.168.100.10 21
@@ -114,7 +114,7 @@ uid=0(root) gid=0(root) groups=0(root)
 
 Root immediately. No password, no exploit complexity. This one is a good reminder that supply chain integrity matters as much as the software itself.
 
-### Samba 3.0.20 — CVE-2007-2447 (username map script)
+### Samba 3.0.20 - CVE-2007-2447 (username map script)
 
 Samba 3.0.20-3.0.25rc3 passes user-supplied input to `/bin/sh` via the `username map script` option when ms-rpc calls include shell metacharacters. Metasploit wraps this cleanly:
 
@@ -137,7 +137,7 @@ uid=0(root) gid=0(root) groups=0(root)
 
 Again root. The `username map script` option is disabled by default in modern Samba; it was enabled here, either as a leftover from a misconfigured deployment or deliberately for the VM.
 
-### UnrealIRCd 3.2.8.1 Backdoor — CVE-2010-2075
+### UnrealIRCd 3.2.8.1 Backdoor - CVE-2010-2075
 
 Same pattern as vsftpd: a trojaned release with a backdoor embedded in the source. The trigger is sending `AB;` followed by a shell command to any IRC port. Metasploit:
 
@@ -160,7 +160,7 @@ Three services, three root shells, same underlying problem: running software fro
 
 ### distcc Remote Code Execution
 
-distcc is a distributed compilation daemon. Version 1:2.18.3-4 on port 3632 executes arbitrary compiler commands without authentication — a feature, not a bug, in a trusted build farm. Exposed to an untrusted network it's an unauthenticated RCE:
+distcc is a distributed compilation daemon. Version 1:2.18.3-4 on port 3632 executes arbitrary compiler commands without authentication - a feature, not a bug, in a trusted build farm. Exposed to an untrusted network it's an unauthenticated RCE:
 
 ```bash
 use exploit/unix/misc/distcc_exec
@@ -174,7 +174,7 @@ id
 uid=1(daemon) gid=1(daemon) groups=1(daemon)
 ```
 
-This one drops a daemon shell rather than root — distcc runs as the `daemon` user. Still a valid foothold for privilege escalation.
+This one drops a daemon shell rather than root - distcc runs as the `daemon` user. Still a valid foothold for privilege escalation.
 
 ## Post-Exploitation
 
@@ -201,7 +201,7 @@ john --wordlist=/usr/share/wordlists/rockyou.txt shadow.txt
 msfadmin         (msfadmin)
 ```
 
-The `msfadmin` password is literally the username. That's the default credential shipped with the VM — and it would survive on any system where the default was never changed.
+The `msfadmin` password is literally the username. That's the default credential shipped with the VM - and it would survive on any system where the default was never changed.
 
 ### PostgreSQL Default Credentials
 
@@ -218,7 +218,7 @@ postgres=#
 
 From a PostgreSQL session with superuser privileges, `COPY TO/FROM PROGRAM` (available in newer versions) or the built-in `pg_exec` extension can escalate to OS command execution. On this version I used `COPY` with a program call to read `/etc/passwd` as a baseline verification.
 
-### SUID Nmap — Local Privilege Escalation
+### SUID Nmap - Local Privilege Escalation
 
 From the distcc `daemon` shell, I looked for SUID binaries:
 
@@ -247,11 +247,11 @@ id
 uid=1(daemon) gid=1(daemon) euid=0(root) egid=0(root)
 ```
 
-`euid=0` — effective root from a non-root foothold. SUID on a diagnostic tool with a built-in shell escape is a complete privilege escalation path.
+`euid=0` - effective root from a non-root foothold. SUID on a diagnostic tool with a built-in shell escape is a complete privilege escalation path.
 
 ## Firewall Segmentation Analysis
 
-The pfSense firewall was configured with a port-forward from the WAN interface to `192.168.100.10` on all the target ports. This was done for "convenience" — to avoid needing to route traffic through the firewall manually. The result: Kali had essentially unrestricted access to the target as if it were on the same LAN segment.
+The pfSense firewall was configured with a port-forward from the WAN interface to `192.168.100.10` on all the target ports. This was done for "convenience" - to avoid needing to route traffic through the firewall manually. The result: Kali had essentially unrestricted access to the target as if it were on the same LAN segment.
 
 The intended topology was that pfSense would enforce a security boundary between the attacker and the target. The NAT misconfiguration completely undermined that. The lesson is straightforward: firewall rules need to be reviewed against their stated security intent, not just their functional behavior. A rule that "works" (traffic flows) can simultaneously fail (doesn't enforce the intended boundary).
 
@@ -259,9 +259,9 @@ The intended topology was that pfSense would enforce a security boundary between
 
 | Service | Vulnerability | Impact | Root? |
 |---|---|---|---|
-| vsftpd 2.3.4 | CVE-2011-2523 — backdoored release | Unauthenticated RCE | Yes |
-| Samba 3.0.20 | CVE-2007-2447 — username map script | Unauthenticated RCE | Yes |
-| UnrealIRCd 3.2.8.1 | CVE-2010-2075 — backdoored release | Unauthenticated RCE | Yes |
+| vsftpd 2.3.4 | CVE-2011-2523 - backdoored release | Unauthenticated RCE | Yes |
+| Samba 3.0.20 | CVE-2007-2447 - username map script | Unauthenticated RCE | Yes |
+| UnrealIRCd 3.2.8.1 | CVE-2010-2075 - backdoored release | Unauthenticated RCE | Yes |
 | distcc 1:2.18.3-4 | Unauthenticated command execution | Remote code exec (daemon) | Via SUID |
 | PostgreSQL 8.3 | Default credentials (postgres:postgres) | Database access + potential OS exec | Partial |
 | /usr/bin/nmap | SUID bit + --interactive shell escape | Local privilege escalation | From any user |
@@ -269,16 +269,16 @@ The intended topology was that pfSense would enforce a security boundary between
 
 ## Lessons Learned
 
-Three of the six service-level findings are backdoored software releases — vsftpd, Samba, UnrealIRCd. That's not a coincidence, it's an artifact of the era this VM represents. The 2008–2011 timeframe saw several high-profile supply chain compromises, and the lesson still applies directly today: package integrity verification isn't optional, and "downloaded from the official site" isn't the same as "verified against a known-good signature."
+Three of the six service-level findings are backdoored software releases - vsftpd, Samba, UnrealIRCd. That's not a coincidence, it's an artifact of the era this VM represents. The 2008–2011 timeframe saw several high-profile supply chain compromises, and the lesson still applies directly today: package integrity verification isn't optional, and "downloaded from the official site" isn't the same as "verified against a known-good signature."
 
 The default credential findings (postgres:postgres, msfadmin:msfadmin) are the category that translates most directly to production environments. Default credentials on shipped software continue to appear in real breach reports. They're not interesting from a technical standpoint, but they're disproportionately impactful because they're so easy to miss during deployment.
 
-The SUID nmap finding is a good representative of the broader "unnecessary SUID bit" class. Any binary with a SUID bit that also provides shell access — nmap --interactive, vim, find, awk, python — is a complete local privilege escalation. GTFOBins catalogs these exhaustively. Auditing for unexpected SUID binaries should be a standard hardening step.
+The SUID nmap finding is a good representative of the broader "unnecessary SUID bit" class. Any binary with a SUID bit that also provides shell access - nmap --interactive, vim, find, awk, python - is a complete local privilege escalation. GTFOBins catalogs these exhaustively. Auditing for unexpected SUID binaries should be a standard hardening step.
 
 ## References
 
-- [NVD — CVE-2011-2523 (vsftpd)](https://nvd.nist.gov/vuln/detail/CVE-2011-2523)
-- [NVD — CVE-2007-2447 (Samba)](https://nvd.nist.gov/vuln/detail/CVE-2007-2447)
-- [NVD — CVE-2010-2075 (UnrealIRCd)](https://nvd.nist.gov/vuln/detail/CVE-2010-2075)
-- [Rapid7 — Metasploitable 2 documentation](https://docs.rapid7.com/metasploit/metasploitable-2/)
-- [GTFOBins — nmap](https://gtfobins.github.io/gtfobins/nmap/)
+- [NVD - CVE-2011-2523 (vsftpd)](https://nvd.nist.gov/vuln/detail/CVE-2011-2523)
+- [NVD - CVE-2007-2447 (Samba)](https://nvd.nist.gov/vuln/detail/CVE-2007-2447)
+- [NVD - CVE-2010-2075 (UnrealIRCd)](https://nvd.nist.gov/vuln/detail/CVE-2010-2075)
+- [Rapid7 - Metasploitable 2 documentation](https://docs.rapid7.com/metasploit/metasploitable-2/)
+- [GTFOBins - nmap](https://gtfobins.github.io/gtfobins/nmap/)

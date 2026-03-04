@@ -1,5 +1,5 @@
 ---
-title: FPGA Logic Analyzer — Verilog on Artix-7
+title: FPGA Logic Analyzer - Verilog on Artix-7
 cve: N/A
 severity: low
 port: JTAG / USB-UART
@@ -11,13 +11,13 @@ description: Custom 8-channel logic analyzer implemented from scratch in Verilog
 
 ## Overview
 
-The premise of this lab was simple: instead of buying a commercial logic analyzer, implement one from scratch in Verilog on an FPGA. The goal wasn't to build something more capable than a Saleae — it's obviously not — it was to understand what's happening inside one at the RTL level.
+The premise of this lab was simple: instead of buying a commercial logic analyzer, implement one from scratch in Verilog on an FPGA. The goal wasn't to build something more capable than a Saleae - it's obviously not - it was to understand what's happening inside one at the RTL level.
 
 The architecture I built has four main components:
-- **Capture FSM** — a finite state machine that monitors a configurable trigger channel and then samples all 8 input channels synchronously on every rising clock edge
-- **BRAM circular buffer** — a 4096-sample block RAM store that absorbs captures at 100 MHz with negligible overhead
-- **UART TX module** — serializes the stored samples out at 115200 baud after capture completes
-- **Python post-processor** — reads the serial stream on the host, parses the sample frames, and exports a VCD (Value Change Dump) file for GTKWave
+- **Capture FSM** - a finite state machine that monitors a configurable trigger channel and then samples all 8 input channels synchronously on every rising clock edge
+- **BRAM circular buffer** - a 4096-sample block RAM store that absorbs captures at 100 MHz with negligible overhead
+- **UART TX module** - serializes the stored samples out at 115200 baud after capture completes
+- **Python post-processor** - reads the serial stream on the host, parses the sample frames, and exports a VCD (Value Change Dump) file for GTKWave
 
 The signal source for testing was an STM32F4 Discovery board running firmware that emits SPI, I2C, and UART transactions on known pins at known rates. This gave me ground-truth waveforms to verify against.
 
@@ -25,14 +25,14 @@ The security relevance here is at the tool-building level: logic analyzers are s
 
 ## Environment
 
-- **FPGA:** Digilent Arty A7-35T — Xilinx Artix-7 XC7A35T-CSG324, 33,280 logic cells, ~1.8 MB BRAM, onboard USB-JTAG programmer (no external hardware programmer needed)
-- **EDA Tool:** Xilinx Vivado 2023.2 WebPACK edition — free, no license required for Artix-7 devices
-- **Signal Source:** STM32F4 Discovery — Cortex-M4 @ 168 MHz, STM32CubeIDE firmware emitting SPI @ 1 MHz, I2C @ 400 kHz, UART @ 9600 baud on configurable GPIO pins
+- **FPGA:** Digilent Arty A7-35T - Xilinx Artix-7 XC7A35T-CSG324, 33,280 logic cells, ~1.8 MB BRAM, onboard USB-JTAG programmer (no external hardware programmer needed)
+- **EDA Tool:** Xilinx Vivado 2023.2 WebPACK edition - free, no license required for Artix-7 devices
+- **Signal Source:** STM32F4 Discovery - Cortex-M4 @ 168 MHz, STM32CubeIDE firmware emitting SPI @ 1 MHz, I2C @ 400 kHz, UART @ 9600 baud on configurable GPIO pins
 - **Host Software:** Python 3 + pyserial for the frame decoder and VCD exporter, GTKWave 3.3.x for waveform visualization
 
 ## Project Setup & Clock Constraints
 
-Vivado project creation: `File → Project Wizard`, target part `xc7a35tcsg324-1` (the specific Arty A7-35T variant — get the package suffix right or the XDC constraints won't map). Import the Digilent Arty A7 master XDC file, which maps all the board's headers, buttons, LEDs, and the UART pins to the correct FPGA ball locations.
+Vivado project creation: `File → Project Wizard`, target part `xc7a35tcsg324-1` (the specific Arty A7-35T variant - get the package suffix right or the XDC constraints won't map). Import the Digilent Arty A7 master XDC file, which maps all the board's headers, buttons, LEDs, and the UART pins to the correct FPGA ball locations.
 
 The critical constraint is the clock:
 
@@ -40,7 +40,7 @@ The critical constraint is the clock:
 create_clock -period 10.000 -name sys_clk [get_ports sys_clk]
 ```
 
-This tells Vivado that `sys_clk` is a 100 MHz clock with a 10 ns period. All timing analysis derives from this. The Arty A7-35T's onboard oscillator is 100 MHz, fed directly to the FPGA. I didn't need a MMCM (Mixed-Mode Clock Manager) for frequency multiplication or phase adjustment — 100 MHz is the target rate, so the oscillator drives the design directly.
+This tells Vivado that `sys_clk` is a 100 MHz clock with a 10 ns period. All timing analysis derives from this. The Arty A7-35T's onboard oscillator is 100 MHz, fed directly to the FPGA. I didn't need a MMCM (Mixed-Mode Clock Manager) for frequency multiplication or phase adjustment - 100 MHz is the target rate, so the oscillator drives the design directly.
 
 ## Capture FSM Design
 
@@ -82,11 +82,11 @@ The Vivado IP Block Memory Generator (IP catalog → Memories & Storage Elements
 
 Parameters:
 - **Mode:** Simple Dual Port
-- **Port A (write):** 8-bit data width, 4096 depth — write port for capture
-- **Port B (read):** 8-bit data width, 4096 depth — read port for UART TX
+- **Port A (write):** 8-bit data width, 4096 depth - write port for capture
+- **Port B (read):** 8-bit data width, 4096 depth - read port for UART TX
 - **Memory initialization:** all zeros
 
-Buffer depth: 4096 samples × 8 channels = 32,768 bits = **4 KB**. This leaves more than 98% of the Artix-7's 1.8 MB BRAM free — the block RAM on this device is dramatically underutilized for this design.
+Buffer depth: 4096 samples × 8 channels = 32,768 bits = **4 KB**. This leaves more than 98% of the Artix-7's 1.8 MB BRAM free - the block RAM on this device is dramatically underutilized for this design.
 
 Capture window: 4096 samples at 10 ns/sample = **40.96 µs**. That's sufficient to capture an entire 1 MHz SPI frame (which at 8 bits takes 8 µs), with significant margin.
 
@@ -98,7 +98,7 @@ The UART transmitter runs as a separate always block driven by the same 100 MHz 
 100,000,000 Hz / 115,200 baud ≈ 868 clock cycles per bit
 ```
 
-Frame format: standard 8N1 — 1 start bit, 8 data bits, 1 stop bit, no parity.
+Frame format: standard 8N1 - 1 start bit, 8 data bits, 1 stop bit, no parity.
 
 The core logic is a shift register that loads from the BRAM read data bus when `tx_start` is asserted:
 
@@ -129,7 +129,7 @@ end
 assign uart_tx = shift_reg[0];
 ```
 
-The `tx_busy` signal stalls the BRAM read port during the inter-byte gap — the UART TX needs to complete each byte before the FSM can load the next one from BRAM.
+The `tx_busy` signal stalls the BRAM read port during the inter-byte gap - the UART TX needs to complete each byte before the FSM can load the next one from BRAM.
 
 ## Synthesis, Implementation & Timing
 
@@ -141,9 +141,9 @@ Worst Negative Slack (WNS): -0.4 ns
 Path: bram_inst/rd_data[3] -> uart_tx_inst/shift_reg[3]
 ```
 
-The combinatorial path from the BRAM read data output directly to the UART shift register load logic was 10.4 ns — 0.4 ns over budget on a 10 ns clock period.
+The combinatorial path from the BRAM read data output directly to the UART shift register load logic was 10.4 ns - 0.4 ns over budget on a 10 ns clock period.
 
-Fix: insert a single pipeline register on the BRAM read data output. One additional always block, 8 flip-flops, one clock cycle of registered latency between BRAM output and UART load. The latency is completely irrelevant to the design's function — we're already in post-capture TRANSMIT state.
+Fix: insert a single pipeline register on the BRAM read data output. One additional always block, 8 flip-flops, one clock cycle of registered latency between BRAM output and UART load. The latency is completely irrelevant to the design's function - we're already in post-capture TRANSMIT state.
 
 Second synthesis and implementation run:
 
@@ -156,31 +156,31 @@ Timing Summary:
 
 Timing closed with +0.8 ns worst-case slack. Final resource utilization: 287 of 20,800 LUTs (1.4%), 8 of 50 BRAM tiles (<3%).
 
-Program the board: `Flow Navigator → Generate Bitstream → Open Hardware Manager → Program Device`. The onboard USB-JTAG handles everything — no external programmer needed.
+Program the board: `Flow Navigator → Generate Bitstream → Open Hardware Manager → Program Device`. The onboard USB-JTAG handles everything - no external programmer needed.
 
 ## Findings
 
-1. **100 MHz capture rate achieved** — timing closed with +0.8 ns worst-case slack after inserting a single pipeline register to break the BRAM-to-UART combinatorial critical path
-2. **BRAM FIFO absorbed 40-sample SPI burst with 0% overflow** — peak occupancy <2% of 4096-sample buffer; ample headroom
-3. **UART bottleneck: 86.8 µs/sample at 115200 baud** — 8,000× slower than the 100 MHz capture clock; post-capture (sample, then transmit) mode is mandatory; continuous streaming at full capture rate is not feasible at this baud rate
-4. **VCD export confirmed zero-sample timing error** — Python-decoded waveforms compared against STM32CubeIDE reference captures; all edges matched within one sample period (10 ns)
+1. **100 MHz capture rate achieved** - timing closed with +0.8 ns worst-case slack after inserting a single pipeline register to break the BRAM-to-UART combinatorial critical path
+2. **BRAM FIFO absorbed 40-sample SPI burst with 0% overflow** - peak occupancy <2% of 4096-sample buffer; ample headroom
+3. **UART bottleneck: 86.8 µs/sample at 115200 baud** - 8,000× slower than the 100 MHz capture clock; post-capture (sample, then transmit) mode is mandatory; continuous streaming at full capture rate is not feasible at this baud rate
+4. **VCD export confirmed zero-sample timing error** - Python-decoded waveforms compared against STM32CubeIDE reference captures; all edges matched within one sample period (10 ns)
 
 ## Lessons Learned
 
-Timing closure is the central skill in synchronous FPGA design, and this lab made that concrete. The critical path violation on the first implementation run wasn't a code bug — the logic was correct. The problem was physical: the signal path through the BRAM output, across the routing fabric, to the flip-flop input was longer than 10 ns.
+Timing closure is the central skill in synchronous FPGA design, and this lab made that concrete. The critical path violation on the first implementation run wasn't a code bug - the logic was correct. The problem was physical: the signal path through the BRAM output, across the routing fabric, to the flip-flop input was longer than 10 ns.
 
-The fix — one pipeline register — is the standard solution. You break the long combinatorial path by inserting a register stage, accepting one additional clock cycle of latency in exchange for meeting timing. In this design the extra latency is irrelevant. In a real-time streaming design it might matter, and you'd have to think more carefully about where to pipeline.
+The fix - one pipeline register - is the standard solution. You break the long combinatorial path by inserting a register stage, accepting one additional clock cycle of latency in exchange for meeting timing. In this design the extra latency is irrelevant. In a real-time streaming design it might matter, and you'd have to think more carefully about where to pipeline.
 
 Future revisions worth considering:
-- **Dual-buffer ping-pong BRAM** — double-buffer scheme where capture writes to buffer A while UART reads from buffer B, then swap; removes the 40.96 µs capture window limitation
-- **USB 2.0 high-speed streaming** — replace UART at 115200 baud with a USB bulk transfer endpoint at 480 Mbps; eliminates the UART bottleneck entirely; the Artix-7 supports this with a soft USB core (e.g., ValentyUSB)
+- **Dual-buffer ping-pong BRAM** - double-buffer scheme where capture writes to buffer A while UART reads from buffer B, then swap; removes the 40.96 µs capture window limitation
+- **USB 2.0 high-speed streaming** - replace UART at 115200 baud with a USB bulk transfer endpoint at 480 Mbps; eliminates the UART bottleneck entirely; the Artix-7 supports this with a soft USB core (e.g., ValentyUSB)
 
 One practical note: Vivado WebPACK covers the Artix-7 completely with no cost. There's no license server, no paid dongle, no time limit. The full synthesis, implementation, and bitstream generation flow is available for free for this device family. Replication cost is the ~$30 Arty A7-35T board plus a free Xilinx account.
 
 ## References
 
-- Xilinx UG901: Vivado Design Suite User Guide — Synthesis
+- Xilinx UG901: Vivado Design Suite User Guide - Synthesis
 - Xilinx UG953: Vivado Design Suite 7 Series FPGA Libraries Guide
 - Digilent Arty A7 Reference Manual and master XDC file
 - IEEE Std 1364-2001: IEEE Standard for Verilog Hardware Description Language
-- GTKWave documentation — gtkwave.sourceforge.net
+- GTKWave documentation - gtkwave.sourceforge.net
