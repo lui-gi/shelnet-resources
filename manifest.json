@@ -27,6 +27,7 @@
       "accent": "blue",
       "blurb": "Baseline cybersecurity: threats, cryptography, identity, and operations.",
       "locked": false,
+      "bytes": { "count": 209 },
       "resources": {
         "pbqs": [
           { "id": 1, "title": "Identity Access Management", "filename": "iam-pbq-1.html", "description": "Assign the correct permissions based on \"Least Privilege.\"" },
