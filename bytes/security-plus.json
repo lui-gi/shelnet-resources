@@ -3136,6 +3136,981 @@
         2
       ],
       "explanation": "`p=reject` instructs receivers to refuse failing mail outright, the strictest DMARC enforcement. *p=quarantine* (B) is the close distractor: quarantine diverts failing mail to spam/junk rather than rejecting it, and `p=none` only monitors."
+    },
+    {
+      "id": "secplus-0210",
+      "domain": "Security Operations",
+      "stem": "Which of the following lists the incident response phases in the correct order?",
+      "choices": [
+        "Preparation, Containment, Detection, Analysis, Eradication, Recovery, Lessons learned",
+        "Preparation, Detection, Analysis, Containment, Eradication, Recovery, Lessons learned",
+        "Detection, Preparation, Analysis, Eradication, Containment, Recovery, Lessons learned",
+        "Preparation, Detection, Containment, Analysis, Recovery, Eradication, Lessons learned"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The CompTIA/NIST incident response lifecycle runs Preparation, Detection, Analysis, Containment, Eradication, Recovery, then Lessons learned. The distractors reorder the middle: you must analyze the scope before you contain, and contain before you eradicate."
+    },
+    {
+      "id": "secplus-0211",
+      "domain": "Security Operations",
+      "stem": "A security team has just finished isolating the infected workstations from the network so the malware can no longer spread. The malware, however, is still present on those hosts. Which of the following is the NEXT incident response phase?",
+      "choices": [
+        "Recovery",
+        "Eradication",
+        "Lessons learned",
+        "Containment"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Once hosts are contained (isolated so the threat cannot spread), the next step is eradication: actually removing the malware and closing the entry point. Recovery (A) is the trap, but you cannot restore to production while the malware is still present."
+    },
+    {
+      "id": "secplus-0212",
+      "domain": "Security Operations",
+      "stem": "Responders have removed the malware, rebuilt the affected systems from clean images, and validated that the threat is gone. They now reconnect the systems to production and monitor closely to confirm normal operation. Which of the following incident response phases does this describe?",
+      "choices": [
+        "Eradication",
+        "Containment",
+        "Recovery",
+        "Analysis"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Restoring systems to normal operation, reconnecting them to production, and monitoring to confirm they are clean and stable is the recovery phase. Eradication (A) is the previous step (removing the threat); recovery brings the business back online afterward."
+    },
+    {
+      "id": "secplus-0213",
+      "domain": "Security Architecture",
+      "stem": "An employee has a financial spreadsheet open in a desktop application; the file is decrypted in the workstation's memory and is actively being edited on screen. Which of the following data states BEST describes the spreadsheet right now?",
+      "choices": [
+        "Data at rest",
+        "Data in transit",
+        "Data in use",
+        "Data archived"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Data being actively processed in memory or CPU by an application (decrypted, displayed, edited) is data in use. Data at rest (A) is stored and idle; in transit (B) is moving across a network. In use is the hardest to protect and is the case for technologies like secure enclaves and full-memory encryption."
+    },
+    {
+      "id": "secplus-0214",
+      "domain": "Security Architecture",
+      "stem": "A company's customer database files sit on an encrypted SAN volume. No one is currently querying or moving the data; it is simply stored. Which of the following data states BEST describes this data?",
+      "choices": [
+        "Data at rest",
+        "Data in transit",
+        "Data in use",
+        "Data masked"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Data sitting in storage and not currently being accessed or moved is data at rest; full-disk or full-volume encryption is its typical safeguard. The fact that it lives on an encrypted SAN does not change its state, it just tells you how at-rest data is being protected."
+    },
+    {
+      "id": "secplus-0215",
+      "domain": "Security Architecture",
+      "stem": "A web application sends customer records from the browser to the server across the public Internet, and the security team must protect the records while they move between the two endpoints. Which of the following data states must the chosen control protect, and what is the BEST control?",
+      "choices": [
+        "Data at rest, protected with full-disk encryption",
+        "Data in transit, protected with TLS",
+        "Data in use, protected with a secure enclave",
+        "Data at rest, protected with tokenization"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Records moving between browser and server across a network are in transit, and TLS provides confidentiality and integrity for that channel. Full-disk encryption (A) protects data at rest and a secure enclave (C) protects data in use, so both name the wrong state for moving data."
+    },
+    {
+      "id": "secplus-0216",
+      "domain": "General Security Concepts",
+      "stem": "A browser needs to confirm, in real time, whether one specific TLS certificate has been revoked, rather than downloading and parsing a large periodically published list of every revoked certificate. Which of the following mechanisms does this describe?",
+      "choices": [
+        "CRL",
+        "OCSP",
+        "CSR",
+        "SAN"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The Online Certificate Status Protocol queries a responder for the revocation status of one specific certificate in real time (good, revoked, or unknown). CRL (A) is the opposite approach: a Certificate Revocation List is a large, periodically published list of all revoked serial numbers that the client downloads and parses."
+    },
+    {
+      "id": "secplus-0217",
+      "domain": "General Security Concepts",
+      "stem": "To improve performance and protect client privacy, a web server obtains a recent signed certificate-status response from the CA and attaches it directly to its own TLS handshake, so clients do not have to contact the CA themselves. Which of the following does this describe?",
+      "choices": [
+        "Certificate pinning",
+        "CRL distribution point",
+        "OCSP stapling",
+        "Key escrow"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "With stapling, the web server fetches a recent signed OCSP response and attaches (staples) it to its TLS handshake, so clients do not query the CA, improving performance and privacy. Certificate pinning (A) is unrelated: pinning hard-codes which cert or key a client should trust and does not convey revocation status."
+    },
+    {
+      "id": "secplus-0218",
+      "domain": "Security Program Management and Oversight",
+      "stem": "A senior business executive is formally accountable for a specific set of corporate data, decides its classification level, and approves who may access it, but does not perform the day-to-day technical protection. Which of the following roles does this BEST describe?",
+      "choices": [
+        "Data owner",
+        "Data custodian",
+        "Data processor",
+        "Data subject"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The data owner is the senior, accountable individual who classifies the data and authorizes access but delegates the technical work. The data custodian (B) is the hands-on protector, not the accountable decision-maker: owner equals accountable and decides, custodian equals implements."
+    },
+    {
+      "id": "secplus-0219",
+      "domain": "Security Program Management and Oversight",
+      "stem": "A systems administrator is responsible for the hands-on technical safeguarding of a dataset: applying access permissions, running backups, and maintaining the storage system, all according to the policies set by others. Which of the following roles does this BEST describe?",
+      "choices": [
+        "Data controller",
+        "Data custodian/steward",
+        "Data owner",
+        "Data processor"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The custodian (steward) performs the day-to-day technical protection (permissions, backups, storage maintenance) under policies set by the owner. The data controller (A) is a privacy-law role about deciding the purposes of processing, not technical custody."
+    },
+    {
+      "id": "secplus-0220",
+      "domain": "Security Program Management and Oversight",
+      "stem": "A marketing analytics firm receives a list of customer email addresses from a retailer and may use it only for the campaign the retailer specified, acting solely on the retailer's documented instructions. Which of the following roles does the analytics firm hold?",
+      "choices": [
+        "Data controller",
+        "Data owner",
+        "Data processor",
+        "Data custodian"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "A third party that handles data only per another organization's documented instructions, for a defined purpose, is the processor. The data controller is the retailer here (it decided the purpose); the analytics firm just executes the instructions, so it is the processor."
+    },
+    {
+      "id": "secplus-0221",
+      "domain": "Security Architecture",
+      "stem": "Two corporate offices in different cities must exchange internal traffic securely over the public Internet, and the security team needs to encrypt and authenticate the IP packets traveling between the two sites. Which of the following BEST meets this requirement?",
+      "choices": [
+        "IPsec",
+        "NAC",
+        "WAF",
+        "SNMPv3"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "IPsec encrypts and authenticates IP packets and is the standard for site-to-site VPN tunnels across the Internet. NAC (B) controls which devices may join a network and does not build an encrypted tunnel between sites, which is the IPsec versus NAC distinction this question tests."
+    },
+    {
+      "id": "secplus-0222",
+      "domain": "Security Operations",
+      "stem": "Before any device is allowed onto the corporate LAN, the security team wants to verify that the device is corporate-managed, has up-to-date antivirus, and meets patch-level requirements, quarantining devices that fail the check. Which of the following BEST meets this requirement?",
+      "choices": [
+        "IPsec",
+        "NAC",
+        "SASE",
+        "DMARC"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Network Access Control admits or quarantines devices based on posture and health checks (managed status, AV currency, patch level) before granting LAN access. IPsec (A) secures traffic in transit but does not assess device health or gate admission."
+    },
+    {
+      "id": "secplus-0223",
+      "domain": "Security Program Management and Oversight",
+      "stem": "A risk analyst is calculating potential loss for a server. If a particular incident occurs, the analyst estimates that 40% of the server's total value would be lost in that single event. Which of the following risk terms does the 40% figure represent?",
+      "choices": [
+        "Annualized rate of occurrence",
+        "Exposure factor",
+        "Risk tolerance",
+        "Residual risk"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The exposure factor (EF) is the percentage of an asset's value lost in a single incident; here 40% equals 0.40, and it feeds SLE = AV x EF. ARO (A) is how often per year the event happens, and risk tolerance (C) is how much risk the org accepts, neither of which is a per-event loss percentage."
+    },
+    {
+      "id": "secplus-0224",
+      "domain": "Security Program Management and Oversight",
+      "stem": "A company's leadership formally decides the maximum amount of risk the organization is willing to accept in pursuit of its objectives before it must reduce, transfer, or avoid that risk. Which of the following BEST describes this concept?",
+      "choices": [
+        "Exposure factor",
+        "Vulnerability classification",
+        "Risk tolerance (appetite)",
+        "Single loss expectancy"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Risk tolerance/appetite is the amount of risk an organization is willing to accept before acting to reduce, transfer, or avoid it. Exposure factor (A) is a loss-magnitude percentage and SLE (D) is a dollar figure for one event, neither of which expresses willingness to accept risk."
+    },
+    {
+      "id": "secplus-0225",
+      "domain": "Security Operations",
+      "stem": "After a scan, an analyst sorts the discovered weaknesses into categories and severity ratings (for example, by CVSS base score) so the team can decide which to remediate first. Which of the following activities does this BEST describe?",
+      "choices": [
+        "Risk tolerance",
+        "Exposure factor",
+        "Vulnerability classification",
+        "Penetration testing"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Categorizing and severity-rating discovered weaknesses (for example by CVSS) to prioritize remediation is vulnerability classification. Penetration testing (D) actively exploits to prove impact; classification is the sorting and ranking step, not the exploitation."
+    },
+    {
+      "id": "secplus-0226",
+      "domain": "General Security Concepts",
+      "stem": "An insider wants to exfiltrate a short block of confidential text without it being obvious, so they embed the text invisibly inside the bytes of an ordinary-looking image file before emailing it out. Which of the following techniques does this BEST describe?",
+      "choices": [
+        "Tokenization",
+        "Hashing",
+        "Steganography",
+        "Data masking"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Hiding data invisibly inside another file (an image's bytes) so its very existence is concealed is steganography. Tokenization (A) and masking (D) substitute or obscure values but do not hide one payload inside an unrelated media file, and hashing (B) is a one-way digest, not concealment of recoverable data."
+    },
+    {
+      "id": "secplus-0227",
+      "domain": "Security Architecture",
+      "stem": "A small branch office wants a single appliance that bundles firewall, intrusion prevention, gateway antivirus, content/URL filtering, and VPN termination into one box that is centrally managed. Which of the following BEST meets this requirement?",
+      "choices": [
+        "UTM",
+        "WAF",
+        "Load balancer",
+        "Jump server"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Unified Threat Management is a single appliance bundling firewall, IPS, gateway AV, content/URL filtering, and VPN under one console, ideal for a small branch. A WAF (B) only protects web applications at layer 7 and is not an all-in-one perimeter device."
+    },
+    {
+      "id": "secplus-0228",
+      "domain": "Threats, Vulnerabilities, and Mitigations",
+      "stem": "A legacy internal application authenticates users and transfers data using a protocol that sends everything, including credentials, in cleartext across the LAN. Which of the following is the MOST likely result of this design?",
+      "choices": [
+        "Increased CPU load on the application server",
+        "Credentials and data can be captured by anyone sniffing the network",
+        "Certificates will expire prematurely",
+        "The application will be unable to resolve DNS"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Plaintext (cleartext) protocols send everything, including credentials, unencrypted, so anyone capturing traffic (sniffing or on-path) can read it. The other options describe unrelated effects; the defining risk of cleartext is loss of confidentiality via interception."
+    },
+    {
+      "id": "secplus-0229",
+      "domain": "Security Operations",
+      "stem": "A security engineer is asked to remediate a plaintext-protocol problem by replacing an insecure remote-administration protocol with an encrypted equivalent. Which of the following is the BEST replacement?",
+      "choices": [
+        "Replace SSH with Telnet",
+        "Replace Telnet with SSH",
+        "Replace HTTPS with HTTP",
+        "Replace SFTP with FTP"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "SSH is the encrypted replacement for the cleartext Telnet remote-admin protocol. Every other option moves toward less security (SSH to Telnet, HTTPS to HTTP, SFTP to FTP); the pattern is to swap the plaintext protocol for its encrypted equivalent."
+    },
+    {
+      "id": "secplus-0230",
+      "domain": "Security Operations",
+      "stem": "A security team wants to be alerted whenever critical operating-system and configuration files on a server are added, modified, or deleted, comparing each file against a known-good baseline hash. Which of the following BEST describes this capability?",
+      "choices": [
+        "Data loss prevention",
+        "File integrity monitoring",
+        "Antivirus signature scanning",
+        "Vulnerability scanning"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "File integrity monitoring watches critical files and alerts on additions, modifications, or deletions by comparing each file to a known-good baseline (often a stored hash). Antivirus (C) looks for known malware signatures and DLP (A) prevents data exfiltration; neither is baseline-versus-current file-change detection."
+    },
+    {
+      "id": "secplus-0231",
+      "domain": "General Security Concepts",
+      "stem": "A smartphone stores fingerprint templates and cryptographic keys inside an isolated, hardware-protected region of the processor that the main operating system cannot directly access, so the data stays protected even if the OS is compromised. Which of the following BEST describes this feature?",
+      "choices": [
+        "Secure enclave",
+        "Trusted Platform Module",
+        "Hardware security module",
+        "Self-encrypting drive"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "A secure enclave is an isolated, hardware-protected region of the main processor that stores keys and biometric templates and remains protected even if the OS is compromised. A TPM (B) is the close distractor: a TPM is a separate discrete chip, whereas an enclave is an isolated zone inside the CPU itself."
+    },
+    {
+      "id": "secplus-0232",
+      "domain": "General Security Concepts",
+      "stem": "A laptop has a dedicated chip soldered to its motherboard that generates and stores cryptographic keys, ties them to that specific machine, and supplies the key used by the full-disk encryption software. Which of the following BEST describes this component?",
+      "choices": [
+        "HSM",
+        "TPM",
+        "Secure enclave",
+        "Smart card"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A Trusted Platform Module is a dedicated chip on the motherboard that generates and stores keys bound to that one machine and supplies the key for full-disk encryption (for example BitLocker). An HSM (A) is a removable or network device serving many systems, not a chip soldered to one board."
+    },
+    {
+      "id": "secplus-0233",
+      "domain": "General Security Concepts",
+      "stem": "Which of the following BEST describes a difference between a TPM and an HSM?",
+      "choices": [
+        "A TPM is a network-attached appliance, while an HSM is a chip bound to one motherboard",
+        "A TPM is a chip bound to a single device, while an HSM is a removable or network appliance that manages keys for many systems",
+        "A TPM cannot store cryptographic keys, but an HSM can",
+        "A TPM is software-only, while an HSM is hardware-only"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A TPM is a chip bound to a single device (keys are tied to that machine); an HSM is a removable or network-attached appliance that generates and manages keys at scale for many systems. Option A reverses the two, and the remaining options are false since both can store keys and both are hardware."
+    },
+    {
+      "id": "secplus-0234",
+      "domain": "General Security Concepts",
+      "stem": "During system startup, a security feature uses the TPM to measure each boot component and store those measurements so the platform's integrity can later be attested and compared against a known-good state. Which of the following capabilities does this BEST describe?",
+      "choices": [
+        "Key escrow",
+        "Certificate pinning",
+        "Measured boot / boot attestation",
+        "Sandboxing"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Using the TPM to measure each boot component into its registers (PCRs) so platform integrity can later be attested against a known-good state is measured boot/boot attestation, a core TPM characteristic. Key escrow (A) is third-party key storage, unrelated to verifying boot integrity."
+    },
+    {
+      "id": "secplus-0235",
+      "domain": "Security Operations",
+      "stem": "A security team connects its SIEM, firewall, ticketing system, and threat-intelligence feed so that a single detected indicator automatically opens a ticket, blocks the source IP, and enriches the alert, all without human steps, through one coordinated workflow. Which of the following BEST describes this capability?",
+      "choices": [
+        "Continuous integration",
+        "Orchestration",
+        "Containerization",
+        "Load balancing"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Orchestration ties multiple tools and tasks together into a single coordinated, automated workflow (the SOAR pattern). Load balancing (D) only distributes traffic, and CI (A) and containerization (C) are software-delivery concepts, none of which coordinate a multi-tool security response."
+    },
+    {
+      "id": "secplus-0236",
+      "domain": "Security Operations",
+      "stem": "A junior analyst asks about the difference between automation and orchestration. Which of the following statements is correct?",
+      "choices": [
+        "Automation coordinates many tools into one workflow; orchestration runs a single repetitive task",
+        "Automation performs a single repetitive task; orchestration coordinates multiple automated tasks and systems into a workflow",
+        "Automation and orchestration are identical terms",
+        "Orchestration can only be done manually, while automation is always scripted"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Automation is one repetitive task done without humans; orchestration stitches many automated tasks and systems together into a coordinated workflow. Option A reverses the two (the classic trap): automation is a single step, orchestration is the whole assembly line."
+    },
+    {
+      "id": "secplus-0237",
+      "domain": "Security Architecture",
+      "stem": "An administrator wants to understand exactly what full-disk encryption protects compared with file-level encryption. Which of the following statements is correct?",
+      "choices": [
+        "FDE encrypts only selected files chosen by the user; file-level encryption encrypts the whole volume",
+        "FDE encrypts the entire drive (OS, swap, and all data) and decrypts at boot with a key or PIN; file-level encryption protects only individual files or folders",
+        "FDE protects data in transit, while file-level encryption protects data at rest",
+        "FDE and file-level encryption both require a TPM to function at all"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "FDE encrypts the whole drive (OS, swap, all data) and unlocks at boot, while file-level encryption protects only chosen files or folders. Option A reverses them; FDE often uses a TPM to seal the key but does not strictly require one, and FDE is an at-rest control, not in-transit."
+    },
+    {
+      "id": "secplus-0238",
+      "domain": "Security Program Management and Oversight",
+      "stem": "An organization is about to integrate a new business partner whose software will be granted access to internal systems. Leadership is concerned the partner could become a path for compromise. Which of the following BEST reduces this supply chain risk before integration?",
+      "choices": [
+        "Disabling the corporate firewall to ease integration",
+        "Conducting a vendor/third-party risk assessment and requiring an SBOM and security terms in the contract",
+        "Sharing domain administrator credentials with the partner",
+        "Skipping due diligence because the partner is trusted"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Onboarding a new partner with system access is a supply chain risk; due diligence, an SBOM (software bill of materials), and contractual security requirements reduce it before integration. The other options increase risk or skip controls entirely."
+    },
+    {
+      "id": "secplus-0239",
+      "domain": "Security Architecture",
+      "stem": "A systems architect wants to clarify the difference between high availability and fault tolerance. Which of the following statements is correct?",
+      "choices": [
+        "High availability guarantees zero downtime even during a component failure; fault tolerance just means frequent backups",
+        "High availability keeps a service operational a very high percentage of time (often via failover/clustering); fault tolerance lets a system keep running with no interruption despite a component failure (for example redundant power, RAID)",
+        "High availability and fault tolerance both require off-site storage to work",
+        "Fault tolerance only applies to network links, while high availability only applies to databases"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "High availability means a service stays up a very high percentage of time via failover and clustering and can tolerate brief failovers; fault tolerance means the system keeps running with no interruption even when a component fails (redundant power, RAID, dual NICs). Option A swaps the definitions, the common trap."
+    },
+    {
+      "id": "secplus-0240",
+      "domain": "General Security Concepts",
+      "stem": "A user wants to send a file to a colleague so that ONLY that colleague can decrypt and read it, using asymmetric cryptography. Which key should the sender use to encrypt the file?",
+      "choices": [
+        "The sender's private key",
+        "The sender's public key",
+        "The recipient's public key",
+        "A shared symmetric key sent in the clear"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "For confidentiality, you encrypt with the recipient's public key so that only the recipient's private key can decrypt it. Using the sender's keys (A or B) would let others decrypt or would not target the recipient; this is the core public-key confidentiality rule."
+    },
+    {
+      "id": "secplus-0241",
+      "domain": "General Security Concepts",
+      "stem": "A developer wants to prove to recipients that a software release genuinely came from her and was not altered, using a digital signature. Which key does she use to create the signature?",
+      "choices": [
+        "The recipient's public key",
+        "The recipient's private key",
+        "Her own public key",
+        "Her own private key"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "A digital signature is created with the signer's private key; anyone verifies it with the signer's public key, proving origin and integrity. The recipient's public key (A) is for encrypting to the recipient (confidentiality), not for signing: sign with private, verify with public."
+    },
+    {
+      "id": "secplus-0242",
+      "domain": "Security Program Management and Oversight",
+      "stem": "Before a penetration test begins, both parties sign a document that defines the scope, the testing window, and a list of actions the testers are explicitly forbidden from performing, such as denial-of-service and social engineering. Which of the following BEST describes the part of this document that forbids those actions?",
+      "choices": [
+        "The remediation plan",
+        "The restricted/prohibited activities in the rules of engagement",
+        "The bug bounty payout schedule",
+        "The chain of custody"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The rules of engagement (RoE) define scope, timing, and the activities testers may NOT perform (no DoS, no social engineering). The remediation plan (A) comes after findings, and chain of custody (D) is an evidence-handling concept, not a pentest scope restriction."
+    },
+    {
+      "id": "secplus-0243",
+      "domain": "Threats, Vulnerabilities, and Mitigations",
+      "stem": "A small office secures its wireless network by allowing only a list of approved hardware addresses to associate with the access point. An attacker sniffs the air, observes an allowed address, and reconfigures their adapter to use it. Which of the following BEST explains why this control failed?",
+      "choices": [
+        "MAC filtering encrypts traffic, but the encryption was misconfigured",
+        "MAC addresses are sent in cleartext and are easily spoofed, so MAC filtering is weak access control, not encryption",
+        "WPA3 was the cause of the failure",
+        "The attacker cracked the AES key used by MAC filtering"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "MAC filtering is a weak access-control list, not encryption; an attacker can sniff an allowed MAC and clone it. Option A is wrong because MAC filtering provides no encryption at all, which is exactly its limitation."
+    },
+    {
+      "id": "secplus-0244",
+      "domain": "Security Operations",
+      "stem": "An office wants strong, modern protection for its wireless network that provides robust encryption and protects the authentication handshake against offline cracking. Which of the following BEST meets this requirement?",
+      "choices": [
+        "MAC filtering",
+        "WEP",
+        "WPA3",
+        "Disabling SSID broadcast"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "WPA3 provides strong encryption and uses SAE (Simultaneous Authentication of Equals) to resist offline dictionary attacks on the handshake. MAC filtering (A) is spoofable access control, WEP (B) is broken and deprecated, and hiding the SSID (D) is trivial to bypass and adds no real encryption."
+    },
+    {
+      "id": "secplus-0245",
+      "domain": "Security Architecture",
+      "stem": "A company routes all employee web browsing through a server that sits between the internal clients and the Internet, where it filters URLs, caches content, and logs outbound requests on the users' behalf. Which of the following BEST describes this server?",
+      "choices": [
+        "Reverse proxy",
+        "Forward proxy",
+        "Jump server",
+        "Load balancer"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A forward proxy sits between internal clients and the Internet, making outbound requests on their behalf for filtering, caching, and logging. A reverse proxy (A) does the opposite: it sits in front of servers to handle inbound requests."
+    },
+    {
+      "id": "secplus-0246",
+      "domain": "Security Architecture",
+      "stem": "An administrator needs to distinguish a forward proxy from a reverse proxy. Which of the following statements is correct?",
+      "choices": [
+        "A forward proxy sits in front of internal servers to handle inbound requests; a reverse proxy serves internal clients reaching the Internet",
+        "A forward proxy serves internal clients making outbound requests; a reverse proxy sits in front of servers to handle inbound client requests (load balancing, TLS offload, hiding backends)",
+        "A forward proxy and reverse proxy are the same device in different modes",
+        "A reverse proxy can only cache content and cannot terminate TLS"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A forward proxy serves internal clients reaching out to the Internet (egress filtering, caching, anonymity); a reverse proxy sits in front of servers handling inbound client requests (load balancing, TLS offload, hiding backends). Option A reverses the two, the exact trap this question targets."
+    },
+    {
+      "id": "secplus-0247",
+      "domain": "Security Architecture",
+      "stem": "An organization replaces its traditional connect-to-the-VPN-and-you-are-on-the-network model with one that grants access to individual applications only after continuously verifying user and device identity, never trusting based on network location. Which of the following BEST describes this approach?",
+      "choices": [
+        "Zero Trust Network Access (ZTNA)",
+        "Network Address Translation (NAT)",
+        "A flat Layer 2 network",
+        "A DMZ"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Zero Trust Network Access grants access per-application after continuously verifying identity and device, never trusting based on network location, replacing the on-the-VPN-equals-trusted model. NAT, a flat network, and a DMZ are legacy perimeter concepts, not identity-based per-app access."
+    },
+    {
+      "id": "secplus-0248",
+      "domain": "General Security Concepts",
+      "stem": "In a Zero Trust architecture, an engineer must distinguish the control plane from the data plane. Which of the following statements is correct?",
+      "choices": [
+        "The data plane makes the access decisions; the control plane carries the actual application traffic",
+        "The control plane makes and manages access decisions (policy); the data plane is where the approved traffic between subject and resource actually flows",
+        "The control plane and data plane are both responsible only for encryption",
+        "Neither plane is involved in access decisions"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The control plane makes and manages access decisions (policy); the data plane is where the approved subject-to-resource traffic actually flows. Option A reverses them: decisions live in the control plane, packets live in the data plane."
+    },
+    {
+      "id": "secplus-0249",
+      "domain": "General Security Concepts",
+      "stem": "In a Zero Trust architecture, which component evaluates policy, identity, and threat-intelligence inputs to DECIDE whether a subject should be granted access to a resource?",
+      "choices": [
+        "Policy Enforcement Point (PEP)",
+        "Policy Engine (PE)",
+        "Policy Administrator (PA)",
+        "Implicit trust zone"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The Policy Engine is the brain: it evaluates policy plus inputs (identity, device posture, threat intel) and decides grant or deny. The Policy Administrator (C) executes that decision and the PEP (A) enforces it in the data path, so neither is the decision-maker."
+    },
+    {
+      "id": "secplus-0250",
+      "domain": "General Security Concepts",
+      "stem": "In a Zero Trust architecture, which component sits in the data plane and actually enables, monitors, and ultimately terminates the connection between the subject and the resource, acting on the decision it is given?",
+      "choices": [
+        "Policy Engine (PE)",
+        "Policy Administrator (PA)",
+        "Policy Enforcement Point (PEP)",
+        "Certificate authority"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The PEP lives in the data plane and actually enables, monitors, and terminates the connection between subject and resource, acting on the decision handed to it. The PE (A) decides and the PA (B) relays and executes the decision; the PEP is the gate that enforces it."
+    },
+    {
+      "id": "secplus-0251",
+      "domain": "General Security Concepts",
+      "stem": "In a Zero Trust architecture, after the Policy Engine reaches a decision, which component executes that decision by establishing or tearing down the session and signaling the enforcement point (for example, issuing a session token)?",
+      "choices": [
+        "Policy Administrator (PA)",
+        "Policy Engine (PE)",
+        "Subject/System",
+        "Threat scope reduction"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The Policy Administrator executes the Policy Engine's decision: it establishes or tears down the communication path and signals the PEP (for example by issuing a session token or credential). The PE (B) only decides; the PA turns that decision into action that the PEP enforces."
+    },
+    {
+      "id": "secplus-0252",
+      "domain": "Security Program Management and Oversight",
+      "stem": "A company's own internal compliance team reviews its security controls against a framework and reports gaps to management, without engaging any outside firm. Which of the following BEST describes this activity?",
+      "choices": [
+        "Third-party/external audit",
+        "Regulatory examination",
+        "Internal self-assessment",
+        "Penetration test"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "An organization evaluating its own controls against a framework, using its own staff and reporting internally, is an internal self-assessment (first-party). A third-party audit (A) uses an independent outside firm and a regulatory examination (B) is conducted by a regulator, both external."
+    },
+    {
+      "id": "secplus-0253",
+      "domain": "General Security Concepts",
+      "stem": "Two parties that have never met need to establish a shared secret key over an insecure network without ever transmitting the key itself, so they can then use it for symmetric encryption. Which of the following algorithms is designed for this purpose?",
+      "choices": [
+        "AES",
+        "SHA-256",
+        "Diffie-Hellman",
+        "RSA digital signatures"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Diffie-Hellman is a key-agreement/exchange algorithm that lets two parties derive a shared secret over an insecure channel without ever sending the key. AES (A) is the symmetric cipher you would then use, SHA-256 (B) only hashes, and RSA signatures (D) authenticate but are not a key-agreement method."
+    },
+    {
+      "id": "secplus-0254",
+      "domain": "General Security Concepts",
+      "stem": "An administrator is told the web server uses ECDHE in its TLS cipher suite specifically to provide perfect forward secrecy. Which of the following statements BEST explains Diffie-Hellman's role here, versus RSA and AES?",
+      "choices": [
+        "Diffie-Hellman bulk-encrypts the data; RSA hashes it; AES exchanges the key",
+        "Diffie-Hellman is a key-agreement method that lets both sides derive a shared session key (ephemeral DH gives forward secrecy); RSA is used for asymmetric encryption/signatures; AES is the symmetric cipher that encrypts the actual data",
+        "Diffie-Hellman and AES are both signature algorithms",
+        "Diffie-Hellman transmits the symmetric key encrypted with the server's public key"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Diffie-Hellman is key agreement (ephemeral DH/ECDHE derives a fresh shared session key each time, giving perfect forward secrecy); RSA handles asymmetric encryption and signatures; AES is the symmetric cipher that encrypts the bulk data. Option D describes RSA key transport, which is exactly what DH/ECDHE avoids to achieve forward secrecy."
+    },
+    {
+      "id": "secplus-0255",
+      "domain": "Security Operations",
+      "stem": "A manager wants to know the difference between a tabletop exercise and a simulation. Which of the following statements is correct?",
+      "choices": [
+        "A tabletop is a hands-on technical drill that injects live attacks; a simulation is only a discussion",
+        "A tabletop is a discussion-based walkthrough of a scenario; a simulation is a more hands-on exercise that mimics a real incident and may exercise actual tools/responses",
+        "Tabletop and simulation are identical",
+        "Only a tabletop can involve executives"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A tabletop is a discussion-based walkthrough; a simulation is more hands-on, mimicking a real incident and often exercising actual tools and responses. Option A reverses them. Escalating realism runs tabletop (talk), walkthrough, simulation (do), then full-scale."
+    },
+    {
+      "id": "secplus-0256",
+      "domain": "Security Operations",
+      "stem": "A Linux administrator needs encrypted, interactive command-line access to manage a remote server. Which of the following protocols and ports is the BEST fit?",
+      "choices": [
+        "HTTPS over TCP 443",
+        "SSH over TCP 22",
+        "Telnet over TCP 23",
+        "RDP over TCP 3389"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "SSH provides encrypted interactive command-line/terminal access to remote servers on TCP 22. Telnet (C) is cleartext (insecure), RDP (D) is graphical remote desktop, and HTTPS (A) is for secure web traffic, not a server shell."
+    },
+    {
+      "id": "secplus-0257",
+      "domain": "Security Operations",
+      "stem": "An architect is mapping protocols to use cases: secure command-line/terminal access to servers versus secure access to a web application. Which of the following pairings is correct?",
+      "choices": [
+        "SSH for web application access; HTTPS for terminal access",
+        "SSH for terminal/command-line access; HTTPS for secure web server/application access",
+        "Both SSH and HTTPS are only for terminal access",
+        "HTTPS for terminal access; Telnet for secure web access"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "SSH is secure terminal/command-line access to servers (TCP 22); HTTPS is secure web server/application access (TCP 443). Every other pairing mismatches the protocol to the wrong use case."
+    },
+    {
+      "id": "secplus-0258",
+      "domain": "Threats, Vulnerabilities, and Mitigations",
+      "stem": "A SOC analyst reviews SIEM authentication data for one user account. The account shows an active, ongoing session from the New York office and, at the very same time, a second active session from a workstation in the Denver branch, with both sessions sending traffic simultaneously over an overlapping period. The geographic distance is short enough that travel between the two is physically possible within the timeframe. Which of the following indicators BEST describes what the analyst is observing?",
+      "choices": [
+        "Impossible travel",
+        "Out-of-cycle logging",
+        "Account lockout",
+        "Concurrent session usage"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Concurrent session usage is the indicator where one account maintains multiple simultaneous active sessions from different locations or devices at the same time, which is exactly what the overlapping New York and Denver sessions show. Impossible travel (A) is wrong because it specifically requires that the travel time between the two login locations be physically impossible, and here the distance is short enough that travel is feasible."
+    },
+    {
+      "id": "secplus-0259",
+      "domain": "Security Architecture",
+      "stem": "A cloud administrator deploys workloads to a public CSP using an IaaS model. After a breach traced to an unpatched guest operating system, leadership wants a single document that spells out, for each security task, whether the CSP or the customer is accountable so there is no future ambiguity over who patches the guest OS. Which of the following BEST addresses this need?",
+      "choices": [
+        "Service-level agreement",
+        "Master service agreement",
+        "Business impact analysis",
+        "Responsibility matrix"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "A cloud responsibility matrix defines, task by task, which security duties belong to the provider versus the customer, clarifying exactly who is accountable for patching the guest OS in an IaaS deployment. A service-level agreement (A) is wrong because it specifies the level and availability of service the provider must deliver, not the division of security responsibilities between provider and customer."
+    },
+    {
+      "id": "secplus-0260",
+      "domain": "Security Operations",
+      "stem": "A company's legal team learns that litigation is reasonably anticipated and instructs the security team to immediately suspend the automatic 90-day email deletion job so that potentially relevant messages are not destroyed and spoliation is avoided. No data has been searched or produced yet; the directive is solely about preservation. Which of the following BEST describes this directive?",
+      "choices": [
+        "E-discovery",
+        "Chain of custody",
+        "Legal hold",
+        "Data retention policy"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "A legal hold is the formal directive that suspends normal deletion so potentially relevant evidence is preserved to prevent spoliation, which is precisely the preservation-only action described. E-discovery (A) is wrong because it is the later process of systematically searching, identifying, and producing that preserved electronic data for the proceeding, not the act of halting deletion."
+    },
+    {
+      "id": "secplus-0261",
+      "domain": "Security Program Management and Oversight",
+      "stem": "A risk analyst is quantifying the yearly cost of laptop theft for a sales team. The asset value of a laptop and its data is $4,000, and historical data shows that any given theft results in a total loss of the asset. The organization expects three such thefts per year. Which of the following BEST represents the ALE for this risk?",
+      "choices": [
+        "$12,000",
+        "$1,333",
+        "$4,000",
+        "$1,200"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "ALE equals SLE multiplied by ARO; with a total loss the SLE is the full $4,000 asset value, and an ARO of three thefts per year yields an ALE of $12,000. The $4,000 choice (C) is wrong because that figure is the SLE for a single loss event, not the annualized expectancy that accounts for three occurrences per year."
+    },
+    {
+      "id": "secplus-0262",
+      "domain": "Security Program Management and Oversight",
+      "stem": "A security manager is onboarding a newly acquired business partner whose software will be integrated directly into the company's production environment. Leadership is concerned that weaknesses in the partner's development and security practices could be inherited and used to reach the company's systems. Before integration, the manager wants to evaluate this category of exposure. Which of the following risks is the manager MOST concerned with?",
+      "choices": [
+        "Insider threat",
+        "Supply chain risk",
+        "Shadow IT",
+        "Zero-day vulnerability"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Supply chain risk is the exposure inherited from a vendor, supplier, or partner whose weaknesses can be leveraged to reach the ultimate target, which is precisely the integration-of-a-new-partner concern described. Insider threat (A) is wrong because it originates from the organization's own employees or contractors misusing legitimate access, not from a third-party partner's practices."
+    },
+    {
+      "id": "secplus-0263",
+      "domain": "Security Program Management and Oversight",
+      "stem": "A CISO wants to adopt a recognized international standard that specifies the requirements for establishing, implementing, maintaining, and continually improving a formal information security management system that governs how the organization manages the security of its assets. Which of the following BEST fits this need?",
+      "choices": [
+        "PCI DSS",
+        "GDPR",
+        "NIST SP 800-63",
+        "ISO/IEC 27001"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "ISO/IEC 27001 is the international standard that defines the requirements for an information security management system (ISMS), exactly the framework the CISO is seeking. PCI DSS (A) is wrong because it is a narrowly scoped industry standard governing the handling of payment card data, not a general ISMS framework for managing all organizational security assets."
+    },
+    {
+      "id": "secplus-0264",
+      "domain": "General Security Concepts",
+      "stem": "A security architect is selecting an access control model for a network whose policy must grant or deny access based on dynamic system conditions such as the time of day and the source IP range a request originates from, rather than on a user's job title or on owner discretion. Which of the following access control models BEST fits this requirement?",
+      "choices": [
+        "Rule-based access control",
+        "RBAC",
+        "DAC",
+        "MAC"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Rule-based access control grants or restricts access according to predefined system conditions such as time of day and source IP, which matches the condition-driven policy described. RBAC (B) is wrong because it assigns permissions based on a user's job role rather than on environmental rules like the hour or originating network."
+    },
+    {
+      "id": "secplus-0265",
+      "domain": "General Security Concepts",
+      "stem": "A security engineer needs an access model that makes each decision by evaluating a combination of dynamic attributes at request time: the subject's department and clearance, the resource's data classification, and environmental factors such as the device's security posture and the user's current location. Which of the following access control models BEST provides this granularity?",
+      "choices": [
+        "RBAC",
+        "MAC",
+        "ABAC",
+        "DAC"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "ABAC evaluates dynamic attributes of the subject, resource, action, and environment together to make granular, context-aware access decisions, which is exactly the multi-attribute evaluation described. RBAC (A) is wrong because it grants access strictly on static role membership and cannot factor in resource classification, device posture, or location at request time."
+    },
+    {
+      "id": "secplus-0266",
+      "domain": "Security Architecture",
+      "stem": "A network administrator wants to describe a technology that separates the network control plane from the data plane and lets the team program, monitor, and adjust forwarding behavior centrally through software rather than configuring each physical switch and router by hand, without inherently bundling cloud-delivered security services. Which of the following BEST matches this description?",
+      "choices": [
+        "SASE",
+        "SDN",
+        "SD-WAN",
+        "NGFW"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "SDN separates the control plane from the data plane and allows centralized, software-based programming and monitoring of network behavior, which is precisely the capability described. SASE (A) is wrong because it is a cloud-delivered framework that bundles networking with security services such as ZTNA and CASB, going well beyond the pure control-and-data-plane separation that defines SDN."
+    },
+    {
+      "id": "secplus-0267",
+      "domain": "General Security Concepts",
+      "stem": "A developer is choosing a symmetric encryption approach and needs the option that divides plaintext into fixed-size chunks, typically 128 bits, and encrypts each complete chunk as a single unit rather than encrypting the data continuously one bit or byte at a time. Which of the following BEST describes this approach?",
+      "choices": [
+        "Stream cipher",
+        "Hashing function",
+        "Block cipher",
+        "Asymmetric cipher"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "A block cipher divides data into fixed-size blocks, such as 128-bit chunks, and encrypts each block as a unit, matching the chunk-based description. A stream cipher (A) is wrong because it encrypts data continuously, bit by bit or byte by byte, rather than operating on fixed-size blocks."
+    },
+    {
+      "id": "secplus-0268",
+      "domain": "Security Program Management and Oversight",
+      "stem": "A security manager is structuring documents for a long-term vendor relationship. One overarching contract is needed to set the general legal and security terms that will govern all future projects with the vendor, while the specific tasks, deliverables, and timelines for each individual project will be defined separately later. Which of the following BEST identifies that overarching governing contract?",
+      "choices": [
+        "SOW",
+        "MSA",
+        "SLA",
+        "MOU"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "An MSA is the master agreement that sets the overarching legal and security terms governing all future projects with a vendor, which is the foundational contract described. An SOW (A) is wrong because it details the specific tasks, deliverables, and timelines for an individual project, the per-project document that operates under the MSA rather than governing the whole relationship."
+    },
+    {
+      "id": "secplus-0269",
+      "domain": "Security Architecture",
+      "stem": "A network engineer is configuring IPsec and must choose the protocol component whose purpose is to guarantee data integrity and data origin authentication for each packet but that does not, by itself, provide confidentiality through encryption of the payload. Which of the following IPsec components BEST fits this description?",
+      "choices": [
+        "ESP",
+        "IKE",
+        "AH",
+        "TLS"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "AH (Authentication Header) provides integrity and data origin authentication for IPsec packets but does not encrypt the payload, matching the no-confidentiality requirement described. ESP (A) is wrong because, unlike AH, it provides payload encryption for confidentiality in addition to integrity, so it does not fit a component defined by the absence of encryption."
+    },
+    {
+      "id": "secplus-0270",
+      "domain": "Security Architecture",
+      "stem": "A security engineer is documenting components on a factory floor. One specialized ruggedized computer directly automates a single physical machine process, such as opening a valve or adjusting pressure on the line, rather than serving as the operator's monitoring dashboard or the wide-area supervisory system. Which of the following BEST identifies that component?",
+      "choices": [
+        "HMI",
+        "SCADA",
+        "PLC",
+        "RTOS"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "A PLC (Programmable Logic Controller) is the specialized controller that automates a specific physical machine process such as actuating a valve or regulating pressure, matching the described role. An HMI (A) is wrong because it is the operator dashboard used to monitor and interact with the machinery, not the controller that directly automates the physical process."
+    },
+    {
+      "id": "secplus-0271",
+      "domain": "Security Architecture",
+      "stem": "A security architect needs a perimeter firewall that goes beyond simply allowing or blocking traffic by port and IP address, adding deep packet inspection, application-layer awareness, and integrated intrusion prevention so it can identify and block modern threats inside otherwise permitted traffic. Which of the following BEST meets this requirement?",
+      "choices": [
+        "Stateless packet-filtering firewall",
+        "Load balancer",
+        "VPN concentrator",
+        "NGFW"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "An NGFW adds deep packet inspection, application awareness, and integrated intrusion prevention on top of traditional firewalling, which is exactly the application-level capability the architect requires. A stateless packet-filtering firewall (A) is wrong because it makes allow or deny decisions only on basic header fields like port and IP and cannot inspect application content or block threats within permitted traffic."
+    },
+    {
+      "id": "secplus-0272",
+      "domain": "Security Architecture",
+      "stem": "A network administrator must deploy a single dedicated appliance at the corporate datacenter whose purpose is to establish, manage, and terminate thousands of simultaneous encrypted tunnels from remote workers and branch offices, acting as the central aggregation hub for that remote-access connectivity. Which of the following BEST describes this appliance?",
+      "choices": [
+        "Jump server",
+        "VPN concentrator",
+        "Proxy server",
+        "Load balancer"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A VPN concentrator is the dedicated device that builds, manages, and terminates large numbers of simultaneous encrypted VPN tunnels, serving as the central hub for remote and branch connectivity. A jump server (A) is wrong because it is a hardened intermediary host used to reach other internal systems for administration, not an appliance that aggregates and terminates encrypted remote-access tunnels."
+    },
+    {
+      "id": "secplus-0273",
+      "domain": "Security Operations",
+      "stem": "A firewall administrator is writing rules for directory traffic and must permit unencrypted LDAP queries to the corporate directory service while explicitly distinguishing that port from the one used by RDP for remote desktop sessions. Which of the following port numbers corresponds to unencrypted LDAP?",
+      "choices": [
+        "636",
+        "389",
+        "3389",
+        "443"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Unencrypted LDAP uses TCP port 389, which is the correct port for the directory queries the administrator must permit. Port 636 (A) is wrong because that is LDAPS, the TLS-secured version of LDAP, not the unencrypted LDAP service the rule must allow."
+    },
+    {
+      "id": "secplus-0274",
+      "domain": "Security Program Management and Oversight",
+      "stem": "A data protection officer at a company handling personal data of EU residents receives a verified request from an individual to have all of their personal data erased from the company's systems, with no overriding legal basis to retain it. The officer must cite the comprehensive EU privacy regulation that grants this right. Which of the following BEST applies?",
+      "choices": [
+        "GDPR",
+        "PCI DSS",
+        "HIPAA",
+        "SOX"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "GDPR is the comprehensive EU privacy regulation that grants data subjects the right to be forgotten, requiring erasure of personal data on a valid request absent an overriding legal basis. PCI DSS (B) is wrong because it governs the protection of payment card data and contains no right-to-erasure provision for personal data."
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "lastUpdated": "2026-06-21T00:00:00Z",
+  "lastUpdated": "2026-06-22T00:00:00Z",
   "certs": {
     "a-plus": {
       "label": "A+ Core 2",
@@ -27,7 +27,7 @@
       "accent": "blue",
       "blurb": "Baseline cybersecurity: threats, cryptography, identity, and operations.",
       "locked": false,
-      "bytes": { "count": 209 },
+      "bytes": { "count": 274 },
       "resources": {
         "pbqs": [
           { "id": 1, "title": "Identity Access Management", "filename": "iam-pbq-1.html", "description": "Assign the correct permissions based on \"Least Privilege.\"" },
