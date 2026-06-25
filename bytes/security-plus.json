@@ -4111,6 +4111,561 @@
         0
       ],
       "explanation": "GDPR is the comprehensive EU privacy regulation that grants data subjects the right to be forgotten, requiring erasure of personal data on a valid request absent an overriding legal basis. PCI DSS (B) is wrong because it governs the protection of payment card data and contains no right-to-erasure provision for personal data."
+    },
+    {
+      "id": "secplus-0275",
+      "domain": "Security Operations",
+      "stem": "A security operations center wants tools from several different vendors (its SIEM, vulnerability scanner, and endpoint protection) to exchange data using shared, open standards so they work together without custom one-off integrations for each pair. Which of the following BEST describes this capability?",
+      "choices": [
+        "Scalability",
+        "Interoperability",
+        "Redundancy",
+        "Fault tolerance"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Interoperability is the ability of products and systems from different vendors to work together and exchange data via shared standards. Scalability is handling growth, while redundancy and fault tolerance are about surviving failures; none of those describe different vendors' tools talking to each other."
+    },
+    {
+      "id": "secplus-0276",
+      "domain": "Threats, Vulnerabilities, and Mitigations",
+      "stem": "Which of the following statements BEST distinguishes an unsupported system from vulnerable software?",
+      "choices": [
+        "An unsupported system always has fewer flaws than vulnerable software",
+        "An unsupported (end-of-life) system no longer receives vendor patches or updates at all; vulnerable software has a known flaw but is typically still supported and can be patched",
+        "Vulnerable software can never be exploited, while unsupported systems always can",
+        "The two terms mean exactly the same thing"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Unsupported means end-of-life: the vendor ships no more patches at all, an unfixable exposure. Vulnerable software has a specific known flaw but is usually still supported, so a patch exists or is coming. They are not synonyms, and 'fewer flaws' is unrelated."
+    },
+    {
+      "id": "secplus-0277",
+      "domain": "Security Architecture",
+      "stem": "An organization deploys a firewall that can inspect HTTP traffic, identify which specific web application is in use, and block requests containing SQL-injection patterns or destined for disallowed URLs. At which layer does this firewall primarily operate?",
+      "choices": [
+        "Layer 2 (Data Link)",
+        "Layer 3 (Network)",
+        "Layer 4 (Transport)",
+        "Layer 7 (Application)"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Inspecting HTTP, identifying the application, and blocking SQL-injection or URL patterns is application-layer awareness, the hallmark of a Layer 7 next-generation firewall (NGFW) or web application firewall (WAF). Layer 3 and 4 devices only see IPs, ports, and protocol."
+    },
+    {
+      "id": "secplus-0278",
+      "domain": "Security Architecture",
+      "stem": "Which statement correctly distinguishes a Layer 4 firewall from a Layer 7 firewall?",
+      "choices": [
+        "A Layer 4 firewall inspects application content; a Layer 7 firewall only filters by IP and port",
+        "A Layer 4 firewall filters on IP addresses, ports, and protocol/transport state; a Layer 7 firewall inspects the actual application-layer content (URLs, payloads, app identity)",
+        "Both operate identically; the layer number is cosmetic",
+        "A Layer 7 firewall can never decrypt or inspect HTTPS under any circumstances"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A Layer 4 firewall filters on IP, port, and protocol/transport state (fast, no payload awareness). A Layer 7 firewall inspects actual application content (URLs, payloads, app identity) and can block app-specific attacks. The reversed option swaps them, and modern Layer 7 firewalls can decrypt TLS to inspect, so the 'never' option is false."
+    },
+    {
+      "id": "secplus-0279",
+      "domain": "Security Program Management and Oversight",
+      "stem": "Which of the following BEST describes the scope of the GDPR?",
+      "choices": [
+        "It protects payment-card data for any merchant worldwide",
+        "It is a US federal law governing healthcare data",
+        "It is an EU regulation protecting the personal data and privacy of individuals in the EU, regardless of where the processing organization is located",
+        "It applies only to companies physically headquartered in the EU"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "GDPR is an EU regulation protecting the personal data and privacy of individuals in the EU, and it applies extraterritorially: any organization processing EU residents' data is covered regardless of where it sits."
+    },
+    {
+      "id": "secplus-0280",
+      "domain": "Security Architecture",
+      "stem": "Which statement correctly distinguishes data replication from journaling?",
+      "choices": [
+        "Replication records a sequential log of changes for recovery; journaling copies data to a second system",
+        "Replication copies data to another system or location (often in real time) for redundancy and availability; journaling keeps a sequential record of changes/transactions so a system can recover or roll back to a consistent state",
+        "Both terms describe the same backup-rotation scheme",
+        "Journaling only applies to network traffic, and replication only to databases"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Replication copies data to another system or site (often in real time) for redundancy and availability; journaling keeps a sequential log of changes or transactions so you can recover or roll back to a consistent state. The first option swaps the two definitions."
+    },
+    {
+      "id": "secplus-0281",
+      "domain": "Security Architecture",
+      "stem": "Several database servers are configured to act as a single logical system, sharing the workload and automatically taking over for one another if a node fails, so the service stays available. Which of the following BEST describes this configuration?",
+      "choices": [
+        "Journaling",
+        "Clustering",
+        "Tokenization",
+        "Sandboxing"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Multiple nodes acting as one logical system, sharing load and failing over for each other, is clustering, a high-availability technique. Journaling is change logging; tokenization and sandboxing are unrelated."
+    },
+    {
+      "id": "secplus-0282",
+      "domain": "Security Architecture",
+      "stem": "A company keeps a continuously updated copy of its primary database on a server in a second data center, so that if the primary site fails an up-to-date copy is immediately available. Which of the following BEST describes this practice?",
+      "choices": [
+        "Journaling",
+        "Replication",
+        "Clustering",
+        "Load balancing"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Maintaining a continuously updated copy of data at a second site for failover is replication. Clustering is nodes acting as one logical unit; here the focus is the synchronized data copy, not pooled compute. Journaling logs changes locally, and load balancing distributes traffic."
+    },
+    {
+      "id": "secplus-0283",
+      "domain": "Security Operations",
+      "stem": "A development team repeatedly ships features using quick workarounds and skips refactoring to hit deadlines. Over time the accumulated shortcuts make the codebase harder and more expensive to maintain and secure. Which of the following BEST describes this accumulated cost?",
+      "choices": [
+        "Technical debt",
+        "Scope creep",
+        "Shadow IT",
+        "Vendor lock-in"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The accumulated future cost of shortcuts, skipped refactoring, and deferred maintenance is technical debt. Scope creep is uncontrolled requirement growth, shadow IT is unsanctioned tools, and vendor lock-in is dependence on one supplier."
+    },
+    {
+      "id": "secplus-0284",
+      "domain": "Security Program Management and Oversight",
+      "stem": "After a breach a company faces two distinct consequences: a regulator imposes a monetary penalty, and separately, customers lose trust and take their business elsewhere. Which pairing correctly labels these two consequences?",
+      "choices": [
+        "Both are fines",
+        "The monetary penalty is a fine; the loss of customer trust is reputational damage",
+        "Both are reputational damage",
+        "The monetary penalty is reputational damage; the lost trust is a fine"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A regulator's monetary penalty is a fine (direct, quantifiable). Customers losing trust and leaving is reputational damage (indirect, often larger and longer-lasting). They are separate consequence categories; the last option reverses them."
+    },
+    {
+      "id": "secplus-0285",
+      "domain": "Security Operations",
+      "stem": "Which TCP port is used by RADIUS over TLS (RadSec)?",
+      "choices": [
+        "1812",
+        "1813",
+        "2083",
+        "1645"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "RADIUS over TLS, known as RadSec, runs on TCP 2083. This is the RADIUS TCP port, distinct from the standard UDP 1812/1813 transport."
+    },
+    {
+      "id": "secplus-0286",
+      "domain": "Security Operations",
+      "stem": "Which TCP port does unencrypted POP3 email retrieval use?",
+      "choices": [
+        "25",
+        "110",
+        "143",
+        "995"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Unencrypted POP3 uses TCP 110. Its secure form POP3S uses 995."
+    },
+    {
+      "id": "secplus-0287",
+      "domain": "Security Operations",
+      "stem": "Which TCP port does unencrypted IMAP use?",
+      "choices": [
+        "110",
+        "143",
+        "220",
+        "993"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Unencrypted IMAP uses TCP 143. Its secure form IMAPS uses 993."
+    },
+    {
+      "id": "secplus-0288",
+      "domain": "Security Operations",
+      "stem": "Which TCP port is used for SMTP over implicit SSL/TLS (SMTPS)?",
+      "choices": [
+        "25",
+        "110",
+        "465",
+        "587"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "SMTPS (SMTP with implicit TLS) uses TCP 465. Port 25 is plain server-to-server SMTP and 587 is the mail submission port (STARTTLS). The question specifies implicit SSL/TLS, which is 465."
+    },
+    {
+      "id": "secplus-0289",
+      "domain": "Security Operations",
+      "stem": "Which TCP port does HTTPS use by default?",
+      "choices": [
+        "80",
+        "8080",
+        "443",
+        "8443"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "HTTPS uses TCP 443. Port 80 is HTTP, and 8080/8443 are common alternate or proxy ports, not the default."
+    },
+    {
+      "id": "secplus-0290",
+      "domain": "Security Operations",
+      "stem": "A hospital runs a critical imaging system on an operating system the vendor no longer patches or supports, and the device cannot be replaced for two years. Which of the following is the BEST way to reduce the risk this unsupported system introduces?",
+      "choices": [
+        "Apply the latest OS feature updates from a third-party site",
+        "Isolate the system on a segmented network with tightly restricted access",
+        "Disable all logging to improve performance",
+        "Connect it directly to the Internet for remote vendor support"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "When an unsupported or end-of-life system cannot be patched or replaced, segmentation and access restriction are the standard compensating controls to shrink its exposure. Third-party OS updates are unsupported and risky, and connecting it to the Internet increases exposure."
+    },
+    {
+      "id": "secplus-0291",
+      "domain": "Security Program Management and Oversight",
+      "stem": "Before patching a shared library used by several production applications, a change manager insists the team first identify every application that relies on that library so the change does not break them. Which of the following change-management considerations does this BEST describe?",
+      "choices": [
+        "Maintenance window",
+        "Dependencies",
+        "Backout plan",
+        "Stakeholder approval"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Identifying which other systems rely on a component before changing it is the dependency analysis step of change management. A backout plan is how you undo a failed change, and a maintenance window is when you do it; neither is the question of what relies on this component."
+    },
+    {
+      "id": "secplus-0292",
+      "domain": "Security Operations",
+      "stem": "A systems administrator is configuring an internal application to authenticate users against the corporate directory service. Security policy requires that all directory queries be encrypted in transit between the application and the directory server. Which of the following ports should the administrator configure the application to use?",
+      "choices": [
+        "3268",
+        "636",
+        "389",
+        "443"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "LDAPS encrypts directory traffic over TLS and uses TCP port 636, which satisfies the requirement that queries be encrypted in transit. Port 389 is the primary distractor because it is standard LDAP, which transmits directory queries in cleartext and would not meet the encryption requirement."
+    },
+    {
+      "id": "secplus-0293",
+      "domain": "Security Operations",
+      "stem": "A help desk technician needs to remotely administer a Windows server using a graphical desktop session. While reviewing the firewall rules, the technician must confirm which port is allowed for the remote graphical session. Which of the following ports does RDP use by default?",
+      "choices": [
+        "1433",
+        "3389",
+        "5900",
+        "22"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "RDP provides remote graphical desktop access to Windows hosts and listens on TCP port 3389 by default, which is the port the technician must confirm is open. Port 22 is the primary distractor because it is SSH, which provides remote command-line access rather than a Windows graphical desktop session."
+    },
+    {
+      "id": "secplus-0294",
+      "domain": "Security Operations",
+      "stem": "A network administrator is troubleshooting domain authentication after a firewall change. Domain-joined clients can no longer obtain authentication tickets from the domain controller, and the administrator suspects the relevant port was blocked. Which of the following ports does Kerberos use?",
+      "choices": [
+        "88",
+        "464",
+        "636",
+        "389"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Kerberos is the authentication protocol that issues tickets in a Windows domain and uses port 88, so a block on that port would prevent clients from authenticating. Port 389 is the primary distractor because it is LDAP, which is used for directory lookups rather than for issuing Kerberos authentication tickets."
+    },
+    {
+      "id": "secplus-0295",
+      "domain": "Security Operations",
+      "stem": "A network administrator is deploying a monitoring platform that polls switches and routers for performance metrics and receives device-generated alerts. The administrator must open the correct ports for the management protocol. Which of the following ports does SNMP use for polling and traps?",
+      "choices": [
+        "514 and 515",
+        "161 and 162",
+        "137 and 138",
+        "67 and 68"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "SNMP polls managed devices on UDP port 161 and receives traps on UDP port 162, which are exactly what the monitoring platform requires. Ports 137 and 138 are the primary distractor because they belong to NetBIOS name and datagram services, not to SNMP device management."
+    },
+    {
+      "id": "secplus-0296",
+      "domain": "Security Operations",
+      "stem": "A security analyst is investigating lateral movement on a Windows network and observes a host connecting to file shares on multiple servers. The analyst wants to filter the packet capture to the protocol used for Windows file and printer sharing. Which of the following ports should the analyst filter on?",
+      "choices": [
+        "389",
+        "3389",
+        "445",
+        "139"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Modern Windows file and printer sharing uses SMB over TCP port 445, which is the traffic the analyst should isolate to trace the share access. Port 139 is the primary distractor because it carries legacy SMB over NetBIOS session service rather than the direct-hosted SMB used by current systems."
+    },
+    {
+      "id": "secplus-0297",
+      "domain": "Security Operations",
+      "stem": "A network administrator is configuring a switch to pull its firmware image from a lightweight file transfer service that uses a connectionless transport. The administrator must permit the correct port through an ACL. Which of the following ports does TFTP use?",
+      "choices": [
+        "115",
+        "20",
+        "69",
+        "21"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "TFTP is a lightweight, connectionless transfer protocol that runs over UDP port 69, matching the service the switch uses to retrieve its firmware. Port 21 is the primary distractor because it is the FTP control channel, which uses TCP and a separate data channel rather than the single UDP port TFTP relies on."
+    },
+    {
+      "id": "secplus-0298",
+      "domain": "Security Operations",
+      "stem": "A systems administrator is documenting firewall rules for a legacy file transfer server. The administrator needs to record the standard control and data ports used by FTP in active mode. Which of the following pairs of ports does FTP use?",
+      "choices": [
+        "22 and 23",
+        "80 and 443",
+        "67 and 68",
+        "20 and 21"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "FTP uses TCP port 21 for control commands and TCP port 20 for the data channel in active mode, which the administrator must document. Ports 22 and 23 are the primary distractor because they belong to SSH and Telnet for remote terminal access, not to file transfer."
+    },
+    {
+      "id": "secplus-0299",
+      "domain": "Security Operations",
+      "stem": "A messaging administrator is hardening a mail server so that clients retrieve mail using IMAP over an encrypted TLS connection rather than in cleartext. Which of the following ports should the administrator configure clients to use?",
+      "choices": [
+        "465",
+        "995",
+        "143",
+        "993"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "IMAPS wraps IMAP retrieval in TLS and uses TCP port 993, which provides the encrypted client connection the administrator wants. Port 143 is the primary distractor because it is standard IMAP, which retrieves mail in cleartext and does not meet the encryption requirement."
+    },
+    {
+      "id": "secplus-0300",
+      "domain": "Security Operations",
+      "stem": "A help desk technician is configuring an email client to download messages over an encrypted POP connection. The technician must enter the correct secure port. Which of the following ports does POP3S use?",
+      "choices": [
+        "465",
+        "110",
+        "995",
+        "993"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "POP3S secures POP3 mail downloads with TLS and uses TCP port 995, which is the secure port the technician must enter. Port 110 is the primary distractor because it is unencrypted POP3, which would transmit credentials and messages in cleartext."
+    },
+    {
+      "id": "secplus-0301",
+      "domain": "Security Operations",
+      "stem": "A messaging administrator is configuring mail clients to submit outbound messages to the mail server using STARTTLS on the modern submission port. Which of the following ports should the administrator configure for message submission?",
+      "choices": [
+        "110",
+        "587",
+        "25",
+        "143"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The modern mail submission port is TCP 587, which clients use to submit outbound mail and is designed to support STARTTLS encryption. Port 25 is the primary distractor because it is the traditional SMTP relay port between mail servers and is often blocked for client submission."
+    },
+    {
+      "id": "secplus-0302",
+      "domain": "Security Operations",
+      "stem": "A network engineer is deploying a RADIUS server to centralize authentication for wireless and VPN users. The engineer needs to permit the standard UDP ports used for RADIUS authentication and accounting. Which of the following port pairs should the engineer allow?",
+      "choices": [
+        "636 and 389",
+        "1433 and 1434",
+        "1812 and 1813",
+        "1645 and 389"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "RADIUS uses UDP port 1812 for authentication and UDP port 1813 for accounting in modern deployments, which the engineer must permit. The pair 1433 and 1434 is the primary distractor because those ports belong to Microsoft SQL Server, not to RADIUS authentication."
+    },
+    {
+      "id": "secplus-0303",
+      "domain": "Security Operations",
+      "stem": "A SOC analyst is configuring network devices to forward log messages to a central collector using the traditional, unencrypted logging protocol over UDP. Which of the following ports should the analyst configure on the devices?",
+      "choices": [
+        "514",
+        "162",
+        "6514",
+        "515"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Traditional syslog forwards log messages over UDP port 514, which is what the analyst configures for the unencrypted collector. Port 6514 is the primary distractor because it is syslog over TLS, which provides encrypted transport rather than the plain UDP forwarding described."
+    },
+    {
+      "id": "secplus-0304",
+      "domain": "Security Operations",
+      "stem": "A compliance requirement mandates that all log data sent from endpoints to the central SIEM be encrypted in transit. A security engineer must select the secure syslog port that uses TLS. Which of the following ports should the engineer use?",
+      "choices": [
+        "6514",
+        "636",
+        "443",
+        "514"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Syslog over TLS uses TCP port 6514, which provides the encrypted transport the compliance requirement demands. Port 514 is the primary distractor because it is plain syslog over UDP, which sends log data in cleartext and would not satisfy the encryption mandate."
+    },
+    {
+      "id": "secplus-0305",
+      "domain": "Security Operations",
+      "stem": "A security analyst reviewing a network scan finds a server listening on a port commonly associated with an open-source relational database. The analyst wants to identify the database service before flagging it. A service listening on port 3306 is MOST likely which of the following?",
+      "choices": [
+        "MySQL",
+        "Microsoft SQL Server",
+        "PostgreSQL",
+        "Oracle"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Port 3306 is the default listener for MySQL, so a service on that port is most likely a MySQL database. Microsoft SQL Server is the primary distractor because it is also a relational database but listens on port 1433 by default, not 3306."
+    },
+    {
+      "id": "secplus-0306",
+      "domain": "Security Operations",
+      "stem": "A systems administrator notices that authentication is failing intermittently across domain-joined servers, and Kerberos tickets are being rejected for clock skew. The administrator suspects time synchronization traffic is being blocked. Which of the following ports does NTP use?",
+      "choices": [
+        "119",
+        "123",
+        "514",
+        "53"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "NTP synchronizes system clocks over UDP port 123, and blocking it causes the clock skew that breaks Kerberos authentication described in the scenario. Port 53 is the primary distractor because it is DNS, which resolves names rather than synchronizing time."
+    },
+    {
+      "id": "secplus-0307",
+      "domain": "Security Operations",
+      "stem": "A security analyst reviewing a packet capture from a legacy Windows network sees name registration and session traffic on a well-known port range. Which of the following port ranges is associated with NetBIOS services?",
+      "choices": [
+        "67-68",
+        "1812-1813",
+        "137-139",
+        "161-162"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "NetBIOS uses ports 137 through 139 for name service, datagram service, and session service on legacy Windows networks, matching the captured traffic. The range 161-162 is the primary distractor because it belongs to SNMP management traffic rather than to NetBIOS."
+    },
+    {
+      "id": "secplus-0308",
+      "domain": "Security Program Management and Oversight",
+      "stem": "Under GDPR, a customer whose personal data an EU company collects and processes exercises the right to request access to and deletion of that data. Which of the following terms BEST describes this individual?",
+      "choices": [
+        "Data controller",
+        "Data custodian",
+        "Data subject",
+        "Data processor"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Under GDPR the data subject is the individual whose personal data is processed and who holds rights such as access and erasure, matching the customer in the scenario. Data controller is the primary distractor because the controller determines the purpose and means of processing and must honor those rights, rather than being the person to whom the data belongs."
+    },
+    {
+      "id": "secplus-0309",
+      "domain": "Security Architecture",
+      "stem": "A network engineer is explaining SDN to a junior colleague. The engineer notes that one logical layer makes routing and policy decisions while a separate layer actually forwards packets according to those decisions. Which of the following BEST describes the layer that defines policies and routing decisions?",
+      "choices": [
+        "Forwarding plane",
+        "Data plane",
+        "Management plane",
+        "Control plane"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "The control plane is the logical layer that defines policies and makes routing decisions in SDN, separate from the layer that forwards traffic. The data plane is the primary distractor because it is the layer that actually forwards packets according to the control plane's decisions rather than defining the policies itself."
+    },
+    {
+      "id": "secplus-0310",
+      "domain": "Security Architecture",
+      "stem": "A company with many branch offices wants to centrally manage and intelligently steer traffic across broadband, cellular, and private circuits using software, replacing manually configured per-site routers that backhaul all traffic to headquarters. Which of the following BEST meets this need?",
+      "choices": [
+        "VPN concentrator",
+        "SD-WAN",
+        "SDN",
+        "SASE"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "SD-WAN uses centralized software to manage and steer WAN traffic across multiple link types for distributed branch offices, replacing manual per-site routing and backhauling. SDN is the primary distractor because it applies software-defined control primarily within data center and campus networks rather than orchestrating traffic across a wide area network of branches."
+    },
+    {
+      "id": "secplus-0311",
+      "domain": "Security Program Management and Oversight",
+      "stem": "A CISO is reviewing vendor documents and needs the agreement that specifies measurable service commitments such as 99.9% uptime, maximum response times, and penalties if those targets are missed. Which of the following documents BEST fits this need?",
+      "choices": [
+        "SLA",
+        "MSA",
+        "SOW",
+        "MOU"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "An SLA defines measurable baseline service expectations such as uptime and response times along with remedies for missing them, which matches the CISO's need. An MOU is the primary distractor because it broadly documents shared goals and intent between parties but does not specify enforceable, measurable service metrics."
     }
   ]
 }
