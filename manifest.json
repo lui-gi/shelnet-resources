@@ -1,6 +1,6 @@
 {
   "version": "2.1.0",
-  "lastUpdated": "2026-06-22T00:00:00Z",
+  "lastUpdated": "2026-06-26T00:00:00Z",
   "certs": {
     "a-plus": {
       "label": "A+ Core 2",
@@ -37,6 +37,18 @@
           { "id": 1, "title": "Security+ SY0-701 Practice Quiz 1.1", "filename": "practice-quiz-1.html", "description": "15 Questions covering Objective 1.1 [Compare and contrast various types of security controls]" },
           { "id": 2, "title": "Security+ SY0-701 Practice Quiz 1.2", "filename": "practice-quiz-2.html", "description": "15 Questions covering Objective 1.2 [Summarize fundamental security concepts]" }
         ]
+      }
+    },
+    "cysa-plus": {
+      "label": "CySA+",
+      "code": "CS0-003",
+      "accent": "cyan",
+      "blurb": "Cybersecurity analyst skills: security operations, vulnerability management, and incident response.",
+      "locked": true,
+      "bytes": { "count": 480 },
+      "resources": {
+        "pbqs": [],
+        "exams": []
       }
     }
   },
