@@ -430,6 +430,18 @@
             letter-spacing: 0.04em;
         }
 
+        .next-step-item {
+            margin: 8px 0;
+            padding: 8px 0;
+            border-top: 1px solid var(--border);
+            font-size: 0.82rem;
+            line-height: 1.5;
+        }
+        .next-step-item strong {
+            font-family: 'Courier New', monospace;
+            color: var(--error);
+        }
+
         .modal-footer {
             display: flex;
             justify-content: flex-end;
@@ -713,6 +725,19 @@ function submitExam() {
 
     document.getElementById('scoreInterpretation').textContent = interp;
     document.getElementById('feedbackList').innerHTML = feedbackHTML;
+
+    // Append aggregated Escalation next-steps section (per brief spec)
+    const escalateIds = ['l03', 'l04', 'l05', 'l08', 'l12'];
+    let nextStepsHTML = '<section class="next-steps-section"><h3>Escalation next-steps</h3>';
+    escalateIds.forEach(function(id) {
+        const ns = nextSteps[id];
+        if (ns) {
+            nextStepsHTML += '<div class="next-step-item"><strong>' + escHtml(id) + '</strong> &rarr; ' + escHtml(ns) + '</div>';
+        }
+    });
+    nextStepsHTML += '</section>';
+    document.getElementById('feedbackList').insertAdjacentHTML('beforeend', nextStepsHTML);
+
     document.getElementById('submitBtn').disabled = true;
 
     const modal = document.getElementById('resultModal');
