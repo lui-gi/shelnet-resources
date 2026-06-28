@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelnet CySA+ PBQ 1 — CVSS Vector Decoder</title>
+    <style>
+        :root {
+            --primary: #0078d4;
+            --bg-color: #f3f2f1;
+            --surface: #ffffff;
+            --border: #e1dfdd;
+            --text: #323130;
+            --text-secondary: #605e5c;
+            --success: #107c10;
+            --error: #a80000;
+            --shadow: 0 1.6px 3.6px 0 rgba(0,0,0,0.132), 0 0.3px 0.9px 0 rgba(0,0,0,0.108);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Header --- */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 0 20px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .brand {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .reset-btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 6px 16px;
+            border-radius: 2px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+        .reset-btn:hover { background: rgba(255,255,255,0.25); }
+
+        /* --- Main container --- */
+        .container {
+            max-width: 860px;
+            margin: 24px auto;
+            padding: 0 20px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        /* --- Scenario card --- */
+        .scenario-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .scenario-card h2 {
+            margin: 0 0 12px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+        }
+
+        .scenario-card p { margin: 0 0 10px; }
+        .scenario-card p:last-child { margin-bottom: 0; }
+
+        .cve-label {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .vector-string {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            background: #f0f4f8;
+            padding: 2px 6px;
+            border-radius: 2px;
+            border: 1px solid var(--border);
+        }
+
+        /* --- Vector chip rows --- */
+        .vector-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .vector-section h3 {
+            margin: 0 0 12px;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+        }
+
+        .chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .vector-chip {
+            background: #e8f0f8;
+            border: 1px solid #b3cde8;
+            border-radius: 3px;
+            padding: 5px 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #004578;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            position: relative;
+        }
+        .vector-chip:hover {
+            background: #c8ddf5;
+            border-color: #0078d4;
+        }
+        .vector-chip.active {
+            background: #0078d4;
+            border-color: #005a9e;
+            color: #fff;
+        }
+
+        .chip-tooltip {
+            display: none;
+            background: #323130;
+            color: #fff;
+            font-size: 0.8rem;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 400;
+            line-height: 1.4;
+            padding: 8px 12px;
+            border-radius: 3px;
+            margin-top: 10px;
+            max-width: 480px;
+        }
+
+        .chip-tooltip.visible { display: block; }
+
+        /* --- Questions --- */
+        .questions-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .question-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .question-card.answered {
+            border-left: 3px solid var(--primary);
+        }
+
+        .q-number {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .q-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .option-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .option-list label {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            padding: 7px 10px;
+            border-radius: 2px;
+            border: 1px solid transparent;
+            transition: background 0.1s;
+            line-height: 1.45;
+        }
+        .option-list label:hover { background: #f0f4f8; border-color: #c8ddf5; }
+
+        .option-list input[type="radio"] {
+            margin-top: 2px;
+            flex-shrink: 0;
+            accent-color: var(--primary);
+        }
+
+        /* Locked states after submit */
+        .option-list label.correct-ans {
+            background: #e6f4e6;
+            border-color: #107c10;
+            color: #094d09;
+        }
+        .option-list label.wrong-ans {
+            background: #fde7e7;
+            border-color: #a80000;
+            color: #6d0000;
+        }
+
+        /* --- Submit button --- */
+        .submit-wrap {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .submit-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 2px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .submit-btn:hover:not(:disabled) { background: #005a9e; }
+        .submit-btn:disabled {
+            background: #c8c6c4;
+            color: #a19f9d;
+            cursor: not-allowed;
+        }
+
+        /* --- Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal-card {
+            background: white;
+            width: 640px;
+            max-width: 94%;
+            max-height: 88vh;
+            border-radius: 4px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            overflow: hidden;
+        }
+
+        .modal-card h2 {
+            margin: 0 0 14px;
+            font-size: 1.1rem;
+        }
+
+        #scoreText {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .score-bar-bg {
+            height: 10px;
+            background: #edebe9;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        #scoreBar {
+            height: 100%;
+            width: 0%;
+            border-radius: 5px;
+            transition: width 0.8s ease;
+        }
+
+        #scoreInterpretation {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        #feedbackList {
+            overflow-y: auto;
+            flex: 1;
+            max-height: 52vh;
+            font-size: 0.85rem;
+        }
+
+        .feedback-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+        .feedback-item:last-child { border-bottom: none; }
+
+        .fb-icon {
+            font-size: 1rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            padding-top: 1px;
+        }
+        .fb-icon.ok { color: var(--success); }
+        .fb-icon.fail { color: var(--error); }
+
+        .fb-body { line-height: 1.5; }
+        .fb-body strong { display: block; margin-bottom: 2px; }
+        .fb-chosen { color: var(--text-secondary); font-size: 0.82rem; }
+        .fb-correct { color: var(--success); font-size: 0.82rem; }
+        .fb-explanation {
+            margin-top: 4px;
+            font-size: 0.82rem;
+            background: #f9f8f7;
+            border-left: 3px solid var(--border);
+            padding: 4px 8px;
+            color: var(--text-secondary);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+
+        .close-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 2px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .close-btn:hover { background: #005a9e; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand">SHELNET CYSA+ PBQ #1 — CVSS Vector Decoder</div>
+    <button class="reset-btn" onclick="resetSimulation()">Reset</button>
+</header>
+
+<main class="container">
+
+    <section class="scenario-card">
+        <h2>Scenario</h2>
+        <p>A new vulnerability disclosure lands on the SOC analyst's queue this morning.</p>
+        <p>
+            <span class="cve-label">CVE-2026-31337</span> — <em>Remote code execution in WebApp Acme HRMS v4.8 via deserialization of untrusted input on the /api/import endpoint.</em><br>
+            <strong>CVSS:3.1 vector:</strong> <span class="vector-string">CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</span><br>
+            <strong>Base score:</strong> 9.8 (Critical)
+        </p>
+        <p>A sibling advisory drops the same morning:</p>
+        <p>
+            <span class="cve-label">CVE-2026-31338</span> — <em>Local privilege escalation in the WebApp Acme HRMS desktop agent via race condition in the update service.</em><br>
+            <strong>CVSS:3.1 vector:</strong> <span class="vector-string">CVSS:3.1/AV:L/AC:H/PR:H/UI:R/S:U/C:L/I:L/A:N</span><br>
+            <strong>Base score:</strong> 3.7 (Low)
+        </p>
+        <p>Acme HRMS runs on a public-facing web tier serving 4,000 employees. The desktop agent runs on internal workstations only.</p>
+    </section>
+
+    <section class="vector-section">
+        <h3>CVE-2026-31337 — Click a metric chip to see its meaning</h3>
+        <div class="chip-row" id="chipRow337"></div>
+        <div class="chip-tooltip" id="tooltip337"></div>
+    </section>
+
+    <section class="vector-section">
+        <h3>CVE-2026-31338 — Click a metric chip to see its meaning</h3>
+        <div class="chip-row" id="chipRow338"></div>
+        <div class="chip-tooltip" id="tooltip338"></div>
+    </section>
+
+    <section class="questions-section" id="questionsList"></section>
+
+    <div class="submit-wrap">
+        <button class="submit-btn" id="submitBtn" disabled onclick="submitExam()">Submit Answers</button>
+    </div>
+
+</main>
+
+<div class="modal-overlay" id="resultModal">
+    <div class="modal-card">
+        <h2>Assessment Results</h2>
+        <div id="scoreText"></div>
+        <div class="score-bar-bg"><div id="scoreBar"></div></div>
+        <div id="scoreInterpretation"></div>
+        <div id="feedbackList"></div>
+        <div class="modal-footer">
+            <button class="close-btn" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// === CVSS:3.1 metric value definitions ===
+const metricDefs = {
+    'AV:N': 'Attack Vector: Network — exploitable across a network from any reachable host.',
+    'AV:A': 'Attack Vector: Adjacent — requires attacker on the same logical network.',
+    'AV:L': 'Attack Vector: Local — exploitable via local access (shell, console).',
+    'AV:P': 'Attack Vector: Physical — requires physical access to the device.',
+    'AC:L': 'Attack Complexity: Low — no special conditions needed.',
+    'AC:H': 'Attack Complexity: High — exploit requires specific conditions outside attacker control.',
+    'PR:N': 'Privileges Required: None — no authentication needed.',
+    'PR:L': 'Privileges Required: Low — needs basic user-level credentials.',
+    'PR:H': 'Privileges Required: High — needs administrative credentials.',
+    'UI:N': 'User Interaction: None — no victim action required.',
+    'UI:R': 'User Interaction: Required — victim must perform some action (click, open).',
+    'S:U':  'Scope: Unchanged — impact stays within the vulnerable component.',
+    'S:C':  'Scope: Changed — impact can extend beyond the vulnerable component\'s security authority.',
+    'C:H':  'Confidentiality Impact: High — total loss of confidentiality possible.',
+    'C:L':  'Confidentiality Impact: Low — limited disclosure.',
+    'C:N':  'Confidentiality Impact: None.',
+    'I:H':  'Integrity Impact: High — total loss of integrity possible.',
+    'I:L':  'Integrity Impact: Low — limited modification.',
+    'I:N':  'Integrity Impact: None.',
+    'A:H':  'Availability Impact: High — total loss of availability possible.',
+    'A:L':  'Availability Impact: Low — degraded performance.',
+    'A:N':  'Availability Impact: None.'
+};
+
+const vectors = {
+    '31337': ['AV:N', 'AC:L', 'PR:N', 'UI:N', 'S:U', 'C:H', 'I:H', 'A:H'],
+    '31338': ['AV:L', 'AC:H', 'PR:H', 'UI:R', 'S:U', 'C:L', 'I:L', 'A:N']
+};
+
+const questions = [
+    {
+        id: 'q1',
+        text: 'In the CVE-2026-31337 vector, the AV:N metric tells the analyst what about who can exploit this vulnerability?',
+        options: [
+            'A. Only an attacker on the same physical LAN segment',
+            'B. Only a local user already authenticated to the host',
+            'C. Any attacker who can reach the service over a network',
+            'D. Only an attacker with physical console access'
+        ],
+        correct: 2,
+        explanation: 'AV:N (Attack Vector: Network) means the vulnerability is exploitable across a network from any reachable host — no LAN-adjacency or local foothold required. AV:A would be adjacent network, AV:L local, AV:P physical.'
+    },
+    {
+        id: 'q2',
+        text: 'PR:N in the CVE-2026-31337 vector tells the analyst what about authentication?',
+        options: [
+            'A. The attacker needs low-privileged credentials',
+            'B. The attacker needs high-privileged credentials',
+            'C. The exploit requires user interaction (a click)',
+            'D. No authentication is required to exploit the vulnerability'
+        ],
+        correct: 3,
+        explanation: 'PR:N (Privileges Required: None) means no authentication is needed — the attacker exploits the vulnerability without any prior credentials. Distractor C confuses PR (privileges) with UI (user interaction), which is a separate metric — also N in this vector.'
+    },
+    {
+        id: 'q3',
+        text: 'For CVE-2026-31337, the impact metrics C:H/I:H/A:H tell the analyst what about worst-case outcomes?',
+        options: [
+            'A. Confidentiality impact is high; integrity and availability are unaffected',
+            'B. All three CIA properties can be fully compromised by a successful exploit',
+            'C. The exploit affects availability only; data is not at risk',
+            'D. Impact depends on the deployment scope; no determination is possible'
+        ],
+        correct: 1,
+        explanation: 'C:H/I:H/A:H means a successful exploit can fully compromise all three CIA properties — read sensitive data (C), modify data (I), and disrupt service (A). This combination plus AV:N/PR:N/UI:N drives the 9.8 critical score.'
+    },
+    {
+        id: 'q4',
+        text: 'Both CVE-2026-31337 (9.8 critical) and CVE-2026-31338 (3.7 low) affect Acme HRMS in this environment. The public-facing web tier has CVE-2026-31337; the internal desktop agent has CVE-2026-31338. Which BEST guides prioritization?',
+        options: [
+            'A. Patch CVE-2026-31338 first because the desktop agent is more numerous',
+            'B. Patch CVE-2026-31337 first — it is network-exploitable with no authentication on a public-facing tier with high impact',
+            'C. Patch them in chronological CVE-number order',
+            'D. Patch CVE-2026-31337 first solely because the score is higher; environmental context does not affect prioritization'
+        ],
+        correct: 1,
+        explanation: 'Prioritization combines base score AND environmental context. CVE-2026-31337 is unauthenticated network RCE on a public-facing tier — every relevant metric points to urgent. Distractor D is the wrong reasoning (score alone, ignoring context) even though it picks the same CVE; CySA+ tests reasoning, not just answer matching.'
+    },
+    {
+        id: 'q5',
+        text: 'If a hypothetical CVE-2026-99999 carried the metric S:C (Scope: Changed) instead of S:U, what would that tell the analyst?',
+        options: [
+            'A. The CVE record\'s scope has been administratively changed by NVD',
+            'B. The attack vector changes mid-exploit from network to local',
+            'C. The asset\'s classification changes after successful exploitation',
+            'D. A successful exploit can impact resources beyond the vulnerable component\'s security authority'
+        ],
+        correct: 3,
+        explanation: 'Scope: Changed means the exploit can affect components outside the vulnerable component\'s security authority — e.g., a hypervisor bug escaping to other VMs. S:U (Unchanged) means impact stays within the vulnerable component. Distractor A confuses CVSS Scope with NVD record metadata; they are unrelated.'
+    },
+    {
+        id: 'q6',
+        text: 'When validating a vendor-supplied CVSS score before using it to drive remediation prioritization, the analyst should treat which source as authoritative?',
+        options: [
+            'A. NVD (National Vulnerability Database) or the official vendor advisory',
+            'B. The first social media post that mentioned the CVE',
+            'C. The internal vulnerability scanner\'s computed score only',
+            'D. Whichever score is highest across all available sources'
+        ],
+        correct: 0,
+        explanation: 'NVD and vendor advisories are authoritative for CVSS vectors. Internal scanners often display vendor scores but can miss vector updates after re-scoring. Distractor D (highest score) is a common analyst trap — choosing for risk-aversion rather than accuracy.'
+    }
+];
+
+const userAnswers = {};
+
+// Track which chip tooltip is open per vector row
+const activeChip = { '31337': null, '31338': null };
+
+function renderChips(cveKey) {
+    const row = document.getElementById('chipRow' + cveKey);
+    const tooltip = document.getElementById('tooltip' + cveKey);
+    row.innerHTML = '';
+
+    vectors[cveKey].forEach(function(metric) {
+        const btn = document.createElement('button');
+        btn.className = 'vector-chip';
+        btn.textContent = metric;
+        btn.setAttribute('data-metric', metric);
+        btn.setAttribute('aria-expanded', 'false');
+
+        btn.addEventListener('click', function() {
+            const isActive = btn.classList.contains('active');
+
+            // Deactivate all chips in this row
+            row.querySelectorAll('.vector-chip').forEach(function(c) {
+                c.classList.remove('active');
+                c.setAttribute('aria-expanded', 'false');
+            });
+
+            if (isActive) {
+                // Toggle off
+                tooltip.textContent = '';
+                tooltip.classList.remove('visible');
+                activeChip[cveKey] = null;
+            } else {
+                btn.classList.add('active');
+                btn.setAttribute('aria-expanded', 'true');
+                tooltip.textContent = metricDefs[metric] || metric;
+                tooltip.classList.add('visible');
+                activeChip[cveKey] = metric;
+            }
+        });
+
+        row.appendChild(btn);
+    });
+}
+
+function renderQuestions() {
+    const container = document.getElementById('questionsList');
+    container.innerHTML = '';
+
+    questions.forEach(function(q, idx) {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        card.id = 'card-' + q.id;
+
+        const num = document.createElement('div');
+        num.className = 'q-number';
+        num.textContent = 'Question ' + (idx + 1) + ' of ' + questions.length;
+
+        const text = document.createElement('div');
+        text.className = 'q-text';
+        text.textContent = q.text;
+
+        const ul = document.createElement('ul');
+        ul.className = 'option-list';
+
+        q.options.forEach(function(optText, optIdx) {
+            const li = document.createElement('li');
+            const label = document.createElement('label');
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = q.id;
+            radio.value = optIdx;
+
+            radio.addEventListener('change', function() {
+                userAnswers[q.id] = optIdx;
+                card.classList.add('answered');
+                checkSubmitEnabled();
+            });
+
+            label.appendChild(radio);
+            label.appendChild(document.createTextNode(optText));
+            li.appendChild(label);
+            ul.appendChild(li);
+        });
+
+        card.appendChild(num);
+        card.appendChild(text);
+        card.appendChild(ul);
+        container.appendChild(card);
+    });
+}
+
+function checkSubmitEnabled() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = Object.keys(userAnswers).length < questions.length;
+}
+
+function submitExam() {
+    // Lock all radios
+    document.querySelectorAll('.option-list input[type="radio"]').forEach(function(r) {
+        r.disabled = true;
+    });
+
+    let correct = 0;
+    let feedbackHTML = '';
+
+    questions.forEach(function(q) {
+        const chosen = userAnswers[q.id];
+        const isCorrect = (chosen === q.correct);
+        if (isCorrect) correct++;
+
+        const icon = isCorrect ? '<span class="fb-icon ok">&#10004;</span>' : '<span class="fb-icon fail">&#10006;</span>';
+        const chosenText = (chosen !== undefined) ? q.options[chosen] : '(no answer)';
+        const correctText = q.options[q.correct];
+
+        feedbackHTML += '<div class="feedback-item">' + icon +
+            '<div class="fb-body">' +
+            '<strong>' + escHtml(q.text) + '</strong>' +
+            '<div class="fb-chosen">Your answer: ' + escHtml(chosenText) + '</div>' +
+            (isCorrect ? '' : '<div class="fb-correct">Correct answer: ' + escHtml(correctText) + '</div>') +
+            '<div class="fb-explanation">' + escHtml(q.explanation) + '</div>' +
+            '</div>' +
+            '</div>';
+
+        // Highlight options in the question card
+        const card = document.getElementById('card-' + q.id);
+        const labels = card.querySelectorAll('.option-list label');
+        labels.forEach(function(lbl, i) {
+            if (i === q.correct) lbl.classList.add('correct-ans');
+            else if (i === chosen && !isCorrect) lbl.classList.add('wrong-ans');
+        });
+    });
+
+    const pct = Math.round((correct / questions.length) * 100);
+    const scoreText = pct + '% (' + correct + '/' + questions.length + ')';
+
+    document.getElementById('scoreText').textContent = scoreText;
+
+    const bar = document.getElementById('scoreBar');
+    bar.style.width = pct + '%';
+    if (pct >= 85) bar.style.background = '#107c10';
+    else if (pct >= 70) bar.style.background = '#c8a700';
+    else bar.style.background = '#a80000';
+
+    let interp = '';
+    if (correct === 6) interp = 'Excellent — analyst-ready CVSS reading';
+    else if (correct === 5) interp = 'Strong — minor confusion on the metric you missed';
+    else if (correct === 4) interp = 'Borderline — re-read the failed metrics';
+    else interp = 'Drill the CVSS:3.1 specification metrics; you missed too many for triage work';
+
+    document.getElementById('scoreInterpretation').textContent = interp;
+    document.getElementById('feedbackList').innerHTML = feedbackHTML;
+    document.getElementById('submitBtn').disabled = true;
+
+    const modal = document.getElementById('resultModal');
+    modal.classList.add('open');
+}
+
+function closeModal() {
+    document.getElementById('resultModal').classList.remove('open');
+}
+
+function resetSimulation() {
+    if (!confirm('Reset all answers?')) return;
+    init();
+}
+
+function escHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function init() {
+    // Clear state
+    Object.keys(userAnswers).forEach(function(k) { delete userAnswers[k]; });
+    activeChip['31337'] = null;
+    activeChip['31338'] = null;
+
+    renderChips('31337');
+    renderChips('31338');
+    renderQuestions();
+    checkSubmitEnabled();
+
+    document.getElementById('resultModal').classList.remove('open');
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
