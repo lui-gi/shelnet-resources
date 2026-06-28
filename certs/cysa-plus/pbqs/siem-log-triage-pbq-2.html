@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelnet CySA+ PBQ 2 — SIEM Log Triage</title>
+    <style>
+        :root {
+            --primary: #0078d4;
+            --bg-color: #f3f2f1;
+            --surface: #ffffff;
+            --border: #e1dfdd;
+            --text: #323130;
+            --text-secondary: #605e5c;
+            --success: #107c10;
+            --warn: #c8a700;
+            --error: #a80000;
+            --shadow: 0 1.6px 3.6px 0 rgba(0,0,0,0.132), 0 0.3px 0.9px 0 rgba(0,0,0,0.108);
+            --row-benign-bg: #e6f4e6;
+            --row-benign-border: #107c10;
+            --row-investigate-bg: #fff8e0;
+            --row-investigate-border: #c8a700;
+            --row-escalate-bg: #fde7e7;
+            --row-escalate-border: #a80000;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Header --- */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 0 20px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .brand {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .reset-btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 6px 16px;
+            border-radius: 2px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+        .reset-btn:hover { background: rgba(255,255,255,0.25); }
+
+        /* --- Layout: two-column below header --- */
+        .workspace {
+            display: flex;
+            gap: 20px;
+            max-width: 1100px;
+            margin: 24px auto;
+            padding: 0 20px 40px;
+            width: 100%;
+            align-items: flex-start;
+        }
+
+        /* --- Left: main column --- */
+        .main-col {
+            flex: 1 1 0;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* --- Right rail --- */
+        .context-rail {
+            flex: 0 0 260px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: sticky;
+            top: 66px;
+        }
+
+        .rail-heading {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin: 0 0 2px;
+        }
+
+        .context-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--primary);
+            border-radius: 4px;
+            padding: 10px 12px;
+            box-shadow: var(--shadow);
+            font-size: 0.8rem;
+            line-height: 1.55;
+        }
+
+        .context-card .ctx-name {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.82rem;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .context-card .ctx-role {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .context-card p {
+            margin: 0;
+            color: var(--text-secondary);
+        }
+
+        /* --- Scenario card --- */
+        .scenario-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .scenario-card h2 {
+            margin: 0 0 10px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+        }
+
+        .scenario-card p { margin: 0 0 8px; }
+        .scenario-card p:last-child { margin-bottom: 0; }
+
+        .scenario-card ul {
+            margin: 6px 0 0 0;
+            padding-left: 20px;
+        }
+        .scenario-card li { margin-bottom: 4px; }
+
+        /* --- Legend --- */
+        .legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        /* --- Log rows --- */
+        .log-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .log-row {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 10px 14px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        .log-row.benign {
+            background: var(--row-benign-bg);
+            border-color: var(--row-benign-border);
+        }
+        .log-row.investigate {
+            background: var(--row-investigate-bg);
+            border-color: var(--row-investigate-border);
+        }
+        .log-row.escalate {
+            background: var(--row-escalate-bg);
+            border-color: var(--row-escalate-border);
+        }
+
+        .log-row-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .log-seq {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            padding-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .log-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .triage-btns {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .triage-btn {
+            padding: 4px 12px;
+            border-radius: 2px;
+            border: 1px solid var(--border);
+            background: #f4f4f2;
+            color: var(--text);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+        }
+
+        .triage-btn:hover { background: #e8e8e5; }
+
+        .triage-btn.active-benign {
+            background: var(--success);
+            border-color: #0a5a0a;
+            color: white;
+        }
+        .triage-btn.active-investigate {
+            background: var(--warn);
+            border-color: #8a7000;
+            color: white;
+        }
+        .triage-btn.active-escalate {
+            background: var(--error);
+            border-color: #6d0000;
+            color: white;
+        }
+
+        /* --- Submit --- */
+        .submit-wrap {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 4px;
+        }
+
+        .submit-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 2px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .submit-btn:hover:not(:disabled) { background: #005a9e; }
+        .submit-btn:disabled {
+            background: #c8c6c4;
+            color: #a19f9d;
+            cursor: not-allowed;
+        }
+
+        /* --- Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal-card {
+            background: white;
+            width: 680px;
+            max-width: 96%;
+            max-height: 90vh;
+            border-radius: 4px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-card h2 {
+            margin: 0 0 12px;
+            font-size: 1.1rem;
+        }
+
+        #scoreText {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .score-bar-bg {
+            height: 10px;
+            background: #edebe9;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        #scoreBar {
+            height: 100%;
+            width: 0%;
+            border-radius: 5px;
+            transition: width 0.8s ease;
+        }
+
+        #scoreInterpretation {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        #feedbackList {
+            font-size: 0.85rem;
+        }
+
+        .feedback-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+        .feedback-item:last-child { border-bottom: none; }
+
+        .fb-icon {
+            font-size: 1rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            padding-top: 1px;
+        }
+        .fb-icon.ok { color: var(--success); }
+        .fb-icon.fail { color: var(--error); }
+
+        .fb-body { line-height: 1.5; flex: 1; }
+        .fb-body strong { display: block; margin-bottom: 2px; font-family: 'Courier New', monospace; font-size: 0.78rem; }
+        .fb-chosen { color: var(--text-secondary); font-size: 0.82rem; }
+        .fb-correct { color: var(--success); font-size: 0.82rem; }
+        .fb-explanation {
+            margin-top: 4px;
+            font-size: 0.82rem;
+            background: #f9f8f7;
+            border-left: 3px solid var(--border);
+            padding: 4px 8px;
+            color: var(--text-secondary);
+        }
+        .fb-nextstep {
+            margin-top: 4px;
+            font-size: 0.82rem;
+            background: #fde7e7;
+            border-left: 3px solid var(--error);
+            padding: 4px 8px;
+            color: #6d0000;
+        }
+        .fb-nextstep-label {
+            font-weight: 700;
+            color: var(--error);
+        }
+
+        .next-steps-section {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 2px solid var(--error);
+        }
+
+        .next-steps-section h3 {
+            margin: 0 0 10px;
+            font-size: 0.9rem;
+            color: var(--error);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 16px;
+            flex-shrink: 0;
+        }
+
+        .close-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 2px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .close-btn:hover { background: #005a9e; }
+
+        /* --- Progress tracker --- */
+        .progress-note {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-align: right;
+        }
+
+        @media (max-width: 740px) {
+            .workspace { flex-direction: column; }
+            .context-rail { flex: none; width: 100%; position: static; }
+            .log-text { word-break: break-word; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand">SHELNET CYSA+ PBQ #2 — SIEM Log Triage</div>
+    <button class="reset-btn" onclick="resetSimulation()">Reset</button>
+</header>
+
+<div class="workspace">
+
+    <!-- === Left: main work area === -->
+    <div class="main-col">
+
+        <section class="scenario-card">
+            <h2>Scenario</h2>
+            <p>09:00 — you've just logged into the SOC SIEM at the start of your shift. The overnight queue holds 12 alert/event lines, mixed across auth, firewall, DNS, process, VPN, proxy, and IDS sources. Your job: label each line <strong>Benign</strong>, <strong>Investigate</strong>, or <strong>Escalate</strong> based on the indicators present.</p>
+            <ul>
+                <li><strong>Benign</strong> = matches a known normal pattern; no action needed.</li>
+                <li><strong>Investigate</strong> = anomalous enough to merit a closer look but no smoking gun.</li>
+                <li><strong>Escalate</strong> = clear indicator of compromise or active attack; alert tier-2 immediately.</li>
+            </ul>
+            <p>You may consult known context cards (right rail) — they record what each user/host normally does.</p>
+        </section>
+
+        <div class="legend">
+            <span class="legend-item"><span class="legend-swatch" style="background:#107c10;border:1px solid #0a5a0a;"></span>Benign</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:#c8a700;border:1px solid #8a7000;"></span>Investigate</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:#a80000;border:1px solid #6d0000;"></span>Escalate</span>
+        </div>
+
+        <div class="log-rows" id="logRows"></div>
+
+        <div class="progress-note" id="progressNote">0 of 12 labeled — Submit disabled</div>
+
+        <div class="submit-wrap">
+            <button class="submit-btn" id="submitBtn" disabled onclick="submitExam()">Submit Triage</button>
+        </div>
+
+    </div>
+
+    <!-- === Right rail: context cards === -->
+    <aside class="context-rail">
+        <div class="rail-heading">Known Context</div>
+
+        <article class="context-card">
+            <span class="ctx-name">jsmith</span>
+            <span class="ctx-role">Sales Engineer</span>
+            <p>Normal hours: 08:00–18:00 ET (Toronto). Workstation IP 10.20.1.45.<br>
+            Normal VPN locations: Toronto, NYC. Frequent failed logins (mistypes password).</p>
+        </article>
+
+        <article class="context-card">
+            <span class="ctx-name">svc_backup</span>
+            <span class="ctx-role">Nightly Backup Service Account</span>
+            <p>Normal: 02:00 UTC nightly login from backup-host 10.10.1.30.</p>
+        </article>
+
+        <article class="context-card">
+            <span class="ctx-name">bjones</span>
+            <span class="ctx-role">Marketing Coordinator</span>
+            <p>Normal: workstation use 09:00–17:00 ET. No admin privileges. No scripting use.</p>
+        </article>
+
+        <article class="context-card">
+            <span class="ctx-name">testuser</span>
+            <span class="ctx-role">Ops domain test account</span>
+            <p>Normal: 08:00–18:00 ET, only on 10.10.2.x. No off-hours use established.</p>
+        </article>
+
+        <article class="context-card">
+            <span class="ctx-name">svc_helpdesk</span>
+            <span class="ctx-role">Helpdesk Service Account</span>
+            <p>Normal: standard helpdesk LDAP/RPC. Never legitimately requests Kerberos service tickets for domain controller CIFS.</p>
+        </article>
+    </aside>
+
+</div>
+
+<!-- === Modal === -->
+<div class="modal-overlay" id="resultModal">
+    <div class="modal-card">
+        <h2>Triage Assessment Results</h2>
+        <div id="scoreText"></div>
+        <div class="score-bar-bg"><div id="scoreBar"></div></div>
+        <div id="scoreInterpretation"></div>
+        <div class="modal-body">
+            <div id="feedbackList"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="close-btn" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const logs = [
+    { id: 'l01', text: '[FAIL] auth.log: 3x failed login user=jsmith ip=10.20.1.45 (workstation) followed by success', correct: 'Benign',      rationale: "jsmith is the named user, the source is jsmith's normal workstation IP, and the rail notes frequent mistypes — classic benign auth noise." },
+    { id: 'l02', text: '[ALERT] firewall: deny 192.0.2.91:443 -> 10.10.5.12:31022 outbound, no matching policy',           correct: 'Investigate', rationale: 'Outbound to a public IP on a high ephemeral port with no policy is anomalous. Investigate the process on 10.10.5.12 — not yet an IoC.' },
+    { id: 'l03', text: '[INFO] dns: 10.10.5.12 NXDOMAIN qry=zfwopkqlxsd.tk (12 simultaneous random subdomains)',            correct: 'Escalate',    rationale: 'High-entropy random subdomain bursts to a .tk domain are textbook DGA (Domain Generation Algorithm) C2 beaconing. Same host as line 2 — correlated escalation.' },
+    { id: 'l04', text: '[FAIL] auth.log: failed login user=admin ip=185.220.101.47 (external, known Tor exit)',             correct: 'Escalate',    rationale: 'External login attempt to "admin" from a Tor exit IP is hostile by default — admin should never authenticate from the public internet via Tor.' },
+    { id: 'l05', text: '[INFO] proc: powershell.exe -enc <base64> spawned from word.exe by user marketing\\bjones',          correct: 'Escalate',    rationale: 'Word spawning a base64-encoded PowerShell is the canonical phishing macro execution chain. bjones (marketing) has no legitimate scripting use per the rail.' },
+    { id: 'l06', text: '[INFO] vpn: connect user=jsmith from 198.51.100.4 (Toronto)',                                       correct: 'Investigate', rationale: "jsmith's normal locations include Toronto, but a new IP within that region warrants a quick check (impossible-travel vs. legitimate trip). Pair with the workstation timeline." },
+    { id: 'l07', text: '[INFO] auth.log: success login user=svc_backup from 10.10.1.30 (backup-host) at 02:00 UTC',         correct: 'Benign',      rationale: 'Exact match for the documented nightly backup job (right rail). No deviation in user, host, or time.' },
+    { id: 'l08', text: '[INFO] proxy: 10.10.5.12 GET https://raw.githubusercontent.com/wkqkw/test/master/loader.ps1',       correct: 'Escalate',    rationale: 'Direct raw-content PowerShell download from an obscure GitHub user account, on the same 10.10.5.12 host as lines 2 and 3 — classic stage-2 payload retrieval. Triple-correlated escalation.' },
+    { id: 'l09', text: '[INFO] auth.log: success login user=ops\\testuser from 10.10.2.5 at 04:13 UTC (off-hours)',         correct: 'Investigate', rationale: 'Off-hours but ops/testuser has no established off-hours pattern per the rail — could be legitimate on-call or could be account misuse. Check with ops before escalating.' },
+    { id: 'l10', text: "[ALERT] ids: SQL injection signature triggered on web1.corp.com :443 ?id=1' OR '1'='1",             correct: 'Investigate', rationale: "Classic SQLi pattern, but 'OR 1=1' alone is also a textbook scanner probe with no follow-on payload. Investigate WAF logs for the source IP's broader request pattern before escalating." },
+    { id: 'l11', text: '[INFO] auth.log: kerberos TGS request user=svc_helpdesk for spn=cifs/dc01.corp.com encryption=RC4', correct: 'Investigate', rationale: 'RC4 Kerberos TGS for a CIFS SPN on a DC matches the Kerberoasting pattern. Service account requesting it is suspicious but could be a legitimate misconfigured client — verify before escalating.' },
+    { id: 'l12', text: '[FAIL] vpn: 10x failed login user=DOMAIN\\administrator from rotating external IPs in 2 minutes',   correct: 'Escalate',    rationale: 'Password spray targeting the "administrator" account from rotating IPs in a tight window. No investigation needed — this IS the IoC.' }
+];
+
+const nextSteps = {
+    'l03': 'Open IR ticket, container/isolate 10.10.5.12, capture memory for C2 IOC extraction.',
+    'l04': 'Lock the admin account globally, force MFA re-enrollment, scan for any successful auth from Tor exit IPs in the prior 30 days.',
+    'l05': 'Isolate bjones\'s workstation, kill the powershell.exe + word.exe processes, hunt for the parent email and quarantine across the org.',
+    'l08': 'Same host as l03; add GitHub IOC (user wkqkw/test) to threat intel, block at proxy, hunt for other internal hosts fetching from this account.',
+    'l12': 'Block the source IP ranges at perimeter, enforce account lockout, audit administrator account\'s session history for any successful logins in the spray window.'
+};
+
+// Triage state: { logId: 'Benign' | 'Investigate' | 'Escalate' }
+const triage = {};
+
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function renderLogRows() {
+    const container = document.getElementById('logRows');
+    container.innerHTML = '';
+
+    logs.forEach(function(log, idx) {
+        const row = document.createElement('div');
+        row.className = 'log-row';
+        row.id = 'row-' + log.id;
+
+        const top = document.createElement('div');
+        top.className = 'log-row-top';
+
+        const seq = document.createElement('div');
+        seq.className = 'log-seq';
+        seq.textContent = '#' + String(idx + 1).padStart(2, '0');
+
+        const textEl = document.createElement('div');
+        textEl.className = 'log-text';
+        textEl.textContent = log.text;
+
+        top.appendChild(seq);
+        top.appendChild(textEl);
+
+        const btns = document.createElement('div');
+        btns.className = 'triage-btns';
+
+        ['Benign', 'Investigate', 'Escalate'].forEach(function(label) {
+            const btn = document.createElement('button');
+            btn.className = 'triage-btn';
+            btn.dataset.label = label;
+            btn.dataset.logId = log.id;
+            btn.textContent = label;
+            btn.addEventListener('click', function() {
+                selectTriage(log.id, label);
+            });
+            btns.appendChild(btn);
+        });
+
+        row.appendChild(top);
+        row.appendChild(btns);
+        container.appendChild(row);
+    });
+}
+
+function selectTriage(logId, label) {
+    triage[logId] = label;
+
+    // Update row color
+    const row = document.getElementById('row-' + logId);
+    row.classList.remove('benign', 'investigate', 'escalate');
+    row.classList.add(label.toLowerCase());
+
+    // Update button active states
+    const btns = row.querySelectorAll('.triage-btn');
+    btns.forEach(function(btn) {
+        btn.classList.remove('active-benign', 'active-investigate', 'active-escalate');
+        if (btn.dataset.label === label) {
+            btn.classList.add('active-' + label.toLowerCase());
+        }
+    });
+
+    updateProgress();
+}
+
+function updateProgress() {
+    const count = Object.keys(triage).length;
+    const total = logs.length;
+    const note = document.getElementById('progressNote');
+    const btn = document.getElementById('submitBtn');
+
+    if (count < total) {
+        note.textContent = count + ' of ' + total + ' labeled — Submit disabled';
+        btn.disabled = true;
+    } else {
+        note.textContent = total + ' of ' + total + ' labeled — ready to submit';
+        btn.disabled = false;
+    }
+}
+
+function submitExam() {
+    let correct = 0;
+    let feedbackHTML = '';
+
+    logs.forEach(function(log) {
+        const chosen = triage[log.id] || '(none)';
+        const isCorrect = chosen === log.correct;
+        if (isCorrect) correct++;
+
+        const iconClass = isCorrect ? 'ok' : 'fail';
+        const iconChar = isCorrect ? '&#10004;' : '&#10006;';
+
+        feedbackHTML += '<div class="feedback-item">' +
+            '<div class="fb-icon ' + iconClass + '">' + iconChar + '</div>' +
+            '<div class="fb-body">' +
+            '<strong>' + escHtml(log.text) + '</strong>' +
+            '<div class="fb-chosen">Your label: ' + escHtml(chosen) + '</div>' +
+            (isCorrect ? '' : '<div class="fb-correct">Correct label: ' + escHtml(log.correct) + '</div>') +
+            '<div class="fb-explanation">' + escHtml(log.rationale) + '</div>' +
+            (nextSteps[log.id] ? '<div class="fb-nextstep"><span class="fb-nextstep-label">Next step: </span>' + escHtml(nextSteps[log.id]) + '</div>' : '') +
+            '</div>' +
+            '</div>';
+    });
+
+    const total = logs.length;
+    const pct = Math.round((correct / total) * 100);
+
+    document.getElementById('scoreText').textContent = correct + ' / ' + total + ' correct (' + pct + '%)';
+
+    const bar = document.getElementById('scoreBar');
+    bar.style.width = pct + '%';
+    if (pct >= 92) bar.style.background = '#107c10';
+    else if (pct >= 67) bar.style.background = '#c8a700';
+    else bar.style.background = '#a80000';
+
+    let interp = '';
+    if (correct === 12) interp = 'SOC-ready triage discipline';
+    else if (correct >= 10) interp = 'Strong — review the misses';
+    else if (correct >= 8) interp = 'Borderline — focus on the over-escalate vs. under-investigate axes';
+    else interp = 'Re-drill the IoC anatomy; you\'d burn out tier-2 with this triage rate';
+
+    document.getElementById('scoreInterpretation').textContent = interp;
+    document.getElementById('feedbackList').innerHTML = feedbackHTML;
+    document.getElementById('submitBtn').disabled = true;
+
+    const modal = document.getElementById('resultModal');
+    modal.classList.add('open');
+}
+
+function closeModal() {
+    document.getElementById('resultModal').classList.remove('open');
+}
+
+function resetSimulation() {
+    if (!confirm('Reset all triage labels?')) return;
+    init();
+}
+
+function init() {
+    // Clear state
+    Object.keys(triage).forEach(function(k) { delete triage[k]; });
+
+    renderLogRows();
+    updateProgress();
+
+    document.getElementById('resultModal').classList.remove('open');
+    document.getElementById('feedbackList').innerHTML = '';
+    document.getElementById('scoreText').textContent = '';
+    document.getElementById('scoreInterpretation').textContent = '';
+    const bar = document.getElementById('scoreBar');
+    if (bar) bar.style.width = '0%';
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
