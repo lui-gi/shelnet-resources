@@ -1,6 +1,6 @@
 {
-  "version": "2.1.0",
-  "lastUpdated": "2026-06-26T00:00:00Z",
+  "version": "2.2.0",
+  "lastUpdated": "2026-06-28T00:00:00Z",
   "certs": {
     "a-plus": {
       "label": "A+ Core 2",
@@ -47,8 +47,13 @@
       "locked": true,
       "bytes": { "count": 480 },
       "resources": {
-        "pbqs": [],
-        "exams": []
+        "pbqs": [
+          { "id": 1, "title": "CVSS Vector Decoder", "filename": "cvss-decode-pbq-1.html", "description": "Decode a CVE's CVSS:3.1 vector string and triage exploitability with environmental context." },
+          { "id": 2, "title": "SIEM Log Triage", "filename": "siem-log-triage-pbq-2.html", "description": "Triage a 12-line SIEM queue: label each line Benign, Investigate, or Escalate." },
+          { "id": 3, "title": "Tool Selection from Output", "filename": "tool-selection-pbq-3.html", "description": "Pick the right tool for each task from a 12-tool inventory; distractors stay in their lane." }
+        ],
+        "exams": [],
+        "quizzes": []
       }
     }
   },
