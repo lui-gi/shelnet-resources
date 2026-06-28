@@ -566,9 +566,7 @@ function submitExam() {
             '<div class="fb-body">' +
             '<div class="fb-prompt">' + escHtml(task.prompt) + '</div>' +
             '<div class="fb-chosen">Your pick: <strong>' + escHtml(chosen) + '</strong></div>' +
-            (isCorrect
-                ? '<div class="fb-correct">Correct: ' + escHtml(task.correct) + '</div>'
-                : '<div class="fb-correct">Correct: ' + escHtml(task.correct) + '</div>') +
+            (!isCorrect ? '<div class="fb-correct">Correct: ' + escHtml(task.correct) + '</div>' : '') +
             '<div class="fb-explanation">' + escHtml(task.explanation) + '</div>' +
             '</div>' +
             '</div>';
