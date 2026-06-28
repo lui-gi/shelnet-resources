@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelnet CySA+ PBQ 3 — Tool Selection from Output</title>
+    <style>
+        :root {
+            --primary: #0078d4;
+            --bg-color: #f3f2f1;
+            --surface: #ffffff;
+            --border: #e1dfdd;
+            --text: #323130;
+            --text-secondary: #605e5c;
+            --success: #107c10;
+            --warn: #c8a700;
+            --error: #a80000;
+            --shadow: 0 1.6px 3.6px 0 rgba(0,0,0,0.132), 0 0.3px 0.9px 0 rgba(0,0,0,0.108);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Header --- */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 0 20px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .brand {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .reset-btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 6px 16px;
+            border-radius: 2px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+        .reset-btn:hover { background: rgba(255,255,255,0.25); }
+
+        /* --- Main layout --- */
+        .workspace {
+            max-width: 860px;
+            margin: 24px auto;
+            padding: 0 20px 48px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* --- Scenario card --- */
+        .scenario-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .scenario-card h2 {
+            margin: 0 0 8px;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+        }
+
+        .scenario-card p { margin: 0; }
+
+        /* --- Tool inventory rail --- */
+        .rail-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 14px 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .rail-heading {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin: 0 0 10px;
+        }
+
+        .tool-rail {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tool-chip {
+            background: #f4f4f2;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            padding: 5px 13px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        /* --- Task cards --- */
+        .task-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 14px 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .task-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .task-num {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            padding-top: 3px;
+            flex-shrink: 0;
+        }
+
+        .task-prompt {
+            font-size: 0.88rem;
+            line-height: 1.55;
+            flex: 1;
+        }
+
+        .task-select-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .task-select-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .tool-select {
+            flex: 1;
+            max-width: 260px;
+            padding: 5px 10px;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            color: var(--text);
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .tool-select:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 1px;
+        }
+
+        /* --- Progress + submit --- */
+        .bottom-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .progress-note {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .submit-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 2px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .submit-btn:hover:not(:disabled) { background: #005a9e; }
+        .submit-btn:disabled {
+            background: #c8c6c4;
+            color: #a19f9d;
+            cursor: not-allowed;
+        }
+
+        /* --- Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal-card {
+            background: white;
+            width: 700px;
+            max-width: 96%;
+            max-height: 90vh;
+            border-radius: 4px;
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-card h2 {
+            margin: 0 0 12px;
+            font-size: 1.1rem;
+        }
+
+        #scoreText {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .score-bar-bg {
+            height: 10px;
+            background: #edebe9;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        #scoreBar {
+            height: 100%;
+            width: 0%;
+            border-radius: 5px;
+            transition: width 0.8s ease;
+        }
+
+        #scoreInterpretation {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        #feedbackList {
+            font-size: 0.85rem;
+        }
+
+        .feedback-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+        .feedback-item:last-child { border-bottom: none; }
+
+        .fb-icon {
+            font-size: 1rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            padding-top: 1px;
+        }
+        .fb-icon.ok { color: var(--success); }
+        .fb-icon.fail { color: var(--error); }
+
+        .fb-body { line-height: 1.5; flex: 1; }
+
+        .fb-prompt {
+            font-size: 0.82rem;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .fb-chosen { color: var(--text-secondary); font-size: 0.82rem; }
+        .fb-correct { color: var(--success); font-size: 0.82rem; }
+
+        .fb-explanation {
+            margin-top: 4px;
+            font-size: 0.82rem;
+            background: #f9f8f7;
+            border-left: 3px solid var(--border);
+            padding: 4px 8px;
+            color: var(--text-secondary);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 16px;
+            flex-shrink: 0;
+        }
+
+        .close-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 2px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .close-btn:hover { background: #005a9e; }
+
+        @media (max-width: 600px) {
+            .bottom-row { flex-direction: column; align-items: flex-end; }
+            .tool-select { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand">SHELNET CYSA+ PBQ #3 — Tool Selection from Output</div>
+    <button class="reset-btn" onclick="resetSimulation()">Reset</button>
+</header>
+
+<div class="workspace">
+
+    <section class="scenario-card">
+        <h2>Scenario</h2>
+        <p>Five short tasks land in your queue during a shift. For each, pick the BEST tool from the inventory rail. Distractors are real, capable tools — the test is whether you keep each one in its proper lane.</p>
+    </section>
+
+    <div class="rail-section">
+        <div class="rail-heading">Tool Inventory Rail</div>
+        <div class="tool-rail" id="toolRail"></div>
+    </div>
+
+    <div class="task-cards" id="taskCards"></div>
+
+    <div class="bottom-row">
+        <div class="progress-note" id="progressNote">0 of 5 answered — Submit disabled</div>
+        <button class="submit-btn" id="submitBtn" disabled onclick="submitExam()">Submit</button>
+    </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="resultModal">
+    <div class="modal-card">
+        <h2>Tool Selection Results</h2>
+        <div id="scoreText"></div>
+        <div class="score-bar-bg"><div id="scoreBar"></div></div>
+        <div id="scoreInterpretation"></div>
+        <div class="modal-body">
+            <div id="feedbackList"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="close-btn" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const tools = [
+    'Wireshark', 'tcpdump', 'Nmap', 'Burp Suite',
+    'Nessus', 'OpenVAS', 'Scout Suite', 'Prowler',
+    'Pacu', 'Splunk', 'ELK', 'Metasploit'
+];
+
+const tasks = [
+    {
+        id: 't1',
+        prompt: 'You need a full packet trace of suspicious traffic to a known C2 IP for offline pcap analysis. The capture box is headless (SSH only) and must run scriptably overnight.',
+        correct: 'tcpdump',
+        primaryDistractor: 'Wireshark',
+        explanation: 'tcpdump is CLI/headless, scriptable, and writes pcaps natively (`-w out.pcap`). Wireshark is the analysis GUI for the resulting file — wrong tool for a headless capture box.'
+    },
+    {
+        id: 't2',
+        prompt: 'Assess an AWS account against multi-cloud security best-practice baselines: open S3 buckets, overly permissive IAM, missing CloudTrail, etc. Generate a posture report you can hand to the platform team.',
+        correct: 'Scout Suite',
+        primaryDistractor: 'Prowler',
+        explanation: 'Scout Suite is the broad multi-cloud (AWS/Azure/GCP) posture-audit tool that emits a report-friendly output across many checks. Prowler is close-but-wrong — it is also strong on AWS but is CLI-checks-style and AWS-centric; Scout Suite better fits a multi-cloud posture report. Both would be acceptable in real life; the test is matching the "multi-cloud + report" framing.'
+    },
+    {
+        id: 't3',
+        prompt: "Map open ports and identify service versions across a /24 lab subnet to find anything new that has appeared since last week's scan.",
+        correct: 'Nmap',
+        primaryDistractor: 'Nessus',
+        explanation: 'Nmap is the discovery/port-mapping/service-version tool — fast, lightweight, scriptable. Nessus is a vulnerability scanner; pointing it at a subnet just to enumerate ports is overweight for the stated task (and slower).'
+    },
+    {
+        id: 't4',
+        prompt: 'Investigate a SQL injection alert by intercepting the suspicious request, modifying the parameter manually, and replaying it to confirm exploitability.',
+        correct: 'Burp Suite',
+        primaryDistractor: 'OpenVAS',
+        explanation: 'Burp Suite is the interactive web-app proxy that intercepts, modifies, and replays HTTP requests — exactly the workflow for manual SQLi validation. OpenVAS is an automated vulnerability scanner; it might also flag SQLi but it does not provide the interactive intercept-modify-replay loop the task requires.'
+    },
+    {
+        id: 't5',
+        prompt: "Run a centralized SPL search across 12 endpoints' last-week security event logs to correlate a suspected lateral-movement pattern (Kerberos TGS requests followed by remote scheduled-task creations).",
+        correct: 'Splunk',
+        primaryDistractor: 'ELK',
+        explanation: "SPL (Search Processing Language) is Splunk's native query language — the prompt names it explicitly. ELK uses KQL or Lucene-style queries, not SPL; it is the close-but-wrong alternative SIEM/log-analytics stack."
+    }
+];
+
+// selections: { taskId: toolName }
+const selections = {};
+
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function renderRail() {
+    const rail = document.getElementById('toolRail');
+    rail.innerHTML = '';
+    tools.forEach(function(tool) {
+        const chip = document.createElement('div');
+        chip.className = 'tool-chip';
+        chip.textContent = tool;
+        rail.appendChild(chip);
+    });
+}
+
+function renderTasks() {
+    const container = document.getElementById('taskCards');
+    container.innerHTML = '';
+
+    tasks.forEach(function(task, idx) {
+        const card = document.createElement('div');
+        card.className = 'task-card';
+        card.id = 'card-' + task.id;
+
+        const header = document.createElement('div');
+        header.className = 'task-header';
+
+        const num = document.createElement('div');
+        num.className = 'task-num';
+        num.textContent = 'Task ' + (idx + 1);
+
+        const prompt = document.createElement('div');
+        prompt.className = 'task-prompt';
+        prompt.textContent = task.prompt;
+
+        header.appendChild(num);
+        header.appendChild(prompt);
+
+        const selectRow = document.createElement('div');
+        selectRow.className = 'task-select-row';
+
+        const label = document.createElement('span');
+        label.className = 'task-select-label';
+        label.textContent = 'Best tool:';
+
+        const select = document.createElement('select');
+        select.className = 'tool-select';
+        select.id = 'sel-' + task.id;
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '— select a tool —';
+        select.appendChild(placeholder);
+
+        tools.forEach(function(tool) {
+            const opt = document.createElement('option');
+            opt.value = tool;
+            opt.textContent = tool;
+            select.appendChild(opt);
+        });
+
+        select.addEventListener('change', function() {
+            if (this.value) {
+                selections[task.id] = this.value;
+            } else {
+                delete selections[task.id];
+            }
+            updateProgress();
+        });
+
+        selectRow.appendChild(label);
+        selectRow.appendChild(select);
+
+        card.appendChild(header);
+        card.appendChild(selectRow);
+        container.appendChild(card);
+    });
+}
+
+function updateProgress() {
+    const count = Object.keys(selections).length;
+    const total = tasks.length;
+    const note = document.getElementById('progressNote');
+    const btn = document.getElementById('submitBtn');
+
+    if (count < total) {
+        note.textContent = count + ' of ' + total + ' answered — Submit disabled';
+        btn.disabled = true;
+    } else {
+        note.textContent = total + ' of ' + total + ' answered — ready to submit';
+        btn.disabled = false;
+    }
+}
+
+function submitExam() {
+    let correct = 0;
+    let feedbackHTML = '';
+
+    tasks.forEach(function(task) {
+        const chosen = selections[task.id] || '(none)';
+        const isCorrect = chosen === task.correct;
+        if (isCorrect) correct++;
+
+        const iconClass = isCorrect ? 'ok' : 'fail';
+        const iconChar = isCorrect ? '&#10004;' : '&#10006;';
+
+        feedbackHTML += '<div class="feedback-item">' +
+            '<div class="fb-icon ' + iconClass + '">' + iconChar + '</div>' +
+            '<div class="fb-body">' +
+            '<div class="fb-prompt">' + escHtml(task.prompt) + '</div>' +
+            '<div class="fb-chosen">Your pick: <strong>' + escHtml(chosen) + '</strong></div>' +
+            (isCorrect
+                ? '<div class="fb-correct">Correct: ' + escHtml(task.correct) + '</div>'
+                : '<div class="fb-correct">Correct: ' + escHtml(task.correct) + '</div>') +
+            '<div class="fb-explanation">' + escHtml(task.explanation) + '</div>' +
+            '</div>' +
+            '</div>';
+    });
+
+    const total = tasks.length;
+    const pct = Math.round((correct / total) * 100);
+
+    document.getElementById('scoreText').textContent = correct + ' / ' + total + ' correct (' + pct + '%)';
+
+    const bar = document.getElementById('scoreBar');
+    bar.style.width = pct + '%';
+    if (pct === 100) bar.style.background = '#107c10';
+    else if (pct >= 80) bar.style.background = '#107c10';
+    else if (pct >= 60) bar.style.background = '#c8a700';
+    else bar.style.background = '#a80000';
+
+    let interp = '';
+    if (correct === 5) interp = 'Tools in lane — analyst grade';
+    else if (correct === 4) interp = 'Strong — review the lane you crossed';
+    else if (correct === 3) interp = 'Borderline — re-read tooling-to-know.md';
+    else interp = 'Tool lanes are foundational; this is a re-study area';
+
+    document.getElementById('scoreInterpretation').textContent = interp;
+    document.getElementById('feedbackList').innerHTML = feedbackHTML;
+
+    document.getElementById('submitBtn').disabled = true;
+
+    document.getElementById('resultModal').classList.add('open');
+}
+
+function closeModal() {
+    document.getElementById('resultModal').classList.remove('open');
+}
+
+function resetSimulation() {
+    if (!confirm('Reset all tool selections?')) return;
+    init();
+}
+
+function init() {
+    Object.keys(selections).forEach(function(k) { delete selections[k]; });
+
+    renderRail();
+    renderTasks();
+    updateProgress();
+
+    document.getElementById('resultModal').classList.remove('open');
+    document.getElementById('feedbackList').innerHTML = '';
+    document.getElementById('scoreText').textContent = '';
+    document.getElementById('scoreInterpretation').textContent = '';
+    const bar = document.getElementById('scoreBar');
+    if (bar) bar.style.width = '0%';
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
