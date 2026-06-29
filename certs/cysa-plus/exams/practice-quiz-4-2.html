@@ -512,14 +512,14 @@
             {
                 q: 'An IR lead is documenting the lessons-learned report following a major supply chain compromise. The team identified that attackers persisted in the environment for 47 days before detection. Which KPI MOST directly quantifies the detection gap described in this finding?',
                 options: [
-                    'A. MTTR, measuring the time from alert triage to full remediation',
+                    'A. MTTR, measuring the time from detection to the team\'s initial response actions',
                     'B. Alert volume, measuring the number of SIEM alerts generated per day during the incident',
                     'C. MTTC, measuring the time from detection to successful containment',
                     'D. MTTD, measuring the time from incident onset to first detection by the security team'
                 ],
                 correct: 3,
                 domain: 'Reporting and Communication',
-                explanation: 'MTTD directly measures the detection gap -- the time from when the incident began until the security team detected it. A 47-day dwell time is a high MTTD value. MTTR (A) measures response-to-remediation time, not the detection gap; alert volume (B) is a throughput metric that does not measure dwell time; MTTC (C) measures the time from detection to containment, not the detection gap itself.'
+                explanation: 'MTTD directly measures the detection gap -- the time from when the incident began until the security team detected it. A 47-day dwell time is a high MTTD value. MTTR (A) measures the time from detection to initial response actions, not the detection gap; alert volume (B) is a throughput metric that does not measure dwell time; MTTC (C) measures the time from detection to containment, not the detection gap itself.'
             },
             {
                 q: 'A CISO (Chief Information Security Officer) receives a call from the organization\'s PR director during an active ransomware incident. The PR director wants to issue an immediate public statement without consulting legal counsel. The CISO must explain why public communications must be coordinated. Which communication principle BEST justifies the CISO\'s position?',
