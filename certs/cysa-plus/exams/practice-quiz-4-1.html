@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelnet Quiz</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #0c0c0c;
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --accent: #3b82f6; /* Default — overridden per-quiz via ACCENT_HEX in CONFIG */
+            --accent-dim: rgba(59, 130, 246, 0.1); /* Default — overridden via setProperty in init() */
+            --accent-glow: rgba(59, 130, 246, 0.4); /* Default — overridden via setProperty in init() */
+            --accent-select: rgba(59, 130, 246, 0.3); /* Default — overridden via setProperty in init() */
+            --accent-red: #ef4444;
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            /* Grid Background Effect */
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Selection Color */
+        ::selection {
+            background: var(--accent-select);
+            color: #dbeafe;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Terminal Header Bar --- */
+        .terminal-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot.red { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); }
+        .dot.yellow { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); }
+        .dot.green { background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); }
+
+        /* --- Brutal Header Section --- */
+        .header {
+            padding: 40px 40px 20px 40px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .header .subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: block;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-container {
+            width: 100%;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        /* --- Content Area --- */
+        .content {
+            padding: 40px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .question-number {
+            font-family: var(--font-mono);
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .domain-tag {
+            font-family: var(--font-mono);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            color: #eee;
+            font-weight: 400;
+        }
+
+        /* --- Options --- */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .option:hover {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .option.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+
+        .option-label {
+            font-family: var(--font-mono);
+            margin-right: 20px;
+            color: var(--text-muted);
+            font-weight: bold;
+            min-width: 25px;
+        }
+
+        .option.selected .option-label {
+            color: var(--accent);
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .option.selected .option-text {
+            color: #fff;
+        }
+
+        /* --- Buttons --- */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 50px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .btn-primary {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: var(--border-color);
+        }
+
+        /* --- Results Screen --- */
+        .results {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .score-card {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Terminal scanline effect for score */
+        .score-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: rgba(255,255,255,0.1);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .score-number {
+            font-size: 5rem;
+            font-weight: bold;
+            font-family: var(--font-mono);
+            margin: 10px 0;
+            color: #fff;
+        }
+
+        .pass-fail {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            display: inline-block;
+            border: 1px solid currentColor;
+            margin-top: 20px;
+        }
+
+        .pass { color: var(--accent); }
+        .fail { color: var(--accent-red); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            font-family: var(--font-mono);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        /* Review Section */
+        .review-question {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid transparent;
+        }
+
+        .review-question.correct { border-left-color: var(--accent); }
+        .review-question.incorrect { border-left-color: var(--accent-red); }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .review-status.correct { color: var(--accent); }
+        .review-status.incorrect { color: var(--accent-red); }
+
+        .review-text {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .review-answers {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .answer-line {
+            margin-bottom: 8px;
+            display: flex;
+        }
+
+        .answer-line strong {
+            width: 140px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            border-left: 2px solid var(--text-muted);
+            background: rgba(255,255,255,0.03);
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+
+        .explanation-title {
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0c0c0c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) #0c0c0c;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .content { padding: 20px; }
+            .question-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .score-number { font-size: 3rem; }
+            .navigation { flex-direction: column; gap: 15px; }
+            .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="terminal-bar">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+            <span style="margin-left: 10px;">bash — user@shelnet-exam: ~</span>
+        </div>
+
+        <div class="header">
+            <h1 id="quizTitle">Quiz Title</h1>
+            <div class="subtitle" id="quizSubtitle">C:\Shelnet\Quizzes> Objective</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <div class="content" id="examContent">
+            </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // QUIZ CONFIG — edit this block when deriving a new quiz.
+        // Leave the rest of this file unchanged.
+        // ============================================================
+        const QUIZ_TITLE    = 'Practice Quiz 4.1';            // Shown in <title> and <h1>
+        const QUIZ_SUBTITLE = 'C:\\Shelnet\\Quizzes> CS0-003 Objective 4.1'; // Shown under the H1
+        const ACCENT_HEX    = '#06b6d4';                  // Per-quiz accent (CySA+ uses '#06b6d4')
+
+        const questions = [
+            {
+                q: 'A vulnerability management analyst is preparing a monthly vulnerability report for the security team. The report must communicate which vulnerabilities pose the greatest immediate risk to the organization. Which report element BEST fulfills this requirement?',
+                options: [
+                    'A. A prioritized list of vulnerabilities with associated risk scores, affected hosts, and recommended mitigations',
+                    'B. A full asset inventory listing all systems and their operating system versions',
+                    'C. A timeline chart showing when each vulnerability scanner was last updated',
+                    'D. A compliance checklist verifying that PCI DSS controls are in place across the environment'
+                ],
+                correct: 0,
+                domain: 'Reporting and Communication',
+                explanation: 'A prioritized vulnerability list with risk scores, affected hosts, and mitigations directly communicates the greatest immediate risks. A full asset inventory (B) lacks risk context; scanner update timelines (C) measure operational hygiene, not risk; a PCI DSS compliance checklist (D) is a compliance artifact, not a risk-prioritized vulnerability report.'
+            },
+            {
+                q: 'A security analyst is building an action plan after a vulnerability scan reveals that 120 servers are running an end-of-life OS that cannot be patched due to a proprietary application dependency. The vendor is no longer providing updates. Which action plan element BEST addresses this remediation constraint?',
+                options: [
+                    'A. Immediately decommissioning all 120 servers to eliminate the attack surface',
+                    'B. Issuing a waiver that removes the systems from future vulnerability scans to avoid reporting noise',
+                    'C. Updating the patching SLA to extend the remediation window from 30 days to 180 days for all critical vulnerabilities',
+                    'D. Implementing compensating controls such as network segmentation and enhanced monitoring to reduce risk until a migration path is available'
+                ],
+                correct: 3,
+                domain: 'Reporting and Communication',
+                explanation: 'When legacy or proprietary systems cannot be patched, compensating controls (network segmentation, enhanced monitoring) are the accepted action plan response to reduce risk. Decommissioning (A) may not be operationally feasible; removing systems from scans (B) conceals risk without reducing it; extending the SLA (C) delays action without mitigating exposure.'
+            },
+            {
+                q: 'A GRC (Governance, Risk, and Compliance) analyst is reviewing why a critical patch deployed last quarter was rolled back within 48 hours of deployment. The patch caused a proprietary line-of-business application to stop functioning. Which inhibitor to remediation BEST describes this scenario?',
+                options: [
+                    'A. MOU, because the vendor and organization had a misunderstanding about patch compatibility',
+                    'B. Degrading functionality, because the patch broke an application that the business depends on',
+                    'C. SLA, because the downtime caused by the patch rollback violated the agreed service uptime threshold',
+                    'D. Organizational governance, because leadership refused to approve the patch deployment budget'
+                ],
+                correct: 1,
+                domain: 'Reporting and Communication',
+                explanation: 'Degrading functionality is an inhibitor to remediation where applying a fix causes a dependent system or application to fail -- exactly what happened when the patch broke the line-of-business application. An MOU (A) is an agreement between parties, not a compatibility outcome; an SLA violation (C) is a potential consequence, not the inhibitor itself; organizational governance (D) involves approval processes, not technical breakage.'
+            },
+            {
+                q: 'A vulnerability program lead is presenting quarterly metrics to the CISO. The CISO asks which KPI BEST shows whether the team is closing critical vulnerabilities faster or slower than the previous quarter.',
+                options: [
+                    'A. Total number of vulnerabilities discovered per quarter across all severity levels',
+                    'B. Mean time to remediate critical vulnerabilities, trended over the past four quarters',
+                    'C. Scan coverage percentage, showing the proportion of in-scope assets scanned at least once',
+                    'D. Number of new critical and zero-day vulnerabilities published in the NVD per quarter'
+                ],
+                correct: 1,
+                domain: 'Reporting and Communication',
+                explanation: 'Mean time to remediate critical vulnerabilities trended over time directly measures whether the team is resolving critical findings faster or slower. Total vulnerability count (A) is a volume metric, not a speed metric; scan coverage (C) measures asset visibility; NVD publication counts (D) measure external threat activity, not team remediation performance.'
+            },
+            {
+                q: 'A security analyst preparing a vulnerability report learns that an MOU between the organization and a third-party vendor prevents the security team from scanning the vendor-managed network segment without 30 days advance notice. A critical vulnerability affecting that segment was just disclosed. Which inhibitor to remediation MOST directly explains why immediate scanning cannot occur?',
+                options: [
+                    'A. MOU, because the agreement restricts scanning activities and requires advance notice before assessments',
+                    'B. Business process interruption, because the scan would disrupt vendor operations during business hours',
+                    'C. Legacy systems, because older vendor infrastructure is inherently incompatible with modern scanners',
+                    'D. Proprietary systems, because the vendor uses closed-source software that blocks scan agents'
+                ],
+                correct: 0,
+                domain: 'Reporting and Communication',
+                explanation: 'An MOU (Memorandum of Understanding) is an agreement-level inhibitor that defines the terms of the relationship -- in this case restricting scanning without advance notice. Business process interruption (B) is a concern but the scenario specifies the MOU as the binding constraint; legacy systems (C) refers to technical incompatibility, not a contractual restriction; proprietary systems (D) refers to technical architecture barriers, not agreement restrictions.'
+            },
+            {
+                q: 'A SOC manager is presenting a vulnerability management KPI dashboard to executive leadership. The CISO wants a single metric that shows which vulnerabilities appear repeatedly across quarterly scan cycles despite previous remediation attempts. Which KPI BEST meets this requirement?',
+                options: [
+                    'A. Recurrence rate, tracking vulnerabilities that reappear after being marked as remediated',
+                    'B. SLO compliance rate, tracking the percentage of vulnerabilities remediated within defined time objectives',
+                    'C. CVSS score trending, showing the average severity of newly discovered vulnerabilities per quarter',
+                    'D. Scan coverage rate, measuring the percentage of active hosts scanned in each cycle'
+                ],
+                correct: 0,
+                domain: 'Reporting and Communication',
+                explanation: 'Recurrence rate is the KPI that specifically tracks vulnerabilities reappearing after remediation, indicating that the fix was incomplete, the root cause was not addressed, or the configuration drifted back. SLO compliance rate (B) measures remediation timeliness; CVSS trending (C) measures incoming severity, not reappearance; scan coverage (D) measures asset visibility.'
+            },
+            {
+                q: 'A compliance officer is reviewing the organization\'s vulnerability reporting process. The officer notices that the quarterly compliance report sent to the board omits the technical severity scores and instead summarizes risk in business-impact language. Which stakeholder communication principle MOST directly justifies this reporting approach?',
+                options: [
+                    'A. Stakeholder identification and communication requires tailoring content to the audience -- executives need business-risk context, not raw technical metrics',
+                    'B. Reports must always include full CVSS scores so that executives can validate scanner accuracy',
+                    'C. Compliance reports must mirror the technical vulnerability report to ensure accuracy and avoid discrepancies',
+                    'D. Regulatory stakeholders require the same technical detail as internal security teams to satisfy audit requirements'
+                ],
+                correct: 0,
+                domain: 'Reporting and Communication',
+                explanation: 'Effective stakeholder communication requires tailoring the report to the audience. Executives and board members need business-impact language to make decisions, not raw CVSS scores. Including full CVSS scores for executives (B) adds noise without value; mirroring technical reports (C) defeats the purpose of audience-specific communication; regulatory requirements (D) vary but generally do not mandate the same technical detail for boards.'
+            },
+            {
+                q: 'A vulnerability management analyst is analyzing scan results and notices that a group of legacy industrial control systems cannot be scanned aggressively because aggressive scanning previously caused a controller to reboot, disrupting manufacturing operations. Which inhibitor to remediation BEST describes this constraint?',
+                options: [
+                    'A. SLA, because the manufacturing team has a service-level agreement requiring 99.9% uptime',
+                    'B. Business process interruption, because aggressive scanning disrupts the operational process the ICS controls',
+                    'C. Organizational governance, because the plant manager has not approved the security team\'s scan policy',
+                    'D. Proprietary systems, because ICS vendors do not publish vulnerability data for their controllers'
+                ],
+                correct: 1,
+                domain: 'Reporting and Communication',
+                explanation: 'Business process interruption is the inhibitor that applies when security activities (such as aggressive vulnerability scanning) directly disrupt operational processes -- in this case causing an ICS controller to reboot and halt manufacturing. An SLA (A) might be affected by the disruption but does not cause the constraint; organizational governance (C) involves approval processes; proprietary systems (D) refers to closed-source barriers, not scan-induced disruption.'
+            },
+            {
+                q: 'A CISO (Chief Information Security Officer) is reviewing the vulnerability management program\'s KPIs and wants to add a metric that shows how completely the scanning program covers the total asset inventory. Which KPI MOST directly measures this requirement?',
+                options: [
+                    'A. Recurrence rate of critical vulnerabilities across consecutive scan cycles',
+                    'B. MTTD for new critical vulnerabilities from public disclosure to first scan detection',
+                    'C. Scan coverage, expressed as the percentage of in-scope assets scanned within the defined scan cycle',
+                    'D. Top-10 vulnerability list ranked by CVSS score across the environment'
+                ],
+                correct: 2,
+                domain: 'Reporting and Communication',
+                explanation: 'Scan coverage directly measures the completeness of the scanning program by tracking what fraction of in-scope assets are actually scanned. Recurrence rate (A) tracks repeat findings; MTTD (B) measures detection speed for new disclosures; a top-10 list (D) identifies the most severe findings but does not quantify how much of the environment is being assessed.'
+            },
+            {
+                q: 'A vulnerability program lead is drafting an action plan for a critical vulnerability affecting 400 endpoints. The security team lacks sufficient patch deployment capacity to remediate all 400 within the SLO window. The team lead proposes deploying host-based firewall rules to block inbound exploitation paths on unpatched hosts while patching is completed. Which action plan element BEST describes this approach?',
+                options: [
+                    'A. Awareness and education, because the firewall rules teach endpoint users to avoid dangerous traffic',
+                    'B. Configuration management, because updating firewall rules is a configuration change to the host',
+                    'C. Compensating controls, because the firewall rules reduce exploitation risk for hosts that cannot yet be patched',
+                    'D. Changing business requirements, because the team is modifying the SLO to extend the remediation window'
+                ],
+                correct: 2,
+                domain: 'Reporting and Communication',
+                explanation: 'Compensating controls are temporary risk-reduction measures applied when the primary remediation (patching) cannot be completed in time -- exactly what host-based firewall rules provide here. Configuration management (B) describes the change type but not the remediation strategy; awareness and training (A) addresses human behavior, not exploit-path blocking; changing business requirements (D) involves redefining the SLO, not applying interim protections.'
+            },
+            {
+                q: 'A SOC director is reviewing stakeholder lists for the organization\'s vulnerability management program. The director identifies that the legal team has not been included in vulnerability report distribution despite the organization being subject to HIPAA breach notification requirements. Which stakeholder category MOST directly justifies including legal in vulnerability reporting?',
+                options: [
+                    'A. Technical staff, because legal personnel need raw scanner output to assess exploitability',
+                    'B. Executive leadership, because legal counsel reports directly to the CISO and is an executive function',
+                    'C. Compliance and regulatory stakeholders, because legal must assess whether vulnerabilities create regulatory notification or liability exposure',
+                    'D. Customer stakeholders, because legal drafts customer breach notifications on behalf of affected users'
+                ],
+                correct: 2,
+                domain: 'Reporting and Communication',
+                explanation: 'Legal belongs in the compliance and regulatory stakeholder group because they must assess whether disclosed vulnerabilities trigger legal obligations -- including regulatory notification requirements (such as HIPAA breach notification). Technical staff (A) is the wrong category; legal is not executive leadership (B) in this context; customer notification (D) is a consequence that legal may manage, but the justification for inclusion is regulatory and liability assessment.'
+            },
+            {
+                q: 'A security analyst is reviewing a vulnerability report and notices that the top-10 critical vulnerability list has not changed for three consecutive quarters, despite the patch team reporting that each vulnerability was remediated. Which combination of KPIs MOST directly helps the analyst determine whether the remediation actions were effective?',
+                options: [
+                    'A. Alert volume and CVSS score distribution, to assess whether the SIEM is generating alerts for the affected systems',
+                    'B. SLO compliance rate and total vulnerability count, to determine whether the team is meeting deadlines and whether scan volume increased',
+                    'C. MTTD and scan coverage, to determine how quickly new vulnerabilities were detected and whether all assets were scanned',
+                    'D. Recurrence rate and mean time to remediate, to determine whether vulnerabilities are reappearing and whether closure is timely'
+                ],
+                correct: 3,
+                domain: 'Reporting and Communication',
+                explanation: 'Recurrence rate reveals whether vulnerabilities are reappearing after claimed remediation (indicating ineffective fixes or configuration drift), and mean time to remediate shows whether closures are timely. Alert volume and CVSS distribution (A) are detection and severity metrics; SLO compliance and total count (B) measure timeliness and volume, not whether fixes actually held; MTTD and scan coverage (C) address detection and visibility, not remediation effectiveness.'
+            },
+            {
+                q: 'A GRC analyst is building the organization\'s vulnerability reporting framework. The analyst must determine which vulnerabilities the security team should report to the executive leadership tier versus the technical staff tier. Which approach to stakeholder communication BEST governs this decision?',
+                options: [
+                    'A. Send all vulnerability reports to all stakeholders simultaneously to ensure transparency and avoid information silos',
+                    'B. Restrict all vulnerability details exclusively to the technical team to prevent executive concern about unpatched systems',
+                    'C. Tailor reports by audience: provide executives with business-risk summaries and prioritized top risks, and provide technical staff with full technical detail, affected hosts, and remediation steps',
+                    'D. Route all vulnerability data through the compliance team, who then summarize findings for all other stakeholders in a single monthly digest'
+                ],
+                correct: 2,
+                domain: 'Reporting and Communication',
+                explanation: 'Effective stakeholder communication requires audience-tailored reporting. Executives need business-risk context and prioritized top issues to make resource decisions; technical staff need full technical detail to execute remediation. Sending the same report to all stakeholders (A) overwhelms some and under-informs others; restricting detail from executives (B) prevents informed governance decisions; routing everything through compliance (D) creates a bottleneck and delays time-sensitive technical information.'
+            },
+            {
+                q: 'A vulnerability management analyst has completed a quarterly scan cycle and must include a KPI that benchmarks the organization\'s severity exposure. The CISO requests that the report highlight the top critical vulnerabilities and any newly disclosed zero-days present in the environment. Which report section MOST directly satisfies this requirement?',
+                options: [
+                    'A. Scan schedule adherence, documenting that all planned scans were executed within the quarter',
+                    'B. Asset inventory delta report, listing systems added to or removed from scope during the quarter',
+                    'C. Patch deployment success rate, showing the percentage of patches applied without rollback',
+                    'D. Top-10 critical vulnerabilities and zero-days present in the environment, ranked by risk score'
+                ],
+                correct: 3,
+                domain: 'Reporting and Communication',
+                explanation: 'A top-10 critical vulnerabilities and zero-days section directly addresses the CISO\'s request for severity benchmarking and zero-day visibility. Scan schedule adherence (A) measures operational performance; asset inventory delta (B) tracks scope changes; patch deployment success rate (C) measures remediation process quality, not current vulnerability exposure.'
+            },
+            {
+                q: 'A security analyst is drafting an action plan for a vulnerability that affects a legacy payroll system running software the vendor no longer supports. The system cannot be taken offline because payroll must run weekly. The security team cannot patch or upgrade due to vendor end-of-life. Which action plan element BEST describes the recommended path forward while the business evaluates a migration timeline?',
+                options: [
+                    'A. Changing business requirements, by postponing payroll runs until a patched system is procured',
+                    'B. Awareness and education, by training payroll staff to avoid risky behaviors on the payroll server',
+                    'C. Patching, by requesting the vendor reopen support for this specific legacy system version',
+                    'D. Configuration management, by disabling all unused services and ports on the legacy system to reduce its attack surface as a formal configuration baseline'
+                ],
+                correct: 3,
+                domain: 'Reporting and Communication',
+                explanation: 'When a legacy system cannot be patched and cannot be taken offline, configuration management (disabling unused services and ports, hardening the baseline) reduces the attack surface through formal baseline hardening -- the configuration management action plan element. Changing business requirements (A) is not operationally feasible; awareness training (B) addresses user behavior, not a system vulnerability; requesting vendor support reopen (C) is unlikely and not within the analyst\'s control.'
+            }
+        ];
+
+        // ============================================================
+        // END CONFIG — chrome below is shared. Do not edit when deriving.
+        // ============================================================
+
+        // Small util: convert '#06b6d4' -> 'rgba(6, 182, 212, 0.1)' for the dim variant.
+        function hexToRgba(hex, alpha) {
+            const h = hex.replace('#', '');
+            const r = parseInt(h.substring(0, 2), 16);
+            const g = parseInt(h.substring(2, 4), 16);
+            const b = parseInt(h.substring(4, 6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // --- APP STATE ---
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+
+        // --- DOM ELEMENTS ---
+        const contentDiv = document.getElementById('examContent');
+        const progressBar = document.getElementById('progressBar');
+
+        // --- INITIALIZATION ---
+        function init() {
+            // --- Apply CONFIG ---
+            document.title = QUIZ_TITLE;
+            document.getElementById('quizTitle').textContent = QUIZ_TITLE;
+            document.getElementById('quizSubtitle').textContent = QUIZ_SUBTITLE;
+            document.documentElement.style.setProperty('--accent', ACCENT_HEX);
+            document.documentElement.style.setProperty('--accent-dim', hexToRgba(ACCENT_HEX, 0.1));
+            document.documentElement.style.setProperty('--accent-glow', hexToRgba(ACCENT_HEX, 0.4));
+            document.documentElement.style.setProperty('--accent-select', hexToRgba(ACCENT_HEX, 0.3));
+
+            // --- existing init body continues below ---
+            renderQuestion();
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            const isLastQuestion = currentQuestionIndex === questions.length - 1;
+
+            // Update Progress
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // HTML Structure for Question
+            let html = `
+                <div class="question-header">
+                    <span class="question-number">QUESTION ${currentQuestionIndex + 1} OF ${questions.length}</span>
+                    <span class="domain-tag">${q.domain}</span>
+                </div>
+
+                <div class="question-text">${q.q}</div>
+
+                <div class="options">
+                    ${q.options.map((opt, index) => {
+                        const isSelected = userAnswers[currentQuestionIndex] === index;
+                        const label = String.fromCharCode(65 + index); // A, B, C, D
+                        return `
+                            <div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(${index})">
+                                <span class="option-label">${label}</span>
+                                <span class="option-text">${opt}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                <div class="navigation">
+                    <button class="btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
+                        &larr; Previous
+                    </button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" ${userAnswers[currentQuestionIndex] === null ? 'disabled' : ''}>
+                        ${isLastQuestion ? 'Finish Exam' : 'Next &rarr;'}
+                    </button>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+        }
+
+        function selectOption(index) {
+            userAnswers[currentQuestionIndex] = index;
+            // Re-render to show selection state (or just toggle class for performance, but re-render is safer for state sync)
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            // Calculate Score
+            let correctCount = 0;
+            questions.forEach((q, i) => {
+                if (userAnswers[i] === q.correct) correctCount++;
+            });
+
+            const score = Math.round((correctCount / questions.length) * 100);
+            const passed = score >= 83; // Approx 750/900
+            progressBar.style.width = '100%';
+
+            let html = `
+                <div class="results">
+                    <div class="score-card">
+                        <div class="subtitle">EXAM RESULTS</div>
+                        <div class="score-number">${score}</div>
+                        <div class="subtitle">SCORE / 100</div>
+                        <div class="pass-fail ${passed ? 'pass' : 'fail'}">
+                            ${passed ? 'PASS' : 'FAIL'}
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">${correctCount}</div>
+                            <div class="stat-label">Correct</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length - correctCount}</div>
+                            <div class="stat-label">Incorrect</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length}</div>
+                            <div class="stat-label">Total Questions</div>
+                        </div>
+                    </div>
+
+                    <div class="subtitle" style="margin-bottom: 20px;">Review Answers</div>
+
+                    ${questions.map((q, i) => {
+                        const userAnswer = userAnswers[i];
+                        const isCorrect = userAnswer === q.correct;
+                        const labelUser = String.fromCharCode(65 + userAnswer);
+                        const labelCorrect = String.fromCharCode(65 + q.correct);
+
+                        return `
+                            <div class="review-question ${isCorrect ? 'correct' : 'incorrect'}">
+                                <div class="review-header">
+                                    <span>Question ${i + 1}</span>
+                                    <span class="review-status ${isCorrect ? 'correct' : 'incorrect'}">
+                                        ${isCorrect ? 'CORRECT' : 'INCORRECT'}
+                                    </span>
+                                </div>
+                                <div class="review-text">${q.q}</div>
+
+                                <div class="review-answers">
+                                    <div class="answer-line">
+                                        <strong>Your Answer:</strong>
+                                        <span style="color: ${isCorrect ? 'var(--accent)' : 'var(--accent-red)'}">
+                                            ${labelUser}. ${q.options[userAnswer]}
+                                        </span>
+                                    </div>
+                                    <div class="answer-line">
+                                        <strong>Correct Answer:</strong>
+                                        <span style="color: var(--accent)">
+                                            ${labelCorrect}. ${q.options[q.correct]}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="explanation">
+                                    <div class="explanation-title">Explanation</div>
+                                    ${q.explanation}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+
+                    <div style="text-align: center; margin-top: 40px;">
+                        <button class="btn btn-primary" onclick="location.reload()" style="display: inline-flex;">
+                            Retake Exam
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+            window.scrollTo(0,0);
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
