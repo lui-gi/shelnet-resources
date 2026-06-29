@@ -1417,6 +1417,188 @@
                 domain: 'Incident Response and Management',
                 objective: '3.3',
                 explanation: 'A stable MTTD combined with a 40% decrease in MTTR (Mean Time to Respond) means detection speed is unchanged but the team is responding more quickly after detection, indicating improved response efficiency such as better playbooks or analyst training. Option A incorrectly describes an MTTD improvement; Option B confuses MTTD with MTTC; Option D conflates MTTR with alert throughput, which is measured by alert volume, not MTTR.'
+            },
+            {
+                q: 'A vulnerability management analyst is building a quarterly KPI dashboard for the CISO. The CISO wants a metric that shows whether the team is remediating critical vulnerabilities within the organizationally defined remediation window. Which KPI MOST directly measures this performance target?',
+                options: [
+                    'A. SLA compliance rate for critical-severity findings',
+                    'B. Recurrence rate for previously closed vulnerabilities',
+                    'C. Total critical vulnerabilities discovered in the quarter',
+                    'D. Mean time to detect new critical vulnerabilities'
+                ],
+                correct: 0,
+                domain: 'Reporting and Communication',
+                objective: '4.1',
+                explanation: 'SLA compliance rate measures the percentage of critical vulnerabilities closed within the contractually or policy-defined remediation window, directly answering whether the team meets its remediation-timing targets. Recurrence rate (B) measures whether previously remediated vulnerabilities reappear, which is a distinct quality metric, not a timeliness metric.'
+            },
+            {
+                q: 'A vulnerability program lead reviews the quarterly KPI report and notices that a cluster of high-severity vulnerabilities has been marked as remediated twice in the past six months but continues to reappear in subsequent scan cycles. Which KPI MOST directly captures this pattern and should be highlighted in the executive report?',
+                options: [
+                    'A. SLA compliance rate for high-severity findings',
+                    'B. Patch deployment failure rate across managed endpoints',
+                    'C. Total open vulnerability count at end of quarter',
+                    'D. Recurrence rate for previously remediated vulnerabilities'
+                ],
+                correct: 3,
+                domain: 'Reporting and Communication',
+                objective: '4.1',
+                explanation: 'Recurrence rate measures how frequently vulnerabilities that were marked as remediated reappear in subsequent scans, directly quantifying whether remediation actions are durable. SLA compliance rate (A) would appear normal if the vulnerability was closed within the window each time, making it an insufficient metric for detecting repeated recurrence.'
+            },
+            {
+                q: 'A vulnerability management analyst discovers a critical vulnerability affecting a network segment managed by a third-party vendor under contract. The vendor\'s SLA specifies a 14-day remediation window and prohibits the organization from deploying patches directly to vendor-managed systems. The vulnerability was disclosed 3 days ago and the vendor has not yet responded. Which inhibitor to remediation BEST describes this constraint?',
+                options: [
+                    'A. Organizational governance preventing internal teams from acting on external systems',
+                    'B. Legacy system dependency limiting patch applicability',
+                    'C. Business process interruption risk from deploying the patch during peak hours',
+                    'D. SLA terms restricting independent remediation of vendor-managed assets'
+                ],
+                correct: 3,
+                domain: 'Reporting and Communication',
+                objective: '4.1',
+                explanation: 'The vendor\'s SLA explicitly prohibits the organization from patching vendor-managed systems independently, making the SLA the direct inhibitor preventing timely remediation of the disclosed vulnerability. Organizational governance (A) is a plausible distractor but describes internal policy barriers, not the contractual constraint imposed by an external vendor agreement.'
+            },
+            {
+                q: 'A GRC analyst is reviewing the organization\'s vulnerability reporting distribution list. The analyst recommends that the compliance and legal teams receive a tailored version of the vulnerability report that emphasizes regulatory exposure and pending compliance-relevant findings rather than technical CVSS scores. Which stakeholder communication principle MOST directly supports this recommendation?',
+                options: [
+                    'A. Audiences with different roles require report content tailored to their decision-making context and technical depth',
+                    'B. Compliance teams require lower-severity findings that technical staff typically filter from their reports',
+                    'C. Legal stakeholders must receive unmodified raw scan output to preserve evidentiary integrity',
+                    'D. Regulatory audiences use CVSS scores directly when making compliance determinations'
+                ],
+                correct: 0,
+                domain: 'Reporting and Communication',
+                objective: '4.1',
+                explanation: 'Effective vulnerability management communication tailors report content to each audience\'s decision-making needs: compliance and legal stakeholders need regulatory-impact framing, not raw CVSS scores. Option C is the closest distractor; while evidence integrity matters for legal hold, routine vulnerability reporting to legal does not require unmodified raw scanner output.'
+            },
+            {
+                q: 'A vulnerability management engineer is drafting an action plan for 200 endpoints running an OS version that has reached end-of-life. The vendor has ceased issuing patches and the organization cannot migrate for at least nine months due to a dependent business application under active development. Which action plan element BEST addresses the remediation constraint during the migration window?',
+                options: [
+                    'A. Deploying compensating controls such as host-based firewall rules and enhanced monitoring to reduce exploitation risk until migration is complete',
+                    'B. Accepting the risk formally through the risk management process and removing the finding from the vulnerability dashboard',
+                    'C. Increasing scan frequency on the affected hosts so any new findings are detected more quickly',
+                    'D. Issuing a compliance exception and deferring all action until the migration is complete in nine months'
+                ],
+                correct: 0,
+                domain: 'Reporting and Communication',
+                objective: '4.1',
+                explanation: 'When patching is not possible due to a legacy or end-of-life constraint, the action plan should include compensating controls that reduce the exploitability and impact of the unpatched vulnerability while the longer-term remediation path proceeds. Formal risk acceptance (B) is a governance step that may accompany the decision but does not itself reduce the attack surface during the migration window.'
+            },
+            {
+                q: 'A vulnerability program lead is presenting a monthly KPI report to executive leadership. The CISO asks which single report section MOST effectively communicates the organization\'s current severity exposure at a strategic level without requiring the CISO to read individual vulnerability details. Which report element BEST satisfies this requirement?',
+                options: [
+                    'A. The full list of all open findings sorted by CVSS base score descending',
+                    'B. The top-10 critical vulnerabilities and any newly disclosed zero-days present in the environment',
+                    'C. The raw scan output from the most recent credentialed scan cycle',
+                    'D. A table of all vulnerability ages cross-referenced with patch deployment logs'
+                ],
+                correct: 1,
+                domain: 'Reporting and Communication',
+                objective: '4.1',
+                explanation: 'The top-10 critical vulnerabilities and zero-day summary distills the most severe current exposure into an executive-level view that supports strategic decision-making without requiring interpretation of individual findings. The full sorted list (A) is the primary distractor; while it contains accurate data, it does not prioritize or summarize for executive audiences and requires the CISO to identify the most important items manually.'
+            },
+            {
+                q: 'A vulnerability management analyst identifies a critical vulnerability affecting the organization\'s primary order-processing system. The system runs continuously during business hours and any restart required to apply the patch would halt order processing for approximately two hours. The patch must be applied within the SLA window but the business team refuses to schedule a maintenance window during the reporting period. Which inhibitor to remediation BEST describes this scenario?',
+                options: [
+                    'A. Legacy system architecture preventing patch installation without a full OS replacement',
+                    'B. Proprietary vendor dependency requiring written authorization before patch deployment',
+                    'C. SLA terms specifying that production systems may not be modified without vendor sign-off',
+                    'D. Business process interruption risk from applying the patch during the SLA window'
+                ],
+                correct: 3,
+                domain: 'Reporting and Communication',
+                objective: '4.1',
+                explanation: 'Business process interruption occurs when applying a remediation action would disrupt a critical business operation, causing stakeholders to delay patching despite the SLA obligation, which is precisely the scenario described. Legacy system dependency (A) is the closest distractor but refers to technical incompatibility with the patch, not the operational impact of applying it.'
+            },
+            {
+                q: 'An IR lead is finalizing the post-incident report following a confirmed data breach. The legal team requests a report section that documents the sequence of events in chronological order, identifies the initial access vector, describes how the attacker moved laterally, and specifies what data was accessed and when. Which IR report element MOST directly satisfies this requirement?',
+                options: [
+                    'A. The executive summary section providing a high-level business-impact overview',
+                    'B. The scope and impact section quantifying the number of affected systems and records',
+                    'C. The recommendations section outlining control improvements to prevent recurrence',
+                    'D. The who, what, when, where, and why section detailing the factual narrative of the incident'
+                ],
+                correct: 3,
+                domain: 'Reporting and Communication',
+                objective: '4.2',
+                explanation: 'The who, what, when, where, and why section captures the factual narrative of an incident in chronological order, including the initial access vector, lateral movement, data accessed, and timing - exactly what legal requires to understand and document the breach. The scope and impact section (B) quantifies business damage but does not narrate the sequence of attacker actions.'
+            },
+            {
+                q: 'A SOC director is reviewing the organization\'s post-incident reporting process and finds that lessons-learned sessions are frequently skipped when incidents are minor. The director wants to explain the primary value of consistently conducting lessons-learned reviews. Which statement MOST accurately describes why lessons learned is a required post-incident activity even for lower-severity incidents?',
+                options: [
+                    'A. Lessons learned identifies process gaps, control failures, and improvement opportunities that prevent future incidents or reduce their impact regardless of incident severity',
+                    'B. Lessons learned satisfies the regulatory documentation requirement for incident closure across all severity tiers',
+                    'C. Lessons learned provides the metric data used to calculate MTTD and MTTR for the quarter\'s KPI report',
+                    'D. Lessons learned generates the evidence chain required to pursue law enforcement referrals for minor incidents'
+                ],
+                correct: 0,
+                domain: 'Reporting and Communication',
+                objective: '4.2',
+                explanation: 'Lessons learned is a post-incident activity that identifies what went well, what failed, and what should change in the IR process or controls - improvements that apply to all incident severities since even minor incidents can expose preparation gaps that would be critical during a major event. Regulatory documentation (B) is the closest distractor; while regulations may require incident records, the primary value of lessons learned is operational improvement, not compliance box-checking.'
+            },
+            {
+                q: 'A SOC manager reviews quarterly IR metrics and observes that MTTD improved from 18 hours to 6 hours over two quarters while MTTR (Mean Time to Respond) increased from 2 hours to 8 hours over the same period. Which interpretation of these combined metrics MOST accurately describes the program\'s current state?',
+                options: [
+                    'A. Both detection and response are improving, indicating a maturing SOC program overall',
+                    'B. The faster MTTD is causing more incidents to be escalated before responders are ready, inflating MTTR',
+                    'C. The MTTR increase indicates analysts are spending more time on false positives generated by the improved detection rules',
+                    'D. Detection speed has improved significantly, but response actions after detection are taking longer, suggesting a response-phase bottleneck'
+                ],
+                correct: 3,
+                domain: 'Reporting and Communication',
+                objective: '4.2',
+                explanation: 'Improved MTTD (faster detection) combined with a rising MTTR (Mean Time to Respond, slower post-detection response) indicates the organization is identifying incidents sooner but experiencing delays in the response phase - a response-capacity or process bottleneck that the program must address separately from detection improvements. Option B is the closest distractor but speculates about a causal link between MTTD and MTTR that is not supported by the metrics alone.'
+            },
+            {
+                q: 'A compliance officer at a healthcare organization is reviewing incident response communication obligations after a breach affecting 11,000 patient records is confirmed. The officer identifies that notification must be sent to affected individuals and to the Department of Health and Human Services. Under which communication category do these obligations MOST directly fall?',
+                options: [
+                    'A. Legal team internal briefing required before any external disclosure is made',
+                    'B. Law enforcement referral required when a breach exceeds a threshold number of affected individuals',
+                    'C. Regulatory reporting requirements mandated by the applicable healthcare data protection law',
+                    'D. Public relations communications designed to manage reputational impact with the affected customer base'
+                ],
+                correct: 2,
+                domain: 'Reporting and Communication',
+                objective: '4.2',
+                explanation: 'Notifying affected individuals and the relevant regulatory authority (such as HHS under HIPAA) is a regulatory reporting obligation imposed by applicable data protection law, not a voluntary public relations decision or a law enforcement referral. Law enforcement referral (B) is the closest distractor; while law enforcement may be notified separately, this specific HHS and individual notification requirement is a regulatory mandate, not a criminal-referral process.'
+            },
+            {
+                q: 'An IR lead is conducting a root cause analysis after a ransomware incident. The analysis identifies that the initial access was gained through an unpatched vulnerability on an internet-facing server that had been missed in the last two scan cycles due to a misconfigured scan scope. Which statement MOST accurately describes the primary purpose of including RCA in the IR report?',
+                options: [
+                    'A. RCA identifies the specific failure or chain of failures that enabled the incident so the organization can address the underlying cause rather than only the symptoms',
+                    'B. RCA provides the technical timeline required to calculate MTTD and MTTR for the post-incident KPI report',
+                    'C. RCA generates the evidence package used to support law enforcement prosecution of the threat actor',
+                    'D. RCA satisfies the executive summary requirement by summarizing what happened in non-technical language'
+                ],
+                correct: 0,
+                domain: 'Reporting and Communication',
+                objective: '4.2',
+                explanation: 'RCA determines the underlying cause or causes of an incident - in this case the misconfigured scan scope that allowed the vulnerability to go undetected - enabling the organization to fix the root failure, not just the symptom. Option B is the closest distractor; while RCA findings may inform KPI calculations, the primary value of RCA is identifying root causes to prevent recurrence, not metric calculation.'
+            },
+            {
+                q: 'An IR team lead is managing a confirmed network intrusion in which the attacker is actively moving laterally across production systems. The lead must decide whether to contact law enforcement. The organization\'s IR plan identifies law enforcement engagement criteria as: confirmed criminal activity, data exfiltration of PII, or threat actor attributed to a known nation-state group. The attacker has been attributed to a known nation-state group. Which action regarding law enforcement is MOST appropriate at this stage?',
+                options: [
+                    'A. Delay law enforcement contact until the incident is fully contained to avoid interfering with the active response',
+                    'B. Notify law enforcement only after the post-incident report is finalized and legal has reviewed the evidence chain',
+                    'C. Escalate to the CISO for a decision and take no law enforcement action until the CISO approves in writing',
+                    'D. Engage law enforcement consistent with the IR plan because the nation-state attribution criterion is met, while coordinating to ensure the investigation is not disrupted'
+                ],
+                correct: 3,
+                domain: 'Reporting and Communication',
+                objective: '4.2',
+                explanation: 'When the IR plan\'s law enforcement engagement criteria are met - here, confirmed nation-state attribution - the correct action is to engage law enforcement per the plan while coordinating to avoid evidence destruction or investigation disruption. Waiting for full containment (A) is the closest distractor; while coordination timing matters, delaying contact until containment may allow evidence to be destroyed or the window for law enforcement assistance to close.'
+            },
+            {
+                q: 'A SOC manager is refining the organization\'s incident declaration and escalation procedures. The manager wants to define the threshold at which a security event is formally elevated from an alert to a declared incident requiring executive notification and IR plan activation. Which criterion MOST directly determines when formal incident declaration is warranted?',
+                options: [
+                    'A. When the alert has not been resolved within the first 30 minutes of analyst triage',
+                    'B. When the event meets a defined severity threshold such as confirmed data exfiltration, system compromise, or impact to critical business processes that triggers the IR plan\'s escalation criteria',
+                    'C. When the SIEM generates a correlated high-confidence alert across three or more data sources simultaneously',
+                    'D. When the affected system is classified as a Tier-1 asset in the asset inventory regardless of the nature of the event'
+                ],
+                correct: 1,
+                domain: 'Reporting and Communication',
+                objective: '4.2',
+                explanation: 'Incident declaration is formally triggered when a security event meets predefined severity or impact thresholds defined in the IR plan - such as confirmed compromise, data loss, or business impact - ensuring escalation is criteria-driven rather than time-driven or asset-class-driven. A 30-minute triage timeout (A) is the closest distractor; while timely escalation is important, declaration based solely on elapsed triage time would generate false escalations for complex but ultimately benign events.'
             }
         ];
 
