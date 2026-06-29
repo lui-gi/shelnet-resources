@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelnet Quiz</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #0c0c0c;
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --accent: #3b82f6; /* Default — overridden per-quiz via ACCENT_HEX in CONFIG */
+            --accent-dim: rgba(59, 130, 246, 0.1); /* Default — overridden via setProperty in init() */
+            --accent-glow: rgba(59, 130, 246, 0.4); /* Default — overridden via setProperty in init() */
+            --accent-select: rgba(59, 130, 246, 0.3); /* Default — overridden via setProperty in init() */
+            --accent-red: #ef4444;
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            /* Grid Background Effect */
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Selection Color */
+        ::selection {
+            background: var(--accent-select);
+            color: #dbeafe;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Terminal Header Bar --- */
+        .terminal-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot.red { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); }
+        .dot.yellow { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); }
+        .dot.green { background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); }
+
+        /* --- Brutal Header Section --- */
+        .header {
+            padding: 40px 40px 20px 40px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .header .subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: block;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-container {
+            width: 100%;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        /* --- Content Area --- */
+        .content {
+            padding: 40px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .question-number {
+            font-family: var(--font-mono);
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .domain-tag {
+            font-family: var(--font-mono);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            color: #eee;
+            font-weight: 400;
+        }
+
+        /* --- Options --- */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .option:hover {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .option.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+
+        .option-label {
+            font-family: var(--font-mono);
+            margin-right: 20px;
+            color: var(--text-muted);
+            font-weight: bold;
+            min-width: 25px;
+        }
+
+        .option.selected .option-label {
+            color: var(--accent);
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .option.selected .option-text {
+            color: #fff;
+        }
+
+        /* --- Buttons --- */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 50px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .btn-primary {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: var(--border-color);
+        }
+
+        /* --- Results Screen --- */
+        .results {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .score-card {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Terminal scanline effect for score */
+        .score-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: rgba(255,255,255,0.1);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .score-number {
+            font-size: 5rem;
+            font-weight: bold;
+            font-family: var(--font-mono);
+            margin: 10px 0;
+            color: #fff;
+        }
+
+        .pass-fail {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            display: inline-block;
+            border: 1px solid currentColor;
+            margin-top: 20px;
+        }
+
+        .pass { color: var(--accent); }
+        .fail { color: var(--accent-red); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            font-family: var(--font-mono);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        /* Review Section */
+        .review-question {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid transparent;
+        }
+
+        .review-question.correct { border-left-color: var(--accent); }
+        .review-question.incorrect { border-left-color: var(--accent-red); }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .review-status.correct { color: var(--accent); }
+        .review-status.incorrect { color: var(--accent-red); }
+
+        .review-text {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .review-answers {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .answer-line {
+            margin-bottom: 8px;
+            display: flex;
+        }
+
+        .answer-line strong {
+            width: 140px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            border-left: 2px solid var(--text-muted);
+            background: rgba(255,255,255,0.03);
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+
+        .explanation-title {
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0c0c0c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) #0c0c0c;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .content { padding: 20px; }
+            .question-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .score-number { font-size: 3rem; }
+            .navigation { flex-direction: column; gap: 15px; }
+            .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="terminal-bar">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+            <span style="margin-left: 10px;">bash — user@shelnet-exam: ~</span>
+        </div>
+
+        <div class="header">
+            <h1 id="quizTitle">Quiz Title</h1>
+            <div class="subtitle" id="quizSubtitle">C:\Shelnet\Quizzes> Objective</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <div class="content" id="examContent">
+            </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // QUIZ CONFIG — edit this block when deriving a new quiz.
+        // Leave the rest of this file unchanged.
+        // ============================================================
+        const QUIZ_TITLE    = 'Practice Quiz 2.3';
+        const QUIZ_SUBTITLE = 'C:\\Shelnet\\Quizzes> CS0-003 Objective 2.3';
+        const ACCENT_HEX    = '#06b6d4';
+
+        const questions = [
+            {
+                q: 'A security analyst reviews two vulnerabilities: CVE-A has a CVSS Base Score of 9.8 (Critical) with Attack Vector: Network, Privileges Required: None, and a CVSS EPSS score of 0.03. CVE-B has a CVSS Base Score of 7.2 (High) with Attack Vector: Network and an EPSS score of 0.91. Which vulnerability should the analyst prioritize for immediate remediation?',
+                options: [
+                    'A. CVE-B, because EPSS of 0.91 indicates it is actively being exploited in the wild and remediating it reduces actual attack risk faster',
+                    'B. CVE-A, because a CVSS score of 9.8 is always the highest priority regardless of exploitation probability',
+                    'C. Both equally, because CVSS and EPSS should never be compared',
+                    'D. CVE-A, because Network attack vector combined with no privileges required makes it more dangerous than EPSS indicates'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                explanation: 'EPSS (Exploit Prediction Scoring System) models the probability a vulnerability will be exploited in the next 30 days. CVE-B\'s EPSS of 0.91 means 91% likelihood of exploitation vs. CVE-A\'s 3%. Combining CVSS severity with EPSS exploitation probability, CVE-B presents higher actual risk. CVSS alone (B, D) does not capture exploitation likelihood.'
+            },
+            {
+                q: 'A vulnerability management team is prioritizing 500 findings from a recent scan. The CISO wants to focus resources on vulnerabilities that are both severe AND likely to be exploited. Which combination of metrics BEST supports this prioritization framework?',
+                options: [
+                    'A. CVSS Base Score and asset age',
+                    'B. CVSS Base Score and EPSS score',
+                    'C. CVE publication date and CVSS Temporal score',
+                    'D. Finding plugin ID and asset IP address range'
+                ],
+                correct: 1,
+                domain: 'Vulnerability Management',
+                explanation: 'CVSS Base Score measures potential impact if exploited; EPSS measures the probability of exploitation. Together they create a risk matrix (high severity + high probability = patch first). Asset age (A) and IP range (D) are irrelevant to risk scoring; CVE publication date (C) does not measure current exploit likelihood.'
+            },
+            {
+                q: 'A vulnerability scan returns a critical finding for an unpatched service on a server in an isolated lab network with no internet access and no connections to production systems. How should the analyst MOST accurately characterize the risk?',
+                options: [
+                    'A. Critical risk requiring immediate remediation because CVSS 9.0+ is always an emergency',
+                    'B. High risk because isolated networks can still be accessed by physical insiders',
+                    'C. Reduced risk due to isolation context; the vulnerability should be documented and remediated on the next available patching cycle rather than treated as an emergency',
+                    'D. Zero risk because isolated lab networks are outside the scope of the vulnerability management program'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                explanation: 'Context awareness is required: a critical vulnerability on an isolated lab host with no production connectivity has a drastically reduced attack surface. The risk is real but lower than the same finding on an internet-facing host, justifying a routine patching cycle rather than emergency response. Ignoring context (A) misallocates resources; claiming zero risk (D) is inappropriate; insider threat (B) is a valid consideration but does not override context reduction.'
+            },
+            {
+                q: 'An analyst is reviewing a vulnerability with CVSS v3.1 vector AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H. A colleague argues that scope change (S:C) should not affect patch priority. What is the BEST counter-argument?',
+                options: [
+                    'A. Scope change means the vulnerability can impact systems beyond the vulnerable component, amplifying blast radius and justifying elevated priority',
+                    'B. Scope change only applies to web applications, so it is irrelevant for network services',
+                    'C. Scope change (S:C) reduces the CVSS score compared to S:U, so it should lower the priority',
+                    'D. Scope change is a Temporal metric that changes over time and should be ignored in base scoring'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                explanation: 'In CVSS v3.1, S:C (Scope Changed) means a successful exploit can impact components beyond the vulnerable system (e.g., the host OS from a containerized app). This significantly amplifies blast radius and justifies higher patch priority. Scope is not web-only (B); S:C increases CVSS scores relative to S:U (C); Scope is a Base metric, not a Temporal metric (D).'
+            },
+            {
+                q: 'A scanner report flags a vulnerability as a "False Positive" after a credentialed scan appears to detect an unpatched library on a system that the administrator says has been patched. What is the BEST next step for the analyst?',
+                options: [
+                    'A. Accept the administrator\'s word and immediately suppress the finding',
+                    'B. Escalate to the vendor who produced the scanner plugin as a bug report',
+                    'C. Validate the patch status independently by checking the installed package version via the OS package manager or checking the patch management database',
+                    'D. Remove the host from future scans to prevent repeat false positives'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                explanation: 'Validating a potential false positive requires independent confirmation. Checking the package manager output or patch management database directly confirms whether the patch was installed correctly. Accepting the admin\'s word without evidence (A) is insufficient; going straight to the vendor (B) assumes the scanner is at fault before verification; removing from scans (D) eliminates visibility.'
+            },
+            {
+                q: 'A threat intelligence feed reports that a zero-day exploit for a vulnerability in a VPN appliance is being actively used by a nation-state threat actor. No CVE has been assigned yet. How should the analyst handle this finding in the vulnerability management program?',
+                options: [
+                    'A. Wait for an official CVE to be assigned before adding the vulnerability to the tracking system',
+                    'B. Dismiss the report because non-CVE vulnerabilities cannot be tracked by vulnerability scanners',
+                    'C. Add the vulnerability to the tracking system immediately using vendor advisory references, apply available mitigations or workarounds, and monitor for vendor patches',
+                    'D. Treat the report as low priority because nation-state actors rarely target commercial VPN appliances'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                explanation: 'Zero-day vulnerabilities with active exploitation require immediate action even before CVE assignment. Analysts track by vendor advisory, apply mitigations (disabling features, access restrictions, WAF rules), and monitor for patches. Waiting for CVE assignment (A) delays response; scanners can be configured with custom checks (B); nation-state VPN exploitation is well-documented and high-risk (D).'
+            },
+            {
+                q: 'A security team receives scan results showing 50 Critical vulnerabilities across 200 hosts. To prioritize remediation, the team scores each finding against three factors: CVSS Base Score, EPSS, and asset criticality rating. A web server that hosts customer PII has a Critical CVE with EPSS of 0.75. A dev workstation has a Critical CVE with EPSS of 0.72. Which host should be remediated FIRST and why?',
+                options: [
+                    'A. The dev workstation, because workstations are attacked more frequently than servers',
+                    'B. Both simultaneously, because EPSS scores within 0.03 of each other are statistically equivalent',
+                    'C. The web server hosting PII, because asset criticality (production + PII) elevates its effective risk above the dev workstation',
+                    'D. Neither immediately; wait for EPSS scores to diverge before prioritizing'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                explanation: 'When CVSS and EPSS are nearly equal, asset criticality is the tiebreaker: a production web server handling customer PII is higher value than a dev workstation. Compromise of the PII server carries regulatory and business impact beyond CVSS scope. Workstations are not inherently higher-frequency targets than servers (A); EPSS near-parity makes context the deciding factor (B is true but incomplete); waiting for divergence (D) delays necessary action.'
+            },
+            {
+                q: 'An analyst is evaluating whether a vulnerability with CVSS v3.1 Temporal Score should be re-prioritized downward from the Base Score. The vulnerability has a Remediation Level of "Official Fix" and Exploit Code Maturity of "Proof of Concept." What is the MOST accurate Temporal Score effect?',
+                options: [
+                    'A. Temporal score decreases below Base Score because an official fix is available and proof-of-concept does not equal weaponized exploit',
+                    'B. Temporal score increases because proof-of-concept code makes the vulnerability more dangerous than the base score reflects',
+                    'C. Temporal score equals the Base Score because Temporal metrics cancel each other out',
+                    'D. Temporal score is irrelevant until the Remediation Level changes to "Unavailable"'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                explanation: 'CVSS Temporal metrics adjust the Base Score based on current exploitability state. "Official Fix Available" reduces urgency (Remediation Level factor < 1.0); "Proof of Concept" exploit code is worse than "Unproven" but not as bad as "Functional" weaponized exploit, still reducing the score somewhat from Base. Together these Temporal factors bring the Temporal Score below the Base Score. Temporal metrics do not increase above Base (B); they do not cancel out (C); Unavailable remediation is the worst case, not the only relevant case (D).'
+            },
+            {
+                q: 'During vulnerability prioritization, a risk manager argues that a Medium-severity vulnerability (CVSS 5.5) on the organization\'s payment processing server should be treated as High due to business context. Which factor MOST justifies this upward adjustment?',
+                options: [
+                    'A. The server runs a Linux OS, which has more vulnerabilities than Windows servers',
+                    'B. The CVSS score for the vulnerability was calculated before the server was added to PCI DSS scope',
+                    'C. The server has more CPU cores than average, making it a more powerful exploitation target',
+                    'D. The server processes cardholder data, making its compromise a PCI DSS breach with regulatory, financial, and reputational impact'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                explanation: 'Asset value and business context justify adjusting effective risk above the CVSS score. A payment server in PCI DSS scope that processes cardholder data carries regulatory breach risk if compromised, warranting higher priority than CVSS alone reflects. OS type (A) and CPU count (C) are not business context factors; CVSS is independent of scope additions (B).'
+            },
+            {
+                q: 'A vulnerability analyst receives a scan report with 200 findings and must deliver a prioritized remediation list to the patching team within 24 hours. The organization has no EPSS integration. Which approach MOST efficiently produces a defensible priority order?',
+                options: [
+                    'A. Alphabetically sort findings by CVE identifier',
+                    'B. Sort by finding age ascending to close the oldest vulnerabilities first',
+                    'C. Randomly assign priority order and document the reasoning as "manual review"',
+                    'D. Sort by CVSS Base Score descending, then by asset criticality tier, then by exploitability (known exploitation in threat feeds)'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                explanation: 'Without EPSS, a defensible priority order uses CVSS as the primary severity ranking, then asset criticality to differentiate between same-severity findings, then known exploitation status from threat feeds as a proxy for EPSS. Alphabetical CVE order (A) and age-first (B) ignore severity; random ordering (C) is not defensible.'
+            },
+            {
+                q: 'A security analyst finds two vulnerabilities on the same host. Vulnerability X has CVSS Attack Complexity: High and requires user interaction. Vulnerability Y has CVSS Attack Complexity: Low and requires no user interaction. Both have the same Base Score of 8.1. Which vulnerability should the analyst prioritize for patching?',
+                options: [
+                    'A. Vulnerability X, because the need for user interaction indicates it is more likely to be exploited through phishing',
+                    'B. Vulnerability Y, because lower attack complexity and no user interaction means an attacker can exploit it more reliably without depending on user behavior',
+                    'C. Both equally, because the CVSS Base Scores are identical',
+                    'D. Vulnerability X, because high attack complexity means the vulnerability requires more advanced skills, reducing the attacker population'
+                ],
+                correct: 1,
+                domain: 'Vulnerability Management',
+                explanation: 'When Base Scores are equal, exploitability factors distinguish risk. Vulnerability Y (AC:L, UI:N) can be exploited reliably by a wide range of attackers without user involvement; Vulnerability X (AC:H, UI:R) requires specific conditions and user action, reducing real-world exploitation probability. Equal Base Scores do not mean equal practical risk (C).'
+            },
+            {
+                q: 'A third-party vendor notifies an organization that a critical vulnerability affects a software component the organization uses, but no CVE has been published yet and no scanner detects it. Which action MOST advances the vulnerability management program?',
+                options: [
+                    'A. Ignore the notification until CVE assignment allows scanner detection',
+                    'B. Require the vendor to release a CVE before taking any remediation action',
+                    'C. Quarantine all systems running the affected software until a CVE is issued',
+                    'D. Document the advisory, assess affected instances manually, apply vendor-supplied patches or mitigations, and track in the vulnerability register using the vendor advisory ID'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                explanation: 'Vulnerability management programs must handle advisories that precede CVE assignment. The correct process is to document the advisory, manually assess exposure, apply available patches or mitigations, and track progress using the vendor advisory identifier. Ignoring until CVE (A) or requiring CVE before action (B) creates an unnecessary response gap; quarantining everything (C) is a disproportionate business impact for an unconfirmed exploit.'
+            },
+            {
+                q: 'A vulnerability\'s CVSS v3.1 vector includes Confidentiality Impact: None, Integrity Impact: High, Availability Impact: None. A business analyst argues this finding is irrelevant to the organization because "no data is exposed." How should the security analyst BEST respond?',
+                options: [
+                    'A. Agree with the business analyst; vulnerabilities without confidentiality impact are low priority',
+                    'B. Explain that Integrity Impact: High means an attacker can modify data or system behavior without authorization, which may be as damaging as data exposure depending on the system',
+                    'C. Reclassify the vulnerability as low priority and close it without further review',
+                    'D. Escalate to the CISO without further discussion'
+                ],
+                correct: 1,
+                domain: 'Vulnerability Management',
+                explanation: 'Integrity Impact: High means unauthorized data or code modification is possible. For critical systems (financial records, configuration data, code pipelines), integrity compromise can be more damaging than confidentiality loss. The business analyst\'s framing is too narrow. Agreeing (A) and reclassifying as low (C) miss the integrity risk; immediate CISO escalation without explanation (D) bypasses the education opportunity.'
+            },
+            {
+                q: 'An organization discovers a vulnerability has been present on a public-facing server for 180 days and was just added to the CISA KEV (Known Exploited Vulnerabilities) catalog. How should the analyst MOST urgently adjust the remediation timeline?',
+                options: [
+                    'A. No adjustment needed; the 180-day-old vulnerability has likely already been exploited or not',
+                    'B. Immediately treat the vulnerability as the highest remediation priority because CISA KEV listing confirms active exploitation and federal mandate requires fast remediation',
+                    'C. Reduce priority because the long dwell time without an incident indicates the vulnerability is not being actively targeted',
+                    'D. Assign to the next quarterly patching cycle since the vulnerability is already in the tracking system'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                explanation: 'CISA KEV listing confirms active exploitation and triggers accelerated remediation timelines (CISA mandates 2-week remediation for federal agencies; best practice for any organization is immediate escalation). Age does not reduce urgency (A, C); waiting for quarterly patching (D) violates the elevated priority that KEV listing requires.'
+            },
+            {
+                q: 'A vulnerability analyst is comparing two findings: Vuln-1 is a Critical-rated OS vulnerability on a server that has been taken offline for decommission but not yet deleted. Vuln-2 is a Medium-rated vulnerability on the primary authentication server used by all employees. Which finding should the analyst prioritize?',
+                options: [
+                    'A. Vuln-2 because the authentication server is a critical asset whose compromise would impact all employees, and the offline server presents minimal exploitability',
+                    'B. Vuln-1 because Critical-rated vulnerabilities always take priority regardless of asset status',
+                    'C. Both equally, because all active scan findings must be remediated before decommission',
+                    'D. Vuln-1 because decommissioned servers are outside the patching SLO and require escalation'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                explanation: 'Asset criticality and exploitability override raw CVSS severity: the offline server presents near-zero attack surface, while the authentication server is a high-value target whose Medium vulnerability could have outsized business impact. Raw severity alone (B) does not substitute for context; remediating both before decommission (C) is operationally correct but does not answer the priority question; decommission status (D) is not an SLO exception that overrides risk.'
+            }
+        ];
+
+        // ============================================================
+        // END CONFIG — chrome below is shared. Do not edit when deriving.
+        // ============================================================
+
+        // Small util: convert '#06b6d4' -> 'rgba(6, 182, 212, 0.1)' for the dim variant.
+        function hexToRgba(hex, alpha) {
+            const h = hex.replace('#', '');
+            const r = parseInt(h.substring(0, 2), 16);
+            const g = parseInt(h.substring(2, 4), 16);
+            const b = parseInt(h.substring(4, 6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // --- APP STATE ---
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+
+        // --- DOM ELEMENTS ---
+        const contentDiv = document.getElementById('examContent');
+        const progressBar = document.getElementById('progressBar');
+
+        // --- INITIALIZATION ---
+        function init() {
+            // --- Apply CONFIG ---
+            document.title = QUIZ_TITLE;
+            document.getElementById('quizTitle').textContent = QUIZ_TITLE;
+            document.getElementById('quizSubtitle').textContent = QUIZ_SUBTITLE;
+            document.documentElement.style.setProperty('--accent', ACCENT_HEX);
+            document.documentElement.style.setProperty('--accent-dim', hexToRgba(ACCENT_HEX, 0.1));
+            document.documentElement.style.setProperty('--accent-glow', hexToRgba(ACCENT_HEX, 0.4));
+            document.documentElement.style.setProperty('--accent-select', hexToRgba(ACCENT_HEX, 0.3));
+
+            // --- existing init body continues below ---
+            renderQuestion();
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            const isLastQuestion = currentQuestionIndex === questions.length - 1;
+
+            // Update Progress
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // HTML Structure for Question
+            let html = `
+                <div class="question-header">
+                    <span class="question-number">QUESTION ${currentQuestionIndex + 1} OF ${questions.length}</span>
+                    <span class="domain-tag">${q.domain}</span>
+                </div>
+
+                <div class="question-text">${q.q}</div>
+
+                <div class="options">
+                    ${q.options.map((opt, index) => {
+                        const isSelected = userAnswers[currentQuestionIndex] === index;
+                        const label = String.fromCharCode(65 + index); // A, B, C, D
+                        return `
+                            <div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(${index})">
+                                <span class="option-label">${label}</span>
+                                <span class="option-text">${opt}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                <div class="navigation">
+                    <button class="btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
+                        &larr; Previous
+                    </button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" ${userAnswers[currentQuestionIndex] === null ? 'disabled' : ''}>
+                        ${isLastQuestion ? 'Finish Exam' : 'Next &rarr;'}
+                    </button>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+        }
+
+        function selectOption(index) {
+            userAnswers[currentQuestionIndex] = index;
+            // Re-render to show selection state (or just toggle class for performance, but re-render is safer for state sync)
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            // Calculate Score
+            let correctCount = 0;
+            questions.forEach((q, i) => {
+                if (userAnswers[i] === q.correct) correctCount++;
+            });
+
+            const score = Math.round((correctCount / questions.length) * 100);
+            const passed = score >= 83; // Approx 750/900
+            progressBar.style.width = '100%';
+
+            let html = `
+                <div class="results">
+                    <div class="score-card">
+                        <div class="subtitle">EXAM RESULTS</div>
+                        <div class="score-number">${score}</div>
+                        <div class="subtitle">SCORE / 100</div>
+                        <div class="pass-fail ${passed ? 'pass' : 'fail'}">
+                            ${passed ? 'PASS' : 'FAIL'}
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">${correctCount}</div>
+                            <div class="stat-label">Correct</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length - correctCount}</div>
+                            <div class="stat-label">Incorrect</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length}</div>
+                            <div class="stat-label">Total Questions</div>
+                        </div>
+                    </div>
+
+                    <div class="subtitle" style="margin-bottom: 20px;">Review Answers</div>
+
+                    ${questions.map((q, i) => {
+                        const userAnswer = userAnswers[i];
+                        const isCorrect = userAnswer === q.correct;
+                        const labelUser = String.fromCharCode(65 + userAnswer);
+                        const labelCorrect = String.fromCharCode(65 + q.correct);
+
+                        return `
+                            <div class="review-question ${isCorrect ? 'correct' : 'incorrect'}">
+                                <div class="review-header">
+                                    <span>Question ${i + 1}</span>
+                                    <span class="review-status ${isCorrect ? 'correct' : 'incorrect'}">
+                                        ${isCorrect ? 'CORRECT' : 'INCORRECT'}
+                                    </span>
+                                </div>
+                                <div class="review-text">${q.q}</div>
+
+                                <div class="review-answers">
+                                    <div class="answer-line">
+                                        <strong>Your Answer:</strong>
+                                        <span style="color: ${isCorrect ? 'var(--accent)' : 'var(--accent-red)'}">
+                                            ${labelUser}. ${q.options[userAnswer]}
+                                        </span>
+                                    </div>
+                                    <div class="answer-line">
+                                        <strong>Correct Answer:</strong>
+                                        <span style="color: var(--accent)">
+                                            ${labelCorrect}. ${q.options[q.correct]}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="explanation">
+                                    <div class="explanation-title">Explanation</div>
+                                    ${q.explanation}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+
+                    <div style="text-align: center; margin-top: 40px;">
+                        <button class="btn btn-primary" onclick="location.reload()" style="display: inline-flex;">
+                            Retake Exam
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+            window.scrollTo(0,0);
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
