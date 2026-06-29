@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelnet Quiz</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #0c0c0c;
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --accent: #3b82f6; /* Default — overridden per-quiz via ACCENT_HEX in CONFIG */
+            --accent-dim: rgba(59, 130, 246, 0.1); /* Default — overridden via setProperty in init() */
+            --accent-glow: rgba(59, 130, 246, 0.4); /* Default — overridden via setProperty in init() */
+            --accent-select: rgba(59, 130, 246, 0.3); /* Default — overridden via setProperty in init() */
+            --accent-red: #ef4444;
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            /* Grid Background Effect */
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Selection Color */
+        ::selection {
+            background: var(--accent-select);
+            color: #dbeafe;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Terminal Header Bar --- */
+        .terminal-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot.red { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); }
+        .dot.yellow { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); }
+        .dot.green { background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); }
+
+        /* --- Brutal Header Section --- */
+        .header {
+            padding: 40px 40px 20px 40px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .header .subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: block;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-container {
+            width: 100%;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        /* --- Content Area --- */
+        .content {
+            padding: 40px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .question-number {
+            font-family: var(--font-mono);
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .domain-tag {
+            font-family: var(--font-mono);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            color: #eee;
+            font-weight: 400;
+        }
+
+        /* --- Options --- */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .option:hover {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .option.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+
+        .option-label {
+            font-family: var(--font-mono);
+            margin-right: 20px;
+            color: var(--text-muted);
+            font-weight: bold;
+            min-width: 25px;
+        }
+
+        .option.selected .option-label {
+            color: var(--accent);
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .option.selected .option-text {
+            color: #fff;
+        }
+
+        /* --- Buttons --- */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 50px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .btn-primary {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: var(--border-color);
+        }
+
+        /* --- Results Screen --- */
+        .results {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .score-card {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Terminal scanline effect for score */
+        .score-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: rgba(255,255,255,0.1);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .score-number {
+            font-size: 5rem;
+            font-weight: bold;
+            font-family: var(--font-mono);
+            margin: 10px 0;
+            color: #fff;
+        }
+
+        .pass-fail {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            display: inline-block;
+            border: 1px solid currentColor;
+            margin-top: 20px;
+        }
+
+        .pass { color: var(--accent); }
+        .fail { color: var(--accent-red); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            font-family: var(--font-mono);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        /* Review Section */
+        .review-question {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid transparent;
+        }
+
+        .review-question.correct { border-left-color: var(--accent); }
+        .review-question.incorrect { border-left-color: var(--accent-red); }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .review-status.correct { color: var(--accent); }
+        .review-status.incorrect { color: var(--accent-red); }
+
+        .review-text {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .review-answers {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .answer-line {
+            margin-bottom: 8px;
+            display: flex;
+        }
+
+        .answer-line strong {
+            width: 140px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            border-left: 2px solid var(--text-muted);
+            background: rgba(255,255,255,0.03);
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+
+        .explanation-title {
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0c0c0c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) #0c0c0c;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .content { padding: 20px; }
+            .question-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .score-number { font-size: 3rem; }
+            .navigation { flex-direction: column; gap: 15px; }
+            .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="terminal-bar">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+            <span style="margin-left: 10px;">bash — user@shelnet-exam: ~</span>
+        </div>
+
+        <div class="header">
+            <h1 id="quizTitle">Quiz Title</h1>
+            <div class="subtitle" id="quizSubtitle">C:\Shelnet\Quizzes> Objective</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <div class="content" id="examContent">
+            </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // QUIZ CONFIG — edit this block when deriving a new quiz.
+        // Leave the rest of this file unchanged.
+        // ============================================================
+        const QUIZ_TITLE    = 'CySA+ Practice Exam 1 (CS0-003)';
+        const QUIZ_SUBTITLE = 'C:\\Shelnet\\Exams> CS0-003 Practice Exam 1';
+        const ACCENT_HEX    = '#06b6d4';
+
+        const questions = [
+            // Domain 1: Security Operations (28 Q)
+            // Objective 1.1 - Explain the importance of system and network architecture
+            //                 concepts in security operations. (5 Q) [Q1-Q5]
+            {
+                q: 'A security engineer is evaluating identity solutions for a company that recently acquired two partner organizations. Employees must be able to log in to shared applications using their home-organization credentials, with each organization maintaining its own identity provider. Which of the following IAM capabilities BEST addresses this cross-organization trust requirement?',
+                options: [
+                    'A. MFA',
+                    'B. PAM',
+                    'C. Federation',
+                    'D. SSO'
+                ],
+                correct: 2,
+                domain: 'Security Operations',
+                objective: '1.1',
+                explanation: 'Federation allows separate organizations to establish trust relationships so that users authenticate with their home identity provider and are granted access to partner applications without creating duplicate accounts. SSO (D) enables single-credential access within a single trust domain but does not by itself establish the cross-organizational trust that federation provides.'
+            },
+            {
+                q: 'A SOC analyst is investigating an endpoint alert and discovers that a new executable was silently added to a well-known autostart path during off-hours. The analyst needs to understand which Windows architectural component stores this persistence mechanism as a key-value database entry. Which of the following OS concepts is the analyst examining?',
+                options: [
+                    'A. Hardware architecture',
+                    'B. Windows Registry',
+                    'C. System hardening baseline',
+                    'D. File structure configuration locations'
+                ],
+                correct: 1,
+                domain: 'Security Operations',
+                objective: '1.1',
+                explanation: 'The Windows Registry is the centralized key-value database where Windows stores configuration including autorun keys that attackers abuse for persistence. Hardware architecture (A) describes physical components such as CPU and memory and has no role in storing software autostart entries.'
+            },
+            {
+                q: 'A security analyst at a financial services firm is reviewing network architecture documentation. The analyst notes that all branch-office users connect to corporate applications through a cloud-hosted service that combines SD-WAN, ZTNA, and a secure web gateway into a single platform with no on-premises security appliances at the branches. Which of the following network architecture concepts does this BEST describe?',
+                options: [
+                    'A. Zero trust',
+                    'B. SDN',
+                    'C. Network segmentation',
+                    'D. SASE'
+                ],
+                correct: 3,
+                domain: 'Security Operations',
+                objective: '1.1',
+                explanation: 'SASE converges WAN and security functions such as ZTNA and SWG into a cloud-delivered service, eliminating the need for on-premises appliances at branch offices. Zero trust (A) is an access philosophy rather than a specific network delivery architecture, and SASE implementations often use zero trust principles without being the same thing.'
+            },
+            {
+                q: 'A cloud administrator needs to enforce security policies on data leaving the organization through employee use of unsanctioned SaaS applications. The solution must sit inline between users and cloud services, inspect traffic, and block transfers of sensitive data. Which of the following technologies BEST meets this requirement?',
+                options: [
+                    'A. CASB',
+                    'B. DLP',
+                    'C. PKI',
+                    'D. PAM'
+                ],
+                correct: 0,
+                domain: 'Security Operations',
+                objective: '1.1',
+                explanation: 'A CASB sits between users and cloud service providers to enforce data security policies, provide visibility, and control access to sanctioned and unsanctioned SaaS applications. DLP (B) inspects content to prevent data loss but does not by itself provide the cloud-traffic brokering and policy enforcement layer that a CASB delivers for SaaS visibility.'
+            },
+            {
+                q: 'A security analyst is reviewing logs from a web proxy that performs deep inspection of outbound HTTPS sessions. The proxy decrypts each TLS session, scans the payload for threats, then re-encrypts the traffic before forwarding it. Which of the following PKI and encryption concepts does this describe?',
+                options: [
+                    'A. SSL inspection',
+                    'B. Certificate pinning',
+                    'C. Mutual TLS',
+                    'D. Federation'
+                ],
+                correct: 0,
+                domain: 'Security Operations',
+                objective: '1.1',
+                explanation: 'SSL inspection (also known as TLS inspection or HTTPS inspection) terminates an encrypted session at a proxy, examines the decrypted payload, then re-establishes a new encrypted session toward the destination. Certificate pinning (B) is a client-side control that rejects certificates not matching a known pin, and its presence would actually prevent SSL inspection from functioning without additional configuration.'
+            },
+            // Objective 1.2 - Given a scenario, analyze indicators of potentially
+            //                 malicious activity. (7 Q) [Q6-Q12]
+            {
+                q: 'A SOC analyst is reviewing firewall logs and notices that an internal workstation has sent small, evenly timed HTTPS packets to the same external IP address every five minutes for the past 72 hours, even outside business hours. No legitimate application is known to communicate with that IP. Which of the following network-related indicators MOST likely explains this behavior?',
+                options: [
+                    'A. Bandwidth consumption',
+                    'B. Unusual traffic spikes',
+                    'C. Rogue device on the network',
+                    'D. Beaconing'
+                ],
+                correct: 3,
+                domain: 'Security Operations',
+                objective: '1.2',
+                explanation: 'Beaconing is the periodic, clock-like check-in a compromised endpoint makes to a C2 server; the even five-minute interval and consistent external destination are classic signatures. Unusual traffic spikes (B) describes sudden volume increases rather than the low-and-slow, clock-like pattern observed here.'
+            },
+            {
+                q: 'A security analyst is reviewing host telemetry on a Windows workstation after a user reported sluggishness. The analyst finds that CPU utilization has been pegged at 95% by an unrecognized process named svchost32.exe that started after the user opened a phishing email attachment last week. Which of the following host-related indicators is MOST directly present?',
+                options: [
+                    'A. Drive capacity consumption',
+                    'B. Unauthorized scheduled task',
+                    'C. Malicious process',
+                    'D. Registry changes or anomalies'
+                ],
+                correct: 2,
+                domain: 'Security Operations',
+                objective: '1.2',
+                explanation: 'An unrecognized process consuming abnormal CPU resources that started after a phishing event is a malicious process indicator. Unauthorized scheduled tasks (B) could have launched the process, but the question asks about the indicator that is MOST directly present - which is the malicious process itself, not the launch mechanism.'
+            },
+            {
+                q: 'A tier-2 analyst is reviewing application logs for a customer-facing web portal and discovers that an account was created with a username beginning with "admin_" shortly after a failed authentication burst against the login page. The new account has made several requests to financial data endpoints that the original account owner has no business need to access. Which of the following application-related indicators BEST describes this activity?',
+                options: [
+                    'A. Service interruption',
+                    'B. Introduction of new accounts',
+                    'C. Unexpected outbound communication',
+                    'D. Anomalous activity'
+                ],
+                correct: 1,
+                domain: 'Security Operations',
+                objective: '1.2',
+                explanation: 'The creation of a new privileged-looking account following an authentication attack is a textbook example of the introduction-of-new-accounts application-layer indicator, which signals that an attacker may have gained the ability to modify the directory or database. Anomalous activity (D) is a broad catch-all indicator; the specific observable here maps precisely to the introduction-of-new-accounts indicator.'
+            },
+            {
+                q: 'A SOC analyst is reviewing DNS logs and notices that an employee laptop has queried dozens of randomly generated subdomains under the same parent domain over a four-hour window, receiving NXDOMAIN responses for most of them. No legitimate application on that endpoint is expected to generate bulk subdomain queries. Which of the following attack techniques is MOST likely being used?',
+                options: [
+                    'A. Beaconing',
+                    'B. Scans/sweeps',
+                    'C. Irregular peer-to-peer communication',
+                    'D. DNS tunneling with DGA'
+                ],
+                correct: 3,
+                domain: 'Security Operations',
+                objective: '1.2',
+                explanation: 'A domain generation algorithm (DGA) produces many pseudo-random subdomain names so malware can find an active C2 channel even as defenders sinkhole known domains; the bulk NXDOMAIN pattern is the signature of DGA-based C2 activity. Beaconing (A) describes periodic check-ins to a fixed destination, but the random subdomain generation pattern specifically points to DGA activity, which is a distinct technique.'
+            },
+            {
+                q: 'An incident responder is examining a compromised Windows server and finds that a task was created under the SYSTEM account that runs a base64-encoded PowerShell one-liner every hour. The task was added at 02:17 local time three days ago by an unauthorized party. Which of the following host-related indicators does this MOST represent?',
+                options: [
+                    'A. Unauthorized scheduled tasks',
+                    'B. Processor consumption',
+                    'C. Data exfiltration',
+                    'D. Unauthorized changes'
+                ],
+                correct: 0,
+                domain: 'Security Operations',
+                objective: '1.2',
+                explanation: 'A task object added to the Windows Task Scheduler by an attacker to run encoded commands on a regular interval is a direct example of the unauthorized scheduled tasks host indicator, commonly used for persistence and lateral movement. Unauthorized changes (D) is the broader category; the specific observable here maps exactly to unauthorized scheduled tasks.'
+            },
+            {
+                q: 'A security analyst is reviewing web application logs and notices that API responses now include database schema names in JSON error fields, at a call rate ten times above baseline. The volume spike began immediately after a new application version was deployed. Which of the following application-related indicators is MOST directly present?',
+                options: [
+                    'A. Unexpected output',
+                    'B. Service interruption',
+                    'C. Introduction of new accounts',
+                    'D. Anomalous activity'
+                ],
+                correct: 0,
+                domain: 'Security Operations',
+                objective: '1.2',
+                explanation: 'Error messages that expose database schema names in API responses are a textbook unexpected output indicator, which often signals injection flaws or misconfigured error handling revealing sensitive information. Anomalous activity (D) is the broad category; the specific, actionable indicator here is unexpected output because the response content contains data that should never be externally visible.'
+            },
+            {
+                q: 'A threat analyst receives a report that a phishing email campaign is using encoded URLs that redirect victims through multiple legitimate URL-shortening services before landing on a credential-harvesting page. The obfuscation makes the final destination invisible in email header analysis. Which of the following indicators does this technique represent?',
+                options: [
+                    'A. Unusual traffic spikes',
+                    'B. Rogue devices on the network',
+                    'C. Obfuscated links',
+                    'D. Social engineering attacks'
+                ],
+                correct: 2,
+                domain: 'Security Operations',
+                objective: '1.2',
+                explanation: 'Encoding and chaining URL redirectors to hide the true destination is the obfuscated links indicator, classified under the "Other" category of malicious activity indicators in the CS0-003 objectives. Social engineering attacks (D) describes the broader campaign category; the specific technical indicator here - hiding the destination through encoded multi-hop redirects - maps to obfuscated links.'
+            },
+            // Objective 1.3 - Given a scenario, use appropriate tools or techniques
+            //                 to determine malicious activity. (7 Q) [Q13-Q19]
+            {
+                q: 'A SOC analyst needs to capture and decode all network traffic crossing a specific network interface on a Linux server to identify whether a process is communicating with a known C2 IP. The analyst requires the ability to filter packets by IP address and inspect protocol fields in the captured frames. Which of the following tools is MOST appropriate for this task?',
+                options: [
+                    'A. Wireshark',
+                    'B. Nessus',
+                    'C. AbuseIPDB',
+                    'D. WHOIS'
+                ],
+                correct: 0,
+                domain: 'Security Operations',
+                objective: '1.3',
+                explanation: 'Wireshark is the GUI-based packet capture and deep protocol analysis tool that allows filtering on IP addresses and full inspection of protocol fields in captured frames. Nessus (B) is a vulnerability scanner and does not capture or decode live network traffic.'
+            },
+            {
+                q: 'A security analyst receives an alert about multiple failed SSH logins to a production server followed by a successful login from the same source IP. The analyst wants to correlate this event with other log sources across the environment to determine whether the same IP has been seen in other alert contexts. Which of the following tools is BEST suited to perform this multi-source log correlation?',
+                options: [
+                    'A. EDR',
+                    'B. tcpdump',
+                    'C. SIEM',
+                    'D. SOAR'
+                ],
+                correct: 2,
+                domain: 'Security Operations',
+                objective: '1.3',
+                explanation: 'A SIEM aggregates logs from multiple sources and provides the correlation engine needed to identify the same IP across different alert contexts in a single search. SOAR (D) automates and orchestrates response actions based on SIEM detections but is not itself the correlation platform where the analyst would run the multi-source log search.'
+            },
+            {
+                q: 'A malware analyst receives a suspicious executable sent via a phishing email. Before submitting the file to any live system, the analyst wants to extract readable ASCII strings from the binary to identify hardcoded IP addresses, domain names, or error messages that might reveal its purpose. Which of the following tools is MOST appropriate?',
+                options: [
+                    'A. VirusTotal',
+                    'B. Strings',
+                    'C. Joe Sandbox',
+                    'D. Cuckoo Sandbox'
+                ],
+                correct: 1,
+                domain: 'Security Operations',
+                objective: '1.3',
+                explanation: 'The Strings tool extracts printable character sequences from a binary, providing a quick static triage step that can surface hardcoded indicators before dynamic analysis. VirusTotal (A) submits a file to multiple AV engines for a reputation check but does not extract and display the binary\'s raw strings for the analyst to inspect.'
+            },
+            {
+                q: 'A threat analyst is investigating a domain that appeared in a phishing email. The analyst wants to identify the registrant organization, registration date, and name server information for the domain to determine whether it was recently registered by an adversary. Which of the following tools should the analyst use FIRST?',
+                options: [
+                    'A. AbuseIPDB',
+                    'B. VirusTotal',
+                    'C. Maltego',
+                    'D. WHOIS'
+                ],
+                correct: 3,
+                domain: 'Security Operations',
+                objective: '1.3',
+                explanation: 'WHOIS retrieves domain registration records including registrant, creation date, and name servers, making it the direct tool for this ownership-lookup task. AbuseIPDB (A) is for checking whether an IP address has been reported for abuse and does not provide domain registration records.'
+            },
+            {
+                q: 'An incident responder is analyzing a suspicious executable that a user inadvertently ran. The responder needs to observe the file\'s actual runtime behavior - including file system writes, network connections, and registry modifications - in a safe, isolated environment without risking the production network. Which of the following tools BEST meets this requirement?',
+                options: [
+                    'A. Cuckoo Sandbox',
+                    'B. Strings',
+                    'C. WHOIS',
+                    'D. VirusTotal'
+                ],
+                correct: 0,
+                domain: 'Security Operations',
+                objective: '1.3',
+                explanation: 'Cuckoo Sandbox is an open-source automated malware analysis sandbox that executes a suspicious file in an isolated environment and records its runtime behavior including file, network, and registry activity. VirusTotal (D) performs a static reputation check against multiple AV engines but does not execute the file in an isolated environment to observe dynamic behavior.'
+            },
+            {
+                q: 'A SOC analyst is examining an inbound email that a user flagged as suspicious. The analyst wants to verify whether the sending mail server was authorized by the domain owner to send email on behalf of that domain. Which of the following email authentication checks should the analyst perform FIRST?',
+                options: [
+                    'A. DKIM signature verification',
+                    'B. DMARC policy check',
+                    'C. SPF record lookup',
+                    'D. Email header hop analysis'
+                ],
+                correct: 2,
+                domain: 'Security Operations',
+                objective: '1.3',
+                explanation: 'SPF validates whether the IP address of the sending mail server is listed as an authorized sender in the domain\'s DNS SPF record; it directly answers whether the sending server was permitted to send on behalf of that domain. DKIM (A) verifies the cryptographic signature on the message body and headers, which confirms integrity but does not indicate whether the sending IP was authorized.'
+            },
+            {
+                q: 'A detection engineer needs to write a rule that identifies malware samples by matching a known byte sequence pattern embedded in PE file headers, regardless of which SIEM platform the organization uses. The rule will be shared across multiple organizations via a threat-sharing portal. Which of the following rule formats is MOST appropriate for file-based pattern matching?',
+                options: [
+                    'A. Sigma',
+                    'B. Snort',
+                    'C. YARA',
+                    'D. Suricata'
+                ],
+                correct: 2,
+                domain: 'Security Operations',
+                objective: '1.3',
+                explanation: 'YARA is the standard language for writing pattern-matching rules that identify malware files based on byte sequences, strings, or structural characteristics; it operates against files, not network traffic or logs. Sigma (A) is also a vendor-neutral detection rule format, but it targets SIEM log events rather than file content analysis.'
+            },
+            // Objective 1.4 - Compare and contrast threat-intelligence and
+            //                 threat-hunting concepts. (5 Q) [Q20-Q24]
+            {
+                q: 'A threat intelligence analyst is evaluating a new paid feed from a commercial vendor. The feed provides indicators updated hourly, aligned to the analyst\'s industry sector, and sourced from multiple independent collection methods with explicit confidence ratings. Which of the following confidence-level attributes BEST accounts for the value of hourly updates specifically?',
+                options: [
+                    'A. Accuracy',
+                    'B. Timeliness',
+                    'C. Relevancy',
+                    'D. Completeness'
+                ],
+                correct: 1,
+                domain: 'Security Operations',
+                objective: '1.4',
+                explanation: 'Timeliness measures how quickly intelligence is produced and distributed; hourly updates maximize the window during which indicators are actionable before adversaries rotate infrastructure. Relevancy (C) describes whether the intelligence applies to the organization\'s environment and industry sector, but the hourly cadence maps specifically to timeliness.'
+            },
+            {
+                q: 'A nation-state threat actor has maintained undetected access inside a government contractor\'s environment for 14 months, using custom implants and living-off-the-land techniques to exfiltrate intellectual property. Which of the following threat actor categories BEST describes this adversary?',
+                options: [
+                    'A. Hacktivist',
+                    'B. Script kiddie',
+                    'C. Organized crime',
+                    'D. APT'
+                ],
+                correct: 3,
+                domain: 'Security Operations',
+                objective: '1.4',
+                explanation: 'An APT is characterized by a well-resourced, stealthy actor with long dwell times, custom tooling, and a strategic objective such as intellectual property theft - all present in this scenario. Organized crime (C) typically prioritizes financial gain and speed over stealth and would not typically maintain a 14-month undetected presence for IP theft.'
+            },
+            {
+                q: 'A threat hunter is conducting a proactive hunt for lateral movement inside a corporate network. Rather than waiting for alerts, the hunter forms a hypothesis that an attacker may be abusing WMI for remote execution and begins querying endpoint telemetry for relevant artifacts. Which of the following threat hunting concepts BEST describes this approach?',
+                options: [
+                    'A. Active defense',
+                    'B. Honeypot',
+                    'C. IoC analysis',
+                    'D. TTP collection'
+                ],
+                correct: 0,
+                domain: 'Security Operations',
+                objective: '1.4',
+                explanation: 'Active defense encompasses proactive, analyst-driven hunts where the defender takes the initiative to search for adversary activity before alerts fire, using threat intelligence and hypotheses about attacker techniques. IoC analysis (C) focuses on matching known artifact indicators to logs, whereas this scenario describes hypothesis-driven proactive searching - the defining characteristic of active defense in a threat-hunting context.'
+            },
+            {
+                q: 'A cybersecurity team lead is building a threat intelligence sharing program and needs a method that allows machine-readable indicator exchange in a standardized format that partner organizations\' SIEM platforms can automatically ingest. Which of the following technology pairings BEST meets this requirement?',
+                options: [
+                    'A. JSON over SMTP',
+                    'B. OSINT via dark web forums',
+                    'C. CERT over CSIRT',
+                    'D. STIX over TAXII'
+                ],
+                correct: 3,
+                domain: 'Security Operations',
+                objective: '1.4',
+                explanation: 'STIX is the structured, machine-readable format for expressing threat intelligence objects, and TAXII is the transport protocol that carries STIX bundles between organizations for automated ingestion. JSON over SMTP (A) could theoretically carry structured data but is not a standardized threat-sharing protocol and lacks the semantic schema that STIX provides for reliable machine parsing.'
+            },
+            {
+                q: 'A security operations manager is evaluating whether to deploy a honeypot on the internal network segment that hosts business-critical financial systems. The primary goal is to detect lateral movement attempts by an attacker who has already breached the perimeter. Which of the following threat-hunting concepts is this MOST aligned with?',
+                options: [
+                    'A. Collection methods from open source',
+                    'B. Focus on business-critical assets',
+                    'C. Confidence level assessment',
+                    'D. TTP analysis'
+                ],
+                correct: 1,
+                domain: 'Security Operations',
+                objective: '1.4',
+                explanation: 'Deploying deception assets such as honeypots within the network segment hosting critical assets is explicitly a threat-hunting focus area under business-critical assets and processes - the honeypot acts as an early warning system for lateral movement in sensitive zones. TTP analysis (D) involves studying adversary techniques using frameworks such as MITRE ATT&CK, which would inform where to place the honeypot but does not itself describe the deployment decision.'
+            },
+            // Objective 1.5 - Explain the importance of efficiency and process
+            //                 improvement in security operations. (4 Q) [Q25-Q28]
+            {
+                q: 'A SOC manager is reviewing the team\'s alert-handling workflow and identifies that first-level analysts spend 40% of their time manually checking an IP reputation database, then copying the result into a ticket, then querying a WHOIS service, and repeating these steps for every alert. The tasks follow a fixed procedure that requires no analyst judgment. Which of the following efficiency concepts is MOST applicable to automate this workflow?',
+                options: [
+                    'A. Single pane of glass',
+                    'B. Data enrichment via SOAR',
+                    'C. Threat feed combination',
+                    'D. API-based plugin integration'
+                ],
+                correct: 1,
+                domain: 'Security Operations',
+                objective: '1.5',
+                explanation: 'SOAR automates repeatable, rule-based tasks such as IP reputation lookups and WHOIS queries by executing them as part of an orchestrated playbook triggered on each alert, which is exactly the identification-of-tasks-suitable-for-automation principle under streamline operations. Single pane of glass (A) consolidates tool views into one console but does not itself automate the lookup steps; the automation layer is provided by the SOAR orchestration.'
+            },
+            {
+                q: 'A security engineer is integrating a new threat intelligence platform with an existing SIEM so that newly ingested indicators automatically trigger searches in the SIEM log store without any manual operator action. The integration uses a real-time push mechanism where the threat platform sends a notification to the SIEM each time a new indicator is added. Which of the following technology integration methods does this describe?',
+                options: [
+                    'A. API polling',
+                    'B. Plugin',
+                    'C. Webhook',
+                    'D. Single pane of glass'
+                ],
+                correct: 2,
+                domain: 'Security Operations',
+                objective: '1.5',
+                explanation: 'A webhook is an event-driven push callback that sends a notification to a destination system whenever a specified event occurs, enabling real-time push-based integration without polling. API polling (A) is a pull model where the SIEM periodically queries the threat platform for new indicators, which adds latency and is the opposite of the real-time push described.'
+            },
+            {
+                q: 'A SOC team is expanding its monitoring capabilities by connecting ten different security tools into a single unified dashboard. Analysts can view alerts, asset context, and response status from a SIEM, an EDR platform, a vulnerability scanner, a firewall, a ticketing system, and other tools in one interface without switching applications. Which of the following efficiency concepts BEST describes this unified view?',
+                options: [
+                    'A. Orchestration via SOAR',
+                    'B. Webhooks',
+                    'C. Threat feed combination',
+                    'D. Single pane of glass'
+                ],
+                correct: 3,
+                domain: 'Security Operations',
+                objective: '1.5',
+                explanation: 'A single pane of glass consolidates data and workflows from multiple disparate security tools into one unified console, reducing context switching and improving analyst efficiency. Orchestration via SOAR (A) automates response actions across those tools but does not by itself create the unified analyst viewing experience described.'
+            },
+            {
+                q: 'A security operations team lead is evaluating the team\'s threat intelligence workflow. Currently, analysts manually download indicator lists from five separate feeds each morning, remove duplicates, and paste the consolidated list into the SIEM. The team lead wants to automate the combination and normalization of these feeds so the SIEM receives a single, deduplicated, enriched indicator stream continuously. Which of the following process improvement activities BEST describes this goal?',
+                options: [
+                    'A. Standardizing repeatable tasks via playbooks',
+                    'B. Orchestrating threat intelligence data via feed combination',
+                    'C. Deploying a single pane of glass console',
+                    'D. Minimizing human engagement with ticketing automation'
+                ],
+                correct: 1,
+                domain: 'Security Operations',
+                objective: '1.5',
+                explanation: 'Orchestrating threat intelligence data includes threat feed combination - automatically merging, deduplicating, and enriching indicators from multiple sources into a single normalized stream for SIEM ingestion. Standardizing repeatable tasks via playbooks (A) describes SOAR-based workflow automation for alert handling, not the aggregation and normalization of threat intelligence feeds.'
+            }
+        ];
+
+        // ============================================================
+        // END CONFIG — chrome below is shared. Do not edit when deriving.
+        // ============================================================
+
+        // Small util: convert '#06b6d4' -> 'rgba(6, 182, 212, 0.1)' for the dim variant.
+        function hexToRgba(hex, alpha) {
+            const h = hex.replace('#', '');
+            const r = parseInt(h.substring(0, 2), 16);
+            const g = parseInt(h.substring(2, 4), 16);
+            const b = parseInt(h.substring(4, 6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // --- APP STATE ---
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+
+        // --- DOM ELEMENTS ---
+        const contentDiv = document.getElementById('examContent');
+        const progressBar = document.getElementById('progressBar');
+
+        // --- INITIALIZATION ---
+        function init() {
+            // --- Apply CONFIG ---
+            document.title = QUIZ_TITLE;
+            document.getElementById('quizTitle').textContent = QUIZ_TITLE;
+            document.getElementById('quizSubtitle').textContent = QUIZ_SUBTITLE;
+            document.documentElement.style.setProperty('--accent', ACCENT_HEX);
+            document.documentElement.style.setProperty('--accent-dim', hexToRgba(ACCENT_HEX, 0.1));
+            document.documentElement.style.setProperty('--accent-glow', hexToRgba(ACCENT_HEX, 0.4));
+            document.documentElement.style.setProperty('--accent-select', hexToRgba(ACCENT_HEX, 0.3));
+
+            // --- existing init body continues below ---
+            renderQuestion();
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            const isLastQuestion = currentQuestionIndex === questions.length - 1;
+
+            // Update Progress
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // HTML Structure for Question
+            let html = `
+                <div class="question-header">
+                    <span class="question-number">QUESTION ${currentQuestionIndex + 1} OF ${questions.length}</span>
+                    <span class="domain-tag">${q.domain}</span>
+                </div>
+
+                <div class="question-text">${q.q}</div>
+
+                <div class="options">
+                    ${q.options.map((opt, index) => {
+                        const isSelected = userAnswers[currentQuestionIndex] === index;
+                        const label = String.fromCharCode(65 + index); // A, B, C, D
+                        return `
+                            <div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(${index})">
+                                <span class="option-label">${label}</span>
+                                <span class="option-text">${opt}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                <div class="navigation">
+                    <button class="btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
+                        &larr; Previous
+                    </button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" ${userAnswers[currentQuestionIndex] === null ? 'disabled' : ''}>
+                        ${isLastQuestion ? 'Finish Exam' : 'Next &rarr;'}
+                    </button>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+        }
+
+        function selectOption(index) {
+            userAnswers[currentQuestionIndex] = index;
+            // Re-render to show selection state (or just toggle class for performance, but re-render is safer for state sync)
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            // Calculate Score
+            let correctCount = 0;
+            questions.forEach((q, i) => {
+                if (userAnswers[i] === q.correct) correctCount++;
+            });
+
+            const score = Math.round((correctCount / questions.length) * 100);
+            const passed = score >= 83; // Approx 750/900
+            progressBar.style.width = '100%';
+
+            let html = `
+                <div class="results">
+                    <div class="score-card">
+                        <div class="subtitle">EXAM RESULTS</div>
+                        <div class="score-number">${score}</div>
+                        <div class="subtitle">SCORE / 100</div>
+                        <div class="pass-fail ${passed ? 'pass' : 'fail'}">
+                            ${passed ? 'PASS' : 'FAIL'}
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">${correctCount}</div>
+                            <div class="stat-label">Correct</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length - correctCount}</div>
+                            <div class="stat-label">Incorrect</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length}</div>
+                            <div class="stat-label">Total Questions</div>
+                        </div>
+                    </div>
+
+                    <div class="subtitle" style="margin-bottom: 20px;">Review Answers</div>
+
+                    ${questions.map((q, i) => {
+                        const userAnswer = userAnswers[i];
+                        const isCorrect = userAnswer === q.correct;
+                        const labelUser = String.fromCharCode(65 + userAnswer);
+                        const labelCorrect = String.fromCharCode(65 + q.correct);
+
+                        return `
+                            <div class="review-question ${isCorrect ? 'correct' : 'incorrect'}">
+                                <div class="review-header">
+                                    <span>Question ${i + 1}</span>
+                                    <span class="review-status ${isCorrect ? 'correct' : 'incorrect'}">
+                                        ${isCorrect ? 'CORRECT' : 'INCORRECT'}
+                                    </span>
+                                </div>
+                                <div class="review-text">${q.q}</div>
+
+                                <div class="review-answers">
+                                    <div class="answer-line">
+                                        <strong>Your Answer:</strong>
+                                        <span style="color: ${isCorrect ? 'var(--accent)' : 'var(--accent-red)'}">
+                                            ${labelUser}. ${q.options[userAnswer]}
+                                        </span>
+                                    </div>
+                                    <div class="answer-line">
+                                        <strong>Correct Answer:</strong>
+                                        <span style="color: var(--accent)">
+                                            ${labelCorrect}. ${q.options[q.correct]}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="explanation">
+                                    <div class="explanation-title">Explanation</div>
+                                    ${q.explanation}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+
+                    <div style="text-align: center; margin-top: 40px;">
+                        <button class="btn btn-primary" onclick="location.reload()" style="display: inline-flex;">
+                            Retake Exam
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+            window.scrollTo(0,0);
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
