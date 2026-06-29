@@ -608,14 +608,14 @@
             {
                 q: 'A SOC manager is comparing MTTR and MTTC as KPIs for executive reporting. An executive asks why the organization tracks both metrics instead of just MTTR. Which explanation MOST accurately describes the distinction?',
                 options: [
-                    'A. MTTC measures how quickly the SOC stops active attacker operations, while MTTR measures how long it takes to fully restore affected systems and close the incident -- providing two distinct views of response performance',
+                    'A. MTTC measures how quickly the SOC stops active attacker operations, while MTTR (Mean Time to Respond) measures the time from incident detection to completion of the team\'s initial response actions -- providing two distinct views of response performance',
                     'B. MTTR and MTTC are synonymous terms used interchangeably in different regulatory frameworks',
                     'C. MTTC applies to malware incidents only, while MTTR applies to all incident types including phishing and insider threat',
                     'D. MTTR is calculated from incident detection while MTTC is calculated from the first analyst response action'
                 ],
                 correct: 0,
                 domain: 'Incident Response and Management',
-                explanation: 'MTTC (Mean Time to Contain) measures speed of containment -- stopping active attacker activity -- which is a time-critical operational metric. MTTR (Mean Time to Respond/Remediate) measures the full resolution timeline including eradication and recovery. Tracking both gives leadership visibility into containment speed and full recovery duration separately. They are not synonymous (B); scope restrictions by incident type (C) are not correct; both are measured from detection (D) is only partially accurate and mischaracterizes MTTC start.'
+                explanation: 'MTTC (Mean Time to Contain) measures speed of containment -- stopping active attacker activity -- which is a time-critical operational metric. MTTR (Mean Time to Respond) measures how quickly the team responds once an incident is detected: the time from detection to completion of the initial response actions. Tracking both gives leadership visibility into initial response speed and containment speed separately. They are not synonymous (B); scope restrictions by incident type (C) are not correct; MTTC start is tied to detection, not the first analyst action (D). Note: In CS0-003, MTTR means Mean Time to Respond, not Mean Time to Remediate.'
             },
             {
                 q: 'An IR team lead is reviewing the organization\'s IR plan and finds it has not been updated in two years and does not reflect new cloud infrastructure added during a migration. Which preparation activity MOST directly addresses this gap?',

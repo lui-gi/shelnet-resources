@@ -498,16 +498,16 @@
                 explanation: 'QoD in OpenVAS measures detection confidence: low percentages (e.g., 30%) mean the scanner relied on indirect evidence such as banners or version strings rather than direct exploitation or credentialed inspection. High QoD (A) indicates credentialed or confirmed findings; community plugins (C) and CVSS scoring (D) are not what QoD measures.'
             },
             {
-                q: 'A Qualys scan report groups findings into severity levels 1 through 5. A system administrator asks which severity level warrants immediate patching under the organization\'s SLO. Which Qualys severity is MOST accurately classified as "Critical" and assigned the shortest remediation timeline?',
+                q: 'A Qualys scan report groups findings into severity levels 1 through 5. A system administrator asks which severity level warrants immediate patching under the organization\'s SLO. Which Qualys severity is MOST accurately classified as "Urgent" and assigned the shortest remediation timeline?',
                 options: [
                     'A. Severity 3 (Medium)',
                     'B. Severity 2 (Low)',
-                    'C. Severity 4 (High)',
-                    'D. Severity 5 (Critical)'
+                    'C. Severity 4 (Critical)',
+                    'D. Severity 5 (Urgent)'
                 ],
                 correct: 3,
                 domain: 'Vulnerability Management',
-                explanation: 'Qualys uses a 1-5 scale where Severity 5 is Critical and carries the highest urgency. Most SLOs assign the shortest remediation window (e.g., 15-30 days) to Severity 5 findings. Severity 4 (C) is High and also urgent but not the top tier; Severities 2-3 (A, B) are lower priority.'
+                explanation: 'Qualys uses a 1-5 scale where Severity 5 is labeled "Urgent" and carries the highest priority. Most SLOs assign the shortest remediation window (e.g., 15-30 days) to Severity 5 findings. Severity 4 (C) is labeled "Critical" and is also high priority but not the top tier; Severities 2-3 (A, B) are lower priority.'
             },
             {
                 q: 'While reviewing a Burp Suite Pro scan report, an analyst notices a "Reflected XSS" finding with confidence "Firm" on a login page. The finding was auto-discovered by the scanner. Which action should the analyst take NEXT to verify the finding before escalation?',
