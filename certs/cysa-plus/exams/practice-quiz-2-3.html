@@ -474,7 +474,7 @@
 
         const questions = [
             {
-                q: 'A security analyst reviews two vulnerabilities: CVE-A has a CVSS Base Score of 9.8 (Critical) with Attack Vector: Network, Privileges Required: None, and a CVSS EPSS score of 0.03. CVE-B has a CVSS Base Score of 7.2 (High) with Attack Vector: Network and an EPSS score of 0.91. Which vulnerability should the analyst prioritize for immediate remediation?',
+                q: 'A security analyst reviews two vulnerabilities: CVE-A has a CVSS Base Score of 9.8 (Critical) with Attack Vector: Network, Privileges Required: None, and a CVSS EPSS score of 0.03. CVE-B has a CVSS Base Score of 7.2 (High) with Attack Vector: Network and an EPSS score of 0.91. Which vulnerability should the analyst MOST urgently prioritize for immediate remediation?',
                 options: [
                     'A. CVE-B, because EPSS of 0.91 indicates it is actively being exploited in the wild and remediating it reduces actual attack risk faster',
                     'B. CVE-A, because a CVSS score of 9.8 is always the highest priority regardless of exploitation probability',
@@ -534,7 +534,7 @@
                 explanation: 'Validating a potential false positive requires independent confirmation. Checking the package manager output or patch management database directly confirms whether the patch was installed correctly. Accepting the admin\'s word without evidence (A) is insufficient; going straight to the vendor (B) assumes the scanner is at fault before verification; removing from scans (D) eliminates visibility.'
             },
             {
-                q: 'A threat intelligence feed reports that a zero-day exploit for a vulnerability in a VPN appliance is being actively used by a nation-state threat actor. No CVE has been assigned yet. How should the analyst handle this finding in the vulnerability management program?',
+                q: 'A threat intelligence feed reports that a zero-day exploit for a vulnerability in a VPN appliance is being actively used by a nation-state threat actor. No CVE has been assigned yet. How should the analyst BEST handle this finding in the vulnerability management program?',
                 options: [
                     'A. Wait for an official CVE to be assigned before adding the vulnerability to the tracking system',
                     'B. Dismiss the report because non-CVE vulnerabilities cannot be tracked by vulnerability scanners',
@@ -594,7 +594,7 @@
                 explanation: 'Without EPSS, a defensible priority order uses CVSS as the primary severity ranking, then asset criticality to differentiate between same-severity findings, then known exploitation status from threat feeds as a proxy for EPSS. Alphabetical CVE order (A) and age-first (B) ignore severity; random ordering (C) is not defensible.'
             },
             {
-                q: 'A security analyst finds two vulnerabilities on the same host. Vulnerability X has CVSS Attack Complexity: High and requires user interaction. Vulnerability Y has CVSS Attack Complexity: Low and requires no user interaction. Both have the same Base Score of 8.1. Which vulnerability should the analyst prioritize for patching?',
+                q: 'A security analyst finds two vulnerabilities on the same host. Vulnerability X has CVSS Attack Complexity: High and requires user interaction. Vulnerability Y has CVSS Attack Complexity: Low and requires no user interaction. Both have the same Base Score of 8.1. Which vulnerability should the analyst MOST urgently prioritize for patching?',
                 options: [
                     'A. Vulnerability X, because the need for user interaction indicates it is more likely to be exploited through phishing',
                     'B. Vulnerability Y, because lower attack complexity and no user interaction means an attacker can exploit it more reliably without depending on user behavior',
@@ -637,12 +637,12 @@
                     'C. Reduce priority because the long dwell time without an incident indicates the vulnerability is not being actively targeted',
                     'D. Assign to the next quarterly patching cycle since the vulnerability is already in the tracking system'
                 ],
-                correct: 3,
+                correct: 1,
                 domain: 'Vulnerability Management',
                 explanation: 'CISA KEV listing confirms active exploitation and triggers accelerated remediation timelines (CISA mandates 2-week remediation for federal agencies; best practice for any organization is immediate escalation). Age does not reduce urgency (A, C); waiting for quarterly patching (D) violates the elevated priority that KEV listing requires.'
             },
             {
-                q: 'A vulnerability analyst is comparing two findings: Vuln-1 is a Critical-rated OS vulnerability on a server that has been taken offline for decommission but not yet deleted. Vuln-2 is a Medium-rated vulnerability on the primary authentication server used by all employees. Which finding should the analyst prioritize?',
+                q: 'A vulnerability analyst is comparing two findings: Vuln-1 is a Critical-rated OS vulnerability on a server that has been taken offline for decommission but not yet deleted. Vuln-2 is a Medium-rated vulnerability on the primary authentication server used by all employees. Which finding should the analyst MOST urgently prioritize?',
                 options: [
                     'A. Vuln-2 because the authentication server is a critical asset whose compromise would impact all employees, and the offline server presents minimal exploitability',
                     'B. Vuln-1 because Critical-rated vulnerabilities always take priority regardless of asset status',

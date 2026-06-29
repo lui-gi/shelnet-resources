@@ -606,7 +606,7 @@
                 explanation: 'Segmentation is a compensating control that reduces the exploitability of a vulnerability by limiting attacker access paths. Priority is context-aware: a critical CVE on an isolated host is lower risk than the same CVE on an internet-facing host. Ignoring segmentation (A) inflates risk; deleting findings (B) loses auditability; segmentation is not a compliance violation (C).'
             },
             {
-                q: 'During a software composition analysis (SCA) scan, the tool flags a transitive dependency three levels deep in a Node.js application\'s dependency tree with a known critical CVE. The library is never directly imported by application code. Which action BEST addresses this finding?',
+                q: 'During an SCA scan review, a security engineer notices the tool flagged a transitive dependency three levels deep in a Node.js application\'s dependency tree with a known critical CVE. The library is never directly imported by application code. Which action BEST addresses this finding?',
                 options: [
                     'A. Dismiss the finding because transitive dependencies cannot be exploited',
                     'B. Update the direct dependency that pulls in the vulnerable transitive package to a version that resolves it',

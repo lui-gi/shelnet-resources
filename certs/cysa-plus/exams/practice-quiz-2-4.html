@@ -522,7 +522,7 @@
                 explanation: 'Defense-in-depth for file upload RCE requires content validation (magic bytes + MIME), allowlisted extensions, storage outside the web root, and non-executable permissions on the upload directory. Size limits (A) and CAPTCHAs (C) do not prevent execution of an uploaded file; logging (D) aids detection but does not prevent the attack.'
             },
             {
-                q: 'A CSRF attack is discovered against a financial web application. An attacker crafts a malicious page that triggers a fund-transfer POST request when a logged-in user visits the page, because the bank uses session cookies without any origin verification. Which control MOST directly mitigates CSRF?',
+                q: 'A security analyst is investigating a CSRF attack against a financial web application. An attacker crafted a malicious page that triggers a fund-transfer POST request when a logged-in user visits the page, because the bank uses session cookies without any origin verification. Which control MOST directly mitigates CSRF?',
                 options: [
                     'A. Enforcing HTTPS on all pages of the application',
                     'B. Adding synchronizer token (CSRF token) validation on all state-changing requests, ensuring each form submission includes a secret unpredictable value tied to the user session',
@@ -548,7 +548,7 @@
             {
                 q: 'A security review finds that an e-commerce application allows users to view order details by supplying an order ID in the URL (e.g., /orders/1234). By changing the ID to another customer\'s order number, a user can view that customer\'s order. Which vulnerability does this describe, and what is the BEST control?',
                 options: [
-                    'A. SQL injection; mitigate with parameterized queries',
+                    'A. SQLi; mitigate with parameterized queries',
                     'B. Buffer overflow; mitigate with input length validation',
                     'C. IDOR (Insecure Direct Object Reference); mitigate by enforcing authorization checks to verify the requesting user owns the requested resource',
                     'D. XSS (Cross-Site Scripting); mitigate with output encoding'
@@ -573,7 +573,7 @@
                 q: 'A web application uses an ML model trained on customer review data. A security researcher demonstrates that by injecting carefully crafted text into product reviews, the model\'s classification behavior is manipulated to flag legitimate negative reviews as positive. Which attack type does this describe, and what is the BEST preventive control?',
                 options: [
                     'A. XSS attack; mitigate with output encoding',
-                    'B. SQL injection; mitigate with parameterized queries',
+                    'B. SQLi; mitigate with parameterized queries',
                     'C. Data poisoning; mitigate with input validation on training data, anomaly detection on incoming training samples, and adversarial training techniques',
                     'D. CSRF attack; mitigate with synchronizer tokens'
                 ],
@@ -630,7 +630,7 @@
                 explanation: 'SSTI is prevented by never passing user-controlled input to template engines, or if necessary, sandboxing the template environment and restricting available expressions. HTML entity encoding (A) prevents XSS output in a browser but does not stop server-side evaluation; switching languages (B) does not prevent SSTI if the same pattern is used; rate-limiting (C) slows but does not prevent exploitation.'
             },
             {
-                q: 'A privilege escalation vulnerability is discovered in a Linux web application: the server process runs as root and a path traversal flaw allows writing arbitrary files. An attacker could write a cron job to achieve persistent root access. Which control MOST directly reduces the impact of this privilege escalation chain?',
+                q: 'A penetration tester discovered a privilege escalation vulnerability in a Linux web application: the server process runs as root and a path traversal flaw allows writing arbitrary files. An attacker could write a cron job to achieve persistent root access. Which control MOST directly reduces the impact of this privilege escalation chain?',
                 options: [
                     'A. Require MFA for the web application admin panel',
                     'B. Log all write operations to a central SIEM for forensic review',
