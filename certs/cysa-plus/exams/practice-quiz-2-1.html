@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelnet Quiz</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #0c0c0c;
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --accent: #3b82f6; /* Default — overridden per-quiz via ACCENT_HEX in CONFIG */
+            --accent-dim: rgba(59, 130, 246, 0.1); /* Default — overridden via setProperty in init() */
+            --accent-glow: rgba(59, 130, 246, 0.4); /* Default — overridden via setProperty in init() */
+            --accent-select: rgba(59, 130, 246, 0.3); /* Default — overridden via setProperty in init() */
+            --accent-red: #ef4444;
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            /* Grid Background Effect */
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Selection Color */
+        ::selection {
+            background: var(--accent-select);
+            color: #dbeafe;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Terminal Header Bar --- */
+        .terminal-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot.red { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); }
+        .dot.yellow { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); }
+        .dot.green { background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); }
+
+        /* --- Brutal Header Section --- */
+        .header {
+            padding: 40px 40px 20px 40px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .header .subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: block;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-container {
+            width: 100%;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        /* --- Content Area --- */
+        .content {
+            padding: 40px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .question-number {
+            font-family: var(--font-mono);
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .domain-tag {
+            font-family: var(--font-mono);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            color: #eee;
+            font-weight: 400;
+        }
+
+        /* --- Options --- */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .option:hover {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .option.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+
+        .option-label {
+            font-family: var(--font-mono);
+            margin-right: 20px;
+            color: var(--text-muted);
+            font-weight: bold;
+            min-width: 25px;
+        }
+
+        .option.selected .option-label {
+            color: var(--accent);
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .option.selected .option-text {
+            color: #fff;
+        }
+
+        /* --- Buttons --- */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 50px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .btn-primary {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: var(--border-color);
+        }
+
+        /* --- Results Screen --- */
+        .results {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .score-card {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Terminal scanline effect for score */
+        .score-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: rgba(255,255,255,0.1);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .score-number {
+            font-size: 5rem;
+            font-weight: bold;
+            font-family: var(--font-mono);
+            margin: 10px 0;
+            color: #fff;
+        }
+
+        .pass-fail {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            display: inline-block;
+            border: 1px solid currentColor;
+            margin-top: 20px;
+        }
+
+        .pass { color: var(--accent); }
+        .fail { color: var(--accent-red); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            font-family: var(--font-mono);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        /* Review Section */
+        .review-question {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid transparent;
+        }
+
+        .review-question.correct { border-left-color: var(--accent); }
+        .review-question.incorrect { border-left-color: var(--accent-red); }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .review-status.correct { color: var(--accent); }
+        .review-status.incorrect { color: var(--accent-red); }
+
+        .review-text {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .review-answers {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .answer-line {
+            margin-bottom: 8px;
+            display: flex;
+        }
+
+        .answer-line strong {
+            width: 140px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            border-left: 2px solid var(--text-muted);
+            background: rgba(255,255,255,0.03);
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+
+        .explanation-title {
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0c0c0c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) #0c0c0c;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .content { padding: 20px; }
+            .question-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .score-number { font-size: 3rem; }
+            .navigation { flex-direction: column; gap: 15px; }
+            .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="terminal-bar">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+            <span style="margin-left: 10px;">bash — user@shelnet-exam: ~</span>
+        </div>
+
+        <div class="header">
+            <h1 id="quizTitle">Quiz Title</h1>
+            <div class="subtitle" id="quizSubtitle">C:\Shelnet\Quizzes> Objective</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <div class="content" id="examContent">
+            </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // QUIZ CONFIG — edit this block when deriving a new quiz.
+        // Leave the rest of this file unchanged.
+        // ============================================================
+        const QUIZ_TITLE    = 'Practice Quiz 2.1';
+        const QUIZ_SUBTITLE = 'C:\\Shelnet\\Quizzes> CS0-003 Objective 2.1';
+        const ACCENT_HEX    = '#06b6d4';
+
+        const questions = [
+            {
+                q: 'A vulnerability analyst needs to enumerate all active IP addresses and open ports across a flat /16 enterprise network before scheduling a credentialed scan. Which asset-discovery technique BEST meets this requirement?',
+                options: [
+                    'A. Map scan using Nmap to sweep the subnet and fingerprint live hosts',
+                    'B. Passive network tap to capture traffic and infer host presence',
+                    'C. Agent-based poll that queries each endpoint for its IP and open ports',
+                    'D. DNS zone transfer to collect all registered hostnames in the domain'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                explanation: 'A map scan (Nmap host discovery + port sweep) is the standard active asset-discovery technique for enumerating live hosts and open ports. Passive taps (B) miss silent hosts; agent polling (C) requires agents pre-installed; DNS zone transfers (D) return names, not real-time port state.'
+            },
+            {
+                q: 'A security team is scheduling recurring vulnerability scans for a 24/7 e-commerce platform. The application owner warns that intensive scans have previously caused page-load degradation during peak hours. Which scheduling consideration MOST directly addresses this concern?',
+                options: [
+                    'A. Run scans only during low-traffic maintenance windows to limit performance impact',
+                    'B. Use non-credentialed scans exclusively to reduce authentication overhead',
+                    'C. Increase scan frequency to reduce per-scan depth and duration',
+                    'D. Switch to agent-based scanning so network bandwidth is not consumed'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                explanation: 'Scheduling scans during low-traffic maintenance windows directly reduces the risk of user-facing performance degradation. Non-credentialed scans (B) reduce findings quality, not necessarily bandwidth; increasing frequency (C) actually increases total load; agent-based scanning (D) moves CPU load to the endpoint but does not eliminate network scans.'
+            },
+            {
+                q: 'An analyst discovers that several OT sensors in a manufacturing facility cannot tolerate aggressive network probes because even brief packet floods have caused sensor resets in the past. Which scanning approach BEST protects operational continuity?',
+                options: [
+                    'A. Non-credentialed external scan from a DMZ jump host',
+                    'B. Passive vulnerability identification by monitoring network traffic without sending probes',
+                    'C. Credentialed scan with throttled bandwidth settings',
+                    'D. SCADA-protocol-aware active scan during scheduled downtime'
+                ],
+                correct: 1,
+                domain: 'Vulnerability Management',
+                explanation: 'Passive scanning monitors existing traffic to infer vulnerabilities without transmitting probe packets, eliminating the risk of triggering sensor resets. Credentialed or active scans (A, C, D) all send traffic to the target, which is dangerous for sensitive OT/ICS/SCADA devices.'
+            },
+            {
+                q: 'A compliance auditor requires evidence that internal systems are assessed from a perspective equivalent to a malicious insider. Which scan configuration BEST satisfies this requirement?',
+                options: [
+                    'A. External non-credentialed scan launched from an internet-facing host',
+                    'B. Passive network monitoring deployed at the perimeter firewall',
+                    'C. Internal credentialed scan using domain service accounts to simulate insider access',
+                    'D. Web application DAST scan targeting only internet-exposed endpoints'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                explanation: 'An internal credentialed scan uses authenticated domain accounts from inside the network, simulating what a malicious insider with standard access could enumerate. External scans (A) model an outside attacker; passive monitoring (B) does not actively probe; DAST (D) is scoped to web apps only.'
+            },
+            {
+                q: 'A security engineer is evaluating a new web application before it goes to production. The team wants to discover vulnerabilities that only appear while the application is executing, such as runtime injection flaws. Which assessment technique is MOST appropriate?',
+                options: [
+                    'A. SAST analysis of the source code repository before compilation',
+                    'B. SCA scan of the dependency manifest to identify vulnerable libraries',
+                    'C. DAST scan against the running application in a staging environment',
+                    'D. Credentialed network vulnerability scan against the application server'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                explanation: 'DAST (Dynamic Application Security Testing) interacts with the running application and can discover runtime flaws like injection and authentication bypass that are invisible in static code. SAST (A) analyzes source without execution; SCA (B) checks library versions; a credentialed network scan (D) finds OS/service vulnerabilities, not web app logic flaws.'
+            },
+            {
+                q: 'A vulnerability team discovers that a network segment hosting payment processing servers is governed by PCI DSS. The team must ensure scan coverage meets the standard\'s requirements. Which consideration is MOST directly imposed by this regulatory requirement?',
+                options: [
+                    'A. Quarterly external scans performed by an Approved Scanning Vendor (ASV)',
+                    'B. Daily agent-based scans installed on every cardholder data environment host',
+                    'C. Passive-only scanning to avoid impacting transaction throughput',
+                    'D. SAST reviews of all payment application code every 90 days'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                explanation: 'PCI DSS requires quarterly external vulnerability scans conducted by an ASV, along with internal scans after significant changes. Daily agent scans (B) and passive-only scanning (C) are not PCI DSS mandates; SAST code reviews (D) address secure development but are not the external scanning requirement.'
+            },
+            {
+                q: 'During a credentialed scan of Windows servers, the scanner returns significantly more findings than a non-credentialed scan of the same targets. A junior analyst asks why the gap is so large. What is the BEST explanation?',
+                options: [
+                    'A. Credentialed scans authenticate to the host and enumerate installed software, patches, and registry settings that are invisible to unauthenticated probes',
+                    'B. Credentialed scans generate more network traffic, which causes more IDS alerts to be logged as findings',
+                    'C. Non-credentialed scans skip banner-grabbing, causing them to miss open ports entirely',
+                    'D. Credentialed scans run at higher privilege and can trigger false positives by accessing sensitive files'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                explanation: 'Credentialed scans log into the host (e.g., using local admin or domain credentials) and can read installed software lists, registry keys, and patch levels, revealing far more vulnerabilities than banner-grabbing. The other options mischaracterize how non-credentialed (B, C) and credentialed (D) scanning work.'
+            },
+            {
+                q: 'A security team is deploying vulnerability scanning to 3,000 laptops that spend most of their time off-premises and connect intermittently via VPN. Which scanning deployment model BEST ensures continuous coverage regardless of network location?',
+                options: [
+                    'A. Scheduled network scan from a centralized on-premises scanner targeting RFC 1918 addresses',
+                    'B. Agent-based scanning with a lightweight endpoint agent that reports to a cloud console',
+                    'C. External non-credentialed scan from an internet-facing scanner targeting public IPs',
+                    'D. Passive network tap at the VPN concentrator to intercept laptop traffic during sessions'
+                ],
+                correct: 1,
+                domain: 'Vulnerability Management',
+                explanation: 'Agent-based scanning installs a lightweight sensor on each endpoint that scans locally and reports results regardless of network location, ensuring off-premises laptops are never missed. A centralized network scanner (A) cannot reach laptops when they are off VPN; external scans (C) only see public NAT addresses; passive taps (D) only capture data during VPN sessions.'
+            },
+            {
+                q: 'An analyst configures Nessus to perform a security baseline scan against a group of Linux servers. Which CIS benchmark document provides the configuration checks MOST aligned with this goal?',
+                options: [
+                    'A. OWASP Application Security Verification Standard (ASVS)',
+                    'B. ISO/IEC 27001 Annex A control checklist',
+                    'C. CIS Benchmark for the specific Linux distribution (e.g., CIS Ubuntu Linux Benchmark)',
+                    'D. NIST SP 800-53 security control catalog'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                explanation: 'CIS Benchmarks are OS-specific hardening guides that map directly to security baseline scans (e.g., Nessus ships CIS policy audits). OWASP ASVS (A) is for web applications; ISO 27001 Annex A (B) is a management-level control list; NIST SP 800-53 (D) is a federal control catalog, not an OS baseline.'
+            },
+            {
+                q: 'A penetration tester is asked to assess a web application for OWASP Top 10 vulnerabilities before an upcoming public launch. The team has source code access. Which combination of assessment types provides the MOST comprehensive coverage?',
+                options: [
+                    'A. SAST alone, because source code analysis finds all possible vulnerabilities',
+                    'B. DAST alone, because runtime testing reflects the actual attack surface',
+                    'C. Credentialed network scan plus passive traffic analysis',
+                    'D. SAST combined with DAST to catch both code-level and runtime vulnerabilities'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                explanation: 'Combining SAST (static analysis of source code) with DAST (dynamic testing of the running app) provides the broadest coverage: SAST finds logic and coding flaws; DAST uncovers runtime and configuration issues. Neither alone (A, B) is as comprehensive; a credentialed network scan plus passive analysis (C) misses web application logic flaws.'
+            },
+            {
+                q: 'A vulnerability scanner reports a critical finding on a segmented industrial control system network. The security team confirms there is no routable path from the corporate network to the ICS segment. How should this segmentation fact MOST affect the vulnerability\'s priority?',
+                options: [
+                    'A. The vulnerability should be treated as critical regardless of segmentation because ICS devices are always high-value targets',
+                    'B. The finding should be deleted from the scan report since the scanner cannot reach the host',
+                    'C. The vulnerability should be escalated immediately because segmented networks indicate a compliance violation',
+                    'D. The vulnerability\'s priority should be reduced because network segmentation functions as a compensating control that limits reachability'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                explanation: 'Segmentation is a compensating control that reduces the exploitability of a vulnerability by limiting attacker access paths. Priority is context-aware: a critical CVE on an isolated host is lower risk than the same CVE on an internet-facing host. Ignoring segmentation (A) inflates risk; deleting findings (B) loses auditability; segmentation is not a compliance violation (C).'
+            },
+            {
+                q: 'During a software composition analysis (SCA) scan, the tool flags a transitive dependency three levels deep in a Node.js application\'s dependency tree with a known critical CVE. The library is never directly imported by application code. Which action BEST addresses this finding?',
+                options: [
+                    'A. Dismiss the finding because transitive dependencies cannot be exploited',
+                    'B. Update the direct dependency that pulls in the vulnerable transitive package to a version that resolves it',
+                    'C. Remove the entire Node.js application and rewrite it without third-party libraries',
+                    'D. Apply a WAF rule to block all requests to the application until the library is patched'
+                ],
+                correct: 1,
+                domain: 'Vulnerability Management',
+                explanation: 'Transitive dependencies can absolutely be exploited (A is wrong). The correct fix is to upgrade the direct dependency to a version that resolves or removes the vulnerable transitive package. Rewriting the application (C) is disproportionate; a WAF rule (D) is a broad compensating control that does not remediate the root cause.'
+            },
+            {
+                q: 'An analyst is comparing active vs. passive vulnerability scanning for a healthcare network with strict uptime requirements. Which statement MOST accurately distinguishes the two approaches?',
+                options: [
+                    'A. Active scanning requires agent installation on every host, while passive scanning uses network-based probes',
+                    'B. Passive scanning is more accurate than active scanning because it reads actual exploit attempts in real time',
+                    'C. Active scanning can only test internet-facing hosts, while passive scanning covers internal hosts',
+                    'D. Active scanning sends probe packets to targets and can detect current patch levels, while passive scanning observes existing traffic without sending probes'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                explanation: 'Active scanning sends crafted probe packets to elicit responses and detect host state; passive scanning analyzes existing traffic without generating probes. The other choices (A, B, C) mischaracterize both methods: agents are an active variant but not required (A); passive does not read exploit attempts (B); active scans can target internal hosts (C).'
+            },
+            {
+                q: 'A company must demonstrate vulnerability scan compliance for both internal hosts and externally facing assets. The security team plans to run separate scans from an internal scanner and an external scanner. What is the PRIMARY reason for using both vantage points?',
+                options: [
+                    'A. Internal and external scans use different vulnerability databases, so running both increases database coverage',
+                    'B. An internal scan reveals vulnerabilities visible from inside the network, while an external scan reveals what an internet-based attacker can see',
+                    'C. External scans require regulatory approval, so an internal scan bypasses compliance overhead',
+                    'D. Running two scans halves the scan duration by dividing the target list between scanners'
+                ],
+                correct: 1,
+                domain: 'Vulnerability Management',
+                explanation: 'Internal and external scanning provide two different attack-perspective views: internal mimics an insider or post-breach attacker, external mimics an internet-based attacker and reveals firewall/NAT exposure. Different databases (A) are not the primary reason; regulatory approval (C) is backwards; splitting targets (D) is not the purpose of dual vantage points.'
+            },
+            {
+                q: 'A vulnerability analyst is integrating threat feed data into the scanning workflow. A newly published threat feed entry indicates that a specific vulnerability is actively being exploited in the wild. How should this intelligence MOST influence the scanning schedule?',
+                options: [
+                    'A. Wait for the next scheduled monthly scan to include the new plugin',
+                    'B. Remove all other findings from the scan queue to focus exclusively on the active exploit',
+                    'C. Trigger an out-of-cycle targeted scan for that specific CVE across all in-scope hosts immediately',
+                    'D. Disable scanning for the affected hosts to prevent the scanner from accidentally triggering the exploit'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                explanation: 'Active exploitation intelligence justifies an immediate out-of-cycle targeted scan to identify exposed hosts before threat actors can reach them. Waiting for monthly scans (A) leaves a dangerous gap; removing other findings (B) is not operationally sound; disabling scans (D) is counterproductive and does not reduce risk.'
+            }
+        ];
+
+        // ============================================================
+        // END CONFIG — chrome below is shared. Do not edit when deriving.
+        // ============================================================
+
+        // Small util: convert '#06b6d4' -> 'rgba(6, 182, 212, 0.1)' for the dim variant.
+        function hexToRgba(hex, alpha) {
+            const h = hex.replace('#', '');
+            const r = parseInt(h.substring(0, 2), 16);
+            const g = parseInt(h.substring(2, 4), 16);
+            const b = parseInt(h.substring(4, 6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // --- APP STATE ---
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+
+        // --- DOM ELEMENTS ---
+        const contentDiv = document.getElementById('examContent');
+        const progressBar = document.getElementById('progressBar');
+
+        // --- INITIALIZATION ---
+        function init() {
+            // --- Apply CONFIG ---
+            document.title = QUIZ_TITLE;
+            document.getElementById('quizTitle').textContent = QUIZ_TITLE;
+            document.getElementById('quizSubtitle').textContent = QUIZ_SUBTITLE;
+            document.documentElement.style.setProperty('--accent', ACCENT_HEX);
+            document.documentElement.style.setProperty('--accent-dim', hexToRgba(ACCENT_HEX, 0.1));
+            document.documentElement.style.setProperty('--accent-glow', hexToRgba(ACCENT_HEX, 0.4));
+            document.documentElement.style.setProperty('--accent-select', hexToRgba(ACCENT_HEX, 0.3));
+
+            // --- existing init body continues below ---
+            renderQuestion();
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            const isLastQuestion = currentQuestionIndex === questions.length - 1;
+
+            // Update Progress
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // HTML Structure for Question
+            let html = `
+                <div class="question-header">
+                    <span class="question-number">QUESTION ${currentQuestionIndex + 1} OF ${questions.length}</span>
+                    <span class="domain-tag">${q.domain}</span>
+                </div>
+
+                <div class="question-text">${q.q}</div>
+
+                <div class="options">
+                    ${q.options.map((opt, index) => {
+                        const isSelected = userAnswers[currentQuestionIndex] === index;
+                        const label = String.fromCharCode(65 + index); // A, B, C, D
+                        return `
+                            <div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(${index})">
+                                <span class="option-label">${label}</span>
+                                <span class="option-text">${opt}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                <div class="navigation">
+                    <button class="btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
+                        &larr; Previous
+                    </button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" ${userAnswers[currentQuestionIndex] === null ? 'disabled' : ''}>
+                        ${isLastQuestion ? 'Finish Exam' : 'Next &rarr;'}
+                    </button>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+        }
+
+        function selectOption(index) {
+            userAnswers[currentQuestionIndex] = index;
+            // Re-render to show selection state (or just toggle class for performance, but re-render is safer for state sync)
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            // Calculate Score
+            let correctCount = 0;
+            questions.forEach((q, i) => {
+                if (userAnswers[i] === q.correct) correctCount++;
+            });
+
+            const score = Math.round((correctCount / questions.length) * 100);
+            const passed = score >= 83; // Approx 750/900
+            progressBar.style.width = '100%';
+
+            let html = `
+                <div class="results">
+                    <div class="score-card">
+                        <div class="subtitle">EXAM RESULTS</div>
+                        <div class="score-number">${score}</div>
+                        <div class="subtitle">SCORE / 100</div>
+                        <div class="pass-fail ${passed ? 'pass' : 'fail'}">
+                            ${passed ? 'PASS' : 'FAIL'}
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">${correctCount}</div>
+                            <div class="stat-label">Correct</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length - correctCount}</div>
+                            <div class="stat-label">Incorrect</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length}</div>
+                            <div class="stat-label">Total Questions</div>
+                        </div>
+                    </div>
+
+                    <div class="subtitle" style="margin-bottom: 20px;">Review Answers</div>
+
+                    ${questions.map((q, i) => {
+                        const userAnswer = userAnswers[i];
+                        const isCorrect = userAnswer === q.correct;
+                        const labelUser = String.fromCharCode(65 + userAnswer);
+                        const labelCorrect = String.fromCharCode(65 + q.correct);
+
+                        return `
+                            <div class="review-question ${isCorrect ? 'correct' : 'incorrect'}">
+                                <div class="review-header">
+                                    <span>Question ${i + 1}</span>
+                                    <span class="review-status ${isCorrect ? 'correct' : 'incorrect'}">
+                                        ${isCorrect ? 'CORRECT' : 'INCORRECT'}
+                                    </span>
+                                </div>
+                                <div class="review-text">${q.q}</div>
+
+                                <div class="review-answers">
+                                    <div class="answer-line">
+                                        <strong>Your Answer:</strong>
+                                        <span style="color: ${isCorrect ? 'var(--accent)' : 'var(--accent-red)'}">
+                                            ${labelUser}. ${q.options[userAnswer]}
+                                        </span>
+                                    </div>
+                                    <div class="answer-line">
+                                        <strong>Correct Answer:</strong>
+                                        <span style="color: var(--accent)">
+                                            ${labelCorrect}. ${q.options[q.correct]}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="explanation">
+                                    <div class="explanation-title">Explanation</div>
+                                    ${q.explanation}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+
+                    <div style="text-align: center; margin-top: 40px;">
+                        <button class="btn btn-primary" onclick="location.reload()" style="display: inline-flex;">
+                            Retake Exam
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+            window.scrollTo(0,0);
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
