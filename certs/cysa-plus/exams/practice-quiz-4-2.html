@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelnet Quiz</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #0c0c0c;
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --accent: #3b82f6; /* Default — overridden per-quiz via ACCENT_HEX in CONFIG */
+            --accent-dim: rgba(59, 130, 246, 0.1); /* Default — overridden via setProperty in init() */
+            --accent-glow: rgba(59, 130, 246, 0.4); /* Default — overridden via setProperty in init() */
+            --accent-select: rgba(59, 130, 246, 0.3); /* Default — overridden via setProperty in init() */
+            --accent-red: #ef4444;
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            /* Grid Background Effect */
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Selection Color */
+        ::selection {
+            background: var(--accent-select);
+            color: #dbeafe;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Terminal Header Bar --- */
+        .terminal-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot.red { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); }
+        .dot.yellow { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); }
+        .dot.green { background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); }
+
+        /* --- Brutal Header Section --- */
+        .header {
+            padding: 40px 40px 20px 40px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .header .subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: block;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-container {
+            width: 100%;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        /* --- Content Area --- */
+        .content {
+            padding: 40px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .question-number {
+            font-family: var(--font-mono);
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .domain-tag {
+            font-family: var(--font-mono);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            color: #eee;
+            font-weight: 400;
+        }
+
+        /* --- Options --- */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .option:hover {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .option.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+
+        .option-label {
+            font-family: var(--font-mono);
+            margin-right: 20px;
+            color: var(--text-muted);
+            font-weight: bold;
+            min-width: 25px;
+        }
+
+        .option.selected .option-label {
+            color: var(--accent);
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .option.selected .option-text {
+            color: #fff;
+        }
+
+        /* --- Buttons --- */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 50px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .btn-primary {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: var(--border-color);
+        }
+
+        /* --- Results Screen --- */
+        .results {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .score-card {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Terminal scanline effect for score */
+        .score-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: rgba(255,255,255,0.1);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .score-number {
+            font-size: 5rem;
+            font-weight: bold;
+            font-family: var(--font-mono);
+            margin: 10px 0;
+            color: #fff;
+        }
+
+        .pass-fail {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            display: inline-block;
+            border: 1px solid currentColor;
+            margin-top: 20px;
+        }
+
+        .pass { color: var(--accent); }
+        .fail { color: var(--accent-red); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            font-family: var(--font-mono);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        /* Review Section */
+        .review-question {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid transparent;
+        }
+
+        .review-question.correct { border-left-color: var(--accent); }
+        .review-question.incorrect { border-left-color: var(--accent-red); }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .review-status.correct { color: var(--accent); }
+        .review-status.incorrect { color: var(--accent-red); }
+
+        .review-text {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .review-answers {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .answer-line {
+            margin-bottom: 8px;
+            display: flex;
+        }
+
+        .answer-line strong {
+            width: 140px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            border-left: 2px solid var(--text-muted);
+            background: rgba(255,255,255,0.03);
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+
+        .explanation-title {
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0c0c0c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) #0c0c0c;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .content { padding: 20px; }
+            .question-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .score-number { font-size: 3rem; }
+            .navigation { flex-direction: column; gap: 15px; }
+            .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="terminal-bar">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+            <span style="margin-left: 10px;">bash — user@shelnet-exam: ~</span>
+        </div>
+
+        <div class="header">
+            <h1 id="quizTitle">Quiz Title</h1>
+            <div class="subtitle" id="quizSubtitle">C:\Shelnet\Quizzes> Objective</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <div class="content" id="examContent">
+            </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // QUIZ CONFIG — edit this block when deriving a new quiz.
+        // Leave the rest of this file unchanged.
+        // ============================================================
+        const QUIZ_TITLE    = 'Practice Quiz 4.2';            // Shown in <title> and <h1>
+        const QUIZ_SUBTITLE = 'C:\\Shelnet\\Quizzes> CS0-003 Objective 4.2'; // Shown under the H1
+        const ACCENT_HEX    = '#06b6d4';                  // Per-quiz accent (CySA+ uses '#06b6d4')
+
+        const questions = [
+            {
+                q: 'An IR (Incident Response) lead is conducting a post-incident briefing after a ransomware attack. The CISO requests a report section that provides non-technical leadership with a high-level overview of what happened, the business impact, and the current status without requiring them to read the full technical analysis. Which IR report section MOST directly addresses this requirement?',
+                options: [
+                    'A. Executive summary, which provides a concise overview of the incident, business impact, and current status for non-technical leadership',
+                    'B. Timeline, which lists every event and action taken during the incident in chronological order',
+                    'C. IOC appendix, which enumerates all indicators of compromise identified during the investigation',
+                    'D. Technical details section, which describes the attack vector, malware behavior, and affected systems in depth'
+                ],
+                correct: 0,
+                domain: 'Reporting and Communication',
+                explanation: 'The executive summary is the IR report section designed for non-technical leadership -- it provides a concise business-impact overview and status without requiring them to parse technical analysis. A timeline (B) is comprehensive but not a summary for executives; the IOC appendix (C) is a technical artifact; the technical details section (D) is explicitly not suited for a non-technical audience.'
+            },
+            {
+                q: 'A SOC manager is defining incident escalation criteria for the organization\'s IR plan. The manager wants to ensure that when a security event exceeds a defined severity threshold, the appropriate stakeholders are notified without delay. Which IR process step BEST describes this activity?',
+                options: [
+                    'A. Incident declaration and escalation, which formally triggers the IR process and routes the incident to the appropriate response level and stakeholders',
+                    'B. Lessons learned, which reviews the incident after containment to identify process improvements',
+                    'C. Root cause analysis, which investigates the underlying reason the incident occurred',
+                    'D. Evidence collection, which preserves forensic artifacts before the incident scope is fully understood'
+                ],
+                correct: 0,
+                domain: 'Reporting and Communication',
+                explanation: 'Incident declaration and escalation is the IR process step that formally declares an incident and routes it to the correct response tier and stakeholders based on severity thresholds. Lessons learned (B) is a post-incident activity; root cause analysis (C) occurs after containment; evidence collection (D) is part of investigation, not the escalation process.'
+            },
+            {
+                q: 'A threat-intelligence analyst is preparing a post-incident briefing after a data breach affecting customer PII (Personally Identifiable Information). The analyst must determine which stakeholders require formal notification and in what sequence. Which stakeholder group typically requires FIRST notification based on legal and regulatory obligations?',
+                options: [
+                    'A. PR (Public Relations) team, to prepare a press statement before the breach becomes public knowledge',
+                    'B. Customers whose PII was exposed, to provide them time to take protective action',
+                    'C. Legal counsel, to assess regulatory notification obligations and advise on timing and disclosure scope',
+                    'D. Law enforcement, to report the crime and begin a criminal investigation'
+                ],
+                correct: 2,
+                domain: 'Reporting and Communication',
+                explanation: 'Legal counsel is typically notified first because they assess the regulatory landscape (GDPR 72-hour window, HIPAA, state breach laws, SEC rules) and advise on which notifications are required, to whom, and by when. PR (A) is notified after legal clears the communications strategy; customers (B) are notified as part of the required disclosure process; law enforcement (D) is notified based on legal advice, not independently first.'
+            },
+            {
+                q: 'An IR lead is documenting the lessons-learned report following a major supply chain compromise. The team identified that attackers persisted in the environment for 47 days before detection. Which KPI MOST directly quantifies the detection gap described in this finding?',
+                options: [
+                    'A. MTTR, measuring the time from alert triage to full remediation',
+                    'B. Alert volume, measuring the number of SIEM alerts generated per day during the incident',
+                    'C. MTTC, measuring the time from detection to successful containment',
+                    'D. MTTD, measuring the time from incident onset to first detection by the security team'
+                ],
+                correct: 3,
+                domain: 'Reporting and Communication',
+                explanation: 'MTTD directly measures the detection gap -- the time from when the incident began until the security team detected it. A 47-day dwell time is a high MTTD value. MTTR (A) measures response-to-remediation time, not the detection gap; alert volume (B) is a throughput metric that does not measure dwell time; MTTC (C) measures the time from detection to containment, not the detection gap itself.'
+            },
+            {
+                q: 'A CISO (Chief Information Security Officer) receives a call from the organization\'s PR director during an active ransomware incident. The PR director wants to issue an immediate public statement without consulting legal counsel. The CISO must explain why public communications must be coordinated. Which communication principle BEST justifies the CISO\'s position?',
+                options: [
+                    'A. The media relations contact should be the CISO, not the PR director, for all security incidents',
+                    'B. Public statements during an active incident require legal review to avoid regulatory violations, premature disclosures, and liability, making coordinated communication essential',
+                    'C. Incident communications should be restricted exclusively to internal stakeholders until the incident is fully remediated',
+                    'D. All incident communications must be approved by the CFO before any external disclosure'
+                ],
+                correct: 1,
+                domain: 'Reporting and Communication',
+                explanation: 'Coordinated communication requires legal review before public statements because premature or inaccurate disclosures can create regulatory violations, increase liability, and compromise the investigation. The CISO is not the media relations lead by default (A); some internal-only communication periods may exist but complete blackout until remediation (C) violates regulatory timing requirements; CFO approval (D) is not a standard requirement for incident communications.'
+            },
+            {
+                q: 'An IR team lead is reviewing the organization\'s IR report template and notices that the current template does not include a who, what, when, where, why, and how section. A new critical incident has just been declared. Which element of the IR report MOST directly captures the narrative facts of the incident that investigators, legal, and regulators need to understand what occurred?',
+                options: [
+                    'A. Executive summary, because it provides the high-level narrative for senior stakeholders',
+                    'B. Who/what/when/where/why/how (the 5W+H), because it provides the factual account that supports legal, regulatory, and investigative review of the incident',
+                    'C. Recommendations section, because it documents the corrective actions the team plans to take after the incident',
+                    'D. Lessons-learned section, because it captures what the team would do differently in a future incident'
+                ],
+                correct: 1,
+                domain: 'Reporting and Communication',
+                explanation: 'The who/what/when/where/why/how section provides the factual narrative of the incident that supports legal proceedings, regulatory notification, and investigative review. The executive summary (A) is a concise overview, not a detailed factual narrative; recommendations (C) describe future actions; lessons learned (D) identifies process improvements, not factual incident details.'
+            },
+            {
+                q: 'A compliance officer is reviewing the organization\'s incident response reporting obligations following a healthcare data breach. The breach affects 8,000 patient records. The officer determines that under HIPAA, the organization must notify the Department of Health and Human Services and affected individuals within a specific window. Which communication category MOST directly describes this notification requirement?',
+                options: [
+                    'A. Regulatory reporting, because the notification is a mandatory legal obligation to a government regulator within a defined timeframe',
+                    'B. Media relations, because breaches affecting more than 500 individuals in a state require media notification under HIPAA',
+                    'C. Customer communication, because patients are the individuals whose data was exposed',
+                    'D. Law enforcement, because healthcare breaches must be reported to the FBI Cyber Division'
+                ],
+                correct: 0,
+                domain: 'Reporting and Communication',
+                explanation: 'Regulatory reporting covers mandatory notifications to government regulators -- HIPAA breach notification to HHS is a regulatory reporting obligation with a defined 60-day window. Media notification (B) is a HIPAA sub-requirement for breaches over 500 in a state but is part of the broader regulatory framework; customer/patient notification (C) is also required but the HHS notification is the regulatory obligation; law enforcement notification (D) is not a HIPAA requirement.'
+            },
+            {
+                q: 'A SOC director is reviewing the quarterly IR metrics report. The report shows MTTD improved from 12 hours to 3 hours, but MTTC increased from 4 hours to 18 hours over the same period. Which interpretation of these combined metrics MOST accurately describes the security program\'s current state?',
+                options: [
+                    'A. The program is improving across the board because MTTD improvement indicates the detection capability is stronger',
+                    'B. The program has improved detection speed but containment effectiveness has degraded, suggesting a gap in the containment phase of the IR process',
+                    'C. The MTTC increase is expected because faster detection exposes more complex incidents that take longer to contain',
+                    'D. The metrics indicate a resourcing problem in the detection team that should be addressed by hiring additional SOC analysts'
+                ],
+                correct: 1,
+                domain: 'Reporting and Communication',
+                explanation: 'MTTD improvement indicates faster detection, but a 4.5x increase in MTTC signals a containment gap -- the team finds incidents faster but cannot contain them efficiently. This is not an across-the-board improvement (A); while faster detection may expose complexity (C), a 4.5x MTTC increase cannot be dismissed as expected; the metrics point to a containment process gap, not specifically a detection team staffing issue (D).'
+            },
+            {
+                q: 'An IR (Incident Response) lead is preparing communications following a confirmed data breach. The legal team advises that a subset of customers must be notified individually because their PII was confirmed to be exfiltrated. The IR lead must determine the appropriate communication channel and timing for customer disclosure. Which communication type MOST directly describes this obligation?',
+                options: [
+                    'A. Media relations, because customer notification should be issued as a press release to maximize reach',
+                    'B. Regulatory reporting, because customers are considered a regulated class of data subject',
+                    'C. Customer communication, which requires direct individual notification to affected customers within the legally required window',
+                    'D. Internal IR comms, because breach details must remain confidential until legal proceedings conclude'
+                ],
+                correct: 2,
+                domain: 'Reporting and Communication',
+                explanation: 'Customer communication is the specific notification type for directly informing affected individuals whose data was exposed -- typically required by state breach laws, GDPR, and sector-specific regulations within a defined window. Media/press release (A) is a public channel, not individual notification; regulatory reporting (B) is the obligation to notify government agencies, not customers; keeping details internal (D) violates breach notification legal requirements.'
+            },
+            {
+                q: 'A GRC (Governance, Risk, and Compliance) analyst is reviewing the IR reporting framework and finds that post-incident reports consistently omit a structured analysis of what went well and what should change in the IR process. Which post-incident reporting element is MOST clearly missing from the current framework?',
+                options: [
+                    'A. Lessons learned, which provides a structured retrospective to identify process improvements and prevent recurrence',
+                    'B. Executive summary, which provides the high-level narrative for senior leadership',
+                    'C. IOC list, which documents the indicators of compromise discovered during the investigation',
+                    'D. Regulatory notification record, which confirms that all required external notifications were completed'
+                ],
+                correct: 0,
+                domain: 'Reporting and Communication',
+                explanation: 'Lessons learned is the post-incident section that formally captures what worked, what did not, and what process improvements should be implemented -- the missing structured retrospective. The executive summary (B) provides overview narrative, not retrospective analysis; an IOC list (C) is a technical artifact; the regulatory notification record (D) tracks external obligations, not internal process improvement.'
+            },
+            {
+                q: 'A SOC manager is tasked with improving MTTR (Mean Time to Respond) after a post-incident review revealed that 40% of response time was spent identifying which team member was responsible for each IR task. Which preparation improvement MOST directly reduces this response-time overhead?',
+                options: [
+                    'A. Deploying an additional SIEM platform to improve alert correlation speed',
+                    'B. Conducting monthly phishing simulations to reduce the probability of future incidents',
+                    'C. Defining clear RACI (Responsible, Accountable, Consulted, Informed) assignments and escalation paths in the IR plan and playbooks',
+                    'D. Purchasing a SOAR platform to automate alert triage and reduce analyst workload'
+                ],
+                correct: 2,
+                domain: 'Reporting and Communication',
+                explanation: 'Clear role definitions and escalation paths in the IR plan directly eliminate the time wasted identifying who is responsible for each task -- the identified root cause. An additional SIEM (A) improves detection, not role clarity during response; phishing simulations (B) reduce incident probability, not response time; a SOAR (D) automates triage but does not resolve ambiguous human role assignments.'
+            },
+            {
+                q: 'A vulnerability management analyst is building a metrics report for the CISO that must include a KPI measuring how quickly the IR team responds once an incident is detected. The CISO specifically distinguishes this metric from the time it takes to fully remediate the issue. Which metric MOST directly satisfies this requirement?',
+                options: [
+                    'A. MTTD, measuring the average time from incident onset to first detection by the SOC',
+                    'B. MTTC, measuring the average time from detection to successful containment of the incident',
+                    'C. Alert volume, measuring the number of incidents detected per week',
+                    'D. MTTR, measuring the average time from detection to completion of full remediation'
+                ],
+                correct: 3,
+                domain: 'Reporting and Communication',
+                explanation: 'MTTR (Mean Time to Respond) measures how quickly the team responds once an incident is detected -- distinct from MTTD (how quickly they detect it) and MTTC (how quickly they contain it). MTTD (A) measures detection speed, not response speed; MTTC (B) measures containment, not the initial response action; alert volume (C) is a throughput metric, not a response speed metric. Note: In CS0-003 the exam uses MTTR as Mean Time to Respond, distinct from Mean Time to Remediate.'
+            },
+            {
+                q: 'An IR (Incident Response) lead is coordinating the response to an active network intrusion. The lead must decide which stakeholders to engage immediately during the incident versus which to inform in a post-incident report. Which stakeholder group MOST critically requires real-time engagement during the active response phase?',
+                options: [
+                    'A. Customers, who must be notified of the incident before it is confirmed or contained',
+                    'B. Regulators, who must receive status updates every hour during active incidents',
+                    'C. PR (Public Relations), who must draft a public statement before containment is achieved',
+                    'D. Executive leadership and legal counsel, who must be engaged in real-time to authorize containment actions and assess legal obligations'
+                ],
+                correct: 3,
+                domain: 'Reporting and Communication',
+                explanation: 'Executive leadership must be engaged in real-time because they may need to authorize major containment actions (taking systems offline, engaging law enforcement), and legal counsel must assess real-time legal exposure. Customers (A) should not be notified before the incident is confirmed; regulators (B) have defined post-incident notification windows, not hourly real-time updates; PR (C) should not draft public statements before containment without legal clearance.'
+            },
+            {
+                q: 'A compliance officer at a financial services firm is reviewing GDPR obligations following a breach of EU customer data. The breach was contained on a Wednesday. The officer must determine the regulatory notification deadline. Which GDPR requirement MOST directly governs this obligation?',
+                options: [
+                    'A. Notification must be made within 30 days of containment to the relevant supervisory authority',
+                    'B. Notification must be made to affected EU data subjects within 24 hours of breach discovery',
+                    'C. Notification must be made within 72 hours of becoming aware of the breach to the relevant supervisory authority',
+                    'D. Notification is required only when more than 1,000 EU data subjects are affected by the breach'
+                ],
+                correct: 2,
+                domain: 'Reporting and Communication',
+                explanation: 'GDPR Article 33 requires notification to the relevant supervisory authority within 72 hours of becoming aware of a personal data breach. 30 days (A) is not the GDPR window; 24-hour notification (B) is a stricter timeline that applies in some other frameworks (such as certain SEC rules), not the GDPR supervisory authority notification; the 1,000 data subject threshold (D) does not exist in GDPR -- all personal data breaches with risk to individuals require notification.'
+            },
+            {
+                q: 'A SOC director is reviewing IR reports from the past year and identifies that root cause analysis sections are consistently absent from post-incident reports. The director explains to the team why root cause analysis is an essential component of the IR report. Which statement MOST accurately describes the primary value of root cause analysis in IR reporting?',
+                options: [
+                    'A. Root cause analysis formally closes the incident by confirming all systems are restored and operations are normal',
+                    'B. Root cause analysis identifies the underlying vulnerability, misconfiguration, or process gap that enabled the incident, so that corrective actions address the actual cause rather than just the symptoms',
+                    'C. Root cause analysis provides the executive summary narrative that leadership uses to communicate incident status to the board',
+                    'D. Root cause analysis generates the IOC list that threat intelligence teams use to update detection signatures'
+                ],
+                correct: 1,
+                domain: 'Reporting and Communication',
+                explanation: 'Root cause analysis identifies the true underlying cause of the incident -- the vulnerability, misconfiguration, or process failure that enabled the attack -- so that corrective actions eliminate the root cause, not just the symptoms. Incident closure (A) is a separate administrative step; the executive summary (C) is authored separately from root cause analysis; IOC generation (D) is a distinct investigative output, not the output of root cause analysis.'
+            }
+        ];
+
+        // ============================================================
+        // END CONFIG — chrome below is shared. Do not edit when deriving.
+        // ============================================================
+
+        // Small util: convert '#06b6d4' -> 'rgba(6, 182, 212, 0.1)' for the dim variant.
+        function hexToRgba(hex, alpha) {
+            const h = hex.replace('#', '');
+            const r = parseInt(h.substring(0, 2), 16);
+            const g = parseInt(h.substring(2, 4), 16);
+            const b = parseInt(h.substring(4, 6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // --- APP STATE ---
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+
+        // --- DOM ELEMENTS ---
+        const contentDiv = document.getElementById('examContent');
+        const progressBar = document.getElementById('progressBar');
+
+        // --- INITIALIZATION ---
+        function init() {
+            // --- Apply CONFIG ---
+            document.title = QUIZ_TITLE;
+            document.getElementById('quizTitle').textContent = QUIZ_TITLE;
+            document.getElementById('quizSubtitle').textContent = QUIZ_SUBTITLE;
+            document.documentElement.style.setProperty('--accent', ACCENT_HEX);
+            document.documentElement.style.setProperty('--accent-dim', hexToRgba(ACCENT_HEX, 0.1));
+            document.documentElement.style.setProperty('--accent-glow', hexToRgba(ACCENT_HEX, 0.4));
+            document.documentElement.style.setProperty('--accent-select', hexToRgba(ACCENT_HEX, 0.3));
+
+            // --- existing init body continues below ---
+            renderQuestion();
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            const isLastQuestion = currentQuestionIndex === questions.length - 1;
+
+            // Update Progress
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // HTML Structure for Question
+            let html = `
+                <div class="question-header">
+                    <span class="question-number">QUESTION ${currentQuestionIndex + 1} OF ${questions.length}</span>
+                    <span class="domain-tag">${q.domain}</span>
+                </div>
+
+                <div class="question-text">${q.q}</div>
+
+                <div class="options">
+                    ${q.options.map((opt, index) => {
+                        const isSelected = userAnswers[currentQuestionIndex] === index;
+                        const label = String.fromCharCode(65 + index); // A, B, C, D
+                        return `
+                            <div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(${index})">
+                                <span class="option-label">${label}</span>
+                                <span class="option-text">${opt}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                <div class="navigation">
+                    <button class="btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
+                        &larr; Previous
+                    </button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" ${userAnswers[currentQuestionIndex] === null ? 'disabled' : ''}>
+                        ${isLastQuestion ? 'Finish Exam' : 'Next &rarr;'}
+                    </button>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+        }
+
+        function selectOption(index) {
+            userAnswers[currentQuestionIndex] = index;
+            // Re-render to show selection state (or just toggle class for performance, but re-render is safer for state sync)
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            // Calculate Score
+            let correctCount = 0;
+            questions.forEach((q, i) => {
+                if (userAnswers[i] === q.correct) correctCount++;
+            });
+
+            const score = Math.round((correctCount / questions.length) * 100);
+            const passed = score >= 83; // Approx 750/900
+            progressBar.style.width = '100%';
+
+            let html = `
+                <div class="results">
+                    <div class="score-card">
+                        <div class="subtitle">EXAM RESULTS</div>
+                        <div class="score-number">${score}</div>
+                        <div class="subtitle">SCORE / 100</div>
+                        <div class="pass-fail ${passed ? 'pass' : 'fail'}">
+                            ${passed ? 'PASS' : 'FAIL'}
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">${correctCount}</div>
+                            <div class="stat-label">Correct</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length - correctCount}</div>
+                            <div class="stat-label">Incorrect</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length}</div>
+                            <div class="stat-label">Total Questions</div>
+                        </div>
+                    </div>
+
+                    <div class="subtitle" style="margin-bottom: 20px;">Review Answers</div>
+
+                    ${questions.map((q, i) => {
+                        const userAnswer = userAnswers[i];
+                        const isCorrect = userAnswer === q.correct;
+                        const labelUser = String.fromCharCode(65 + userAnswer);
+                        const labelCorrect = String.fromCharCode(65 + q.correct);
+
+                        return `
+                            <div class="review-question ${isCorrect ? 'correct' : 'incorrect'}">
+                                <div class="review-header">
+                                    <span>Question ${i + 1}</span>
+                                    <span class="review-status ${isCorrect ? 'correct' : 'incorrect'}">
+                                        ${isCorrect ? 'CORRECT' : 'INCORRECT'}
+                                    </span>
+                                </div>
+                                <div class="review-text">${q.q}</div>
+
+                                <div class="review-answers">
+                                    <div class="answer-line">
+                                        <strong>Your Answer:</strong>
+                                        <span style="color: ${isCorrect ? 'var(--accent)' : 'var(--accent-red)'}">
+                                            ${labelUser}. ${q.options[userAnswer]}
+                                        </span>
+                                    </div>
+                                    <div class="answer-line">
+                                        <strong>Correct Answer:</strong>
+                                        <span style="color: var(--accent)">
+                                            ${labelCorrect}. ${q.options[q.correct]}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="explanation">
+                                    <div class="explanation-title">Explanation</div>
+                                    ${q.explanation}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+
+                    <div style="text-align: center; margin-top: 40px;">
+                        <button class="btn btn-primary" onclick="location.reload()" style="display: inline-flex;">
+                            Retake Exam
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+            window.scrollTo(0,0);
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
