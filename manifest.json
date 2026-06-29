@@ -1,6 +1,6 @@
 {
-  "version": "2.2.0",
-  "lastUpdated": "2026-06-28T00:00:00Z",
+  "version": "2.3.0",
+  "lastUpdated": "2026-06-29T00:00:00Z",
   "certs": {
     "a-plus": {
       "label": "A+ Core 2",
@@ -53,7 +53,23 @@
           { "id": 3, "title": "Tool Selection from Output", "filename": "tool-selection-pbq-3.html", "description": "Pick the right tool for each task from a 12-tool inventory; distractors stay in their lane." }
         ],
         "exams": [],
-        "quizzes": []
+        "quizzes": [
+          { "id": 1,  "title": "Practice Quiz 1.1",  "filename": "practice-quiz-1-1.html", "objective": "1.1", "description": "15 questions: System and network architecture concepts in security operations." },
+          { "id": 2,  "title": "Practice Quiz 1.2",  "filename": "practice-quiz-1-2.html", "objective": "1.2", "description": "15 questions: Analyze indicators of potentially malicious activity." },
+          { "id": 3,  "title": "Practice Quiz 1.3",  "filename": "practice-quiz-1-3.html", "objective": "1.3", "description": "15 questions: Use appropriate tools or techniques to determine malicious activity." },
+          { "id": 4,  "title": "Practice Quiz 1.4",  "filename": "practice-quiz-1-4.html", "objective": "1.4", "description": "15 questions: Compare and contrast threat-intelligence and threat-hunting concepts." },
+          { "id": 5,  "title": "Practice Quiz 1.5",  "filename": "practice-quiz-1-5.html", "objective": "1.5", "description": "15 questions: Efficiency and process improvement in security operations." },
+          { "id": 6,  "title": "Practice Quiz 2.1",  "filename": "practice-quiz-2-1.html", "objective": "2.1", "description": "15 questions: Implement vulnerability scanning methods and concepts." },
+          { "id": 7,  "title": "Practice Quiz 2.2",  "filename": "practice-quiz-2-2.html", "objective": "2.2", "description": "15 questions: Analyze output from vulnerability assessment tools." },
+          { "id": 8,  "title": "Practice Quiz 2.3",  "filename": "practice-quiz-2-3.html", "objective": "2.3", "description": "15 questions: Analyze data to prioritize vulnerabilities." },
+          { "id": 9,  "title": "Practice Quiz 2.4",  "filename": "practice-quiz-2-4.html", "objective": "2.4", "description": "15 questions: Recommend controls to mitigate attacks and software vulnerabilities." },
+          { "id": 10, "title": "Practice Quiz 2.5",  "filename": "practice-quiz-2-5.html", "objective": "2.5", "description": "15 questions: Vulnerability response, handling, and management." },
+          { "id": 11, "title": "Practice Quiz 3.1",  "filename": "practice-quiz-3-1.html", "objective": "3.1", "description": "15 questions: Attack methodology frameworks (Kill Chain, Diamond, MITRE ATT&CK, OSSTMM, OWASP)." },
+          { "id": 12, "title": "Practice Quiz 3.2",  "filename": "practice-quiz-3-2.html", "objective": "3.2", "description": "15 questions: Perform incident response activities." },
+          { "id": 13, "title": "Practice Quiz 3.3",  "filename": "practice-quiz-3-3.html", "objective": "3.3", "description": "15 questions: Preparation and post-incident phases of the IR life cycle." },
+          { "id": 14, "title": "Practice Quiz 4.1",  "filename": "practice-quiz-4-1.html", "objective": "4.1", "description": "15 questions: Vulnerability management reporting and communication." },
+          { "id": 15, "title": "Practice Quiz 4.2",  "filename": "practice-quiz-4-2.html", "objective": "4.2", "description": "15 questions: Incident response reporting and communication." }
+        ]
       }
     }
   },
