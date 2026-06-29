@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelnet Quiz</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #0c0c0c;
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --accent: #3b82f6; /* Default — overridden per-quiz via ACCENT_HEX in CONFIG */
+            --accent-dim: rgba(59, 130, 246, 0.1); /* Default — overridden via setProperty in init() */
+            --accent-glow: rgba(59, 130, 246, 0.4); /* Default — overridden via setProperty in init() */
+            --accent-select: rgba(59, 130, 246, 0.3); /* Default — overridden via setProperty in init() */
+            --accent-red: #ef4444;
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            /* Grid Background Effect */
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Selection Color */
+        ::selection {
+            background: var(--accent-select);
+            color: #dbeafe;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Terminal Header Bar --- */
+        .terminal-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot.red { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); }
+        .dot.yellow { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); }
+        .dot.green { background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); }
+
+        /* --- Brutal Header Section --- */
+        .header {
+            padding: 40px 40px 20px 40px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .header .subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: block;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-container {
+            width: 100%;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        /* --- Content Area --- */
+        .content {
+            padding: 40px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .question-number {
+            font-family: var(--font-mono);
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .domain-tag {
+            font-family: var(--font-mono);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            color: #eee;
+            font-weight: 400;
+        }
+
+        /* --- Options --- */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .option:hover {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .option.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+
+        .option-label {
+            font-family: var(--font-mono);
+            margin-right: 20px;
+            color: var(--text-muted);
+            font-weight: bold;
+            min-width: 25px;
+        }
+
+        .option.selected .option-label {
+            color: var(--accent);
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .option.selected .option-text {
+            color: #fff;
+        }
+
+        /* --- Buttons --- */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 50px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .btn-primary {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: var(--border-color);
+        }
+
+        /* --- Results Screen --- */
+        .results {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .score-card {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Terminal scanline effect for score */
+        .score-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: rgba(255,255,255,0.1);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .score-number {
+            font-size: 5rem;
+            font-weight: bold;
+            font-family: var(--font-mono);
+            margin: 10px 0;
+            color: #fff;
+        }
+
+        .pass-fail {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            display: inline-block;
+            border: 1px solid currentColor;
+            margin-top: 20px;
+        }
+
+        .pass { color: var(--accent); }
+        .fail { color: var(--accent-red); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            font-family: var(--font-mono);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        /* Review Section */
+        .review-question {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid transparent;
+        }
+
+        .review-question.correct { border-left-color: var(--accent); }
+        .review-question.incorrect { border-left-color: var(--accent-red); }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .review-status.correct { color: var(--accent); }
+        .review-status.incorrect { color: var(--accent-red); }
+
+        .review-text {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .review-answers {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .answer-line {
+            margin-bottom: 8px;
+            display: flex;
+        }
+
+        .answer-line strong {
+            width: 140px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            border-left: 2px solid var(--text-muted);
+            background: rgba(255,255,255,0.03);
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+
+        .explanation-title {
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0c0c0c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) #0c0c0c;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .content { padding: 20px; }
+            .question-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .score-number { font-size: 3rem; }
+            .navigation { flex-direction: column; gap: 15px; }
+            .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="terminal-bar">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+            <span style="margin-left: 10px;">bash — user@shelnet-exam: ~</span>
+        </div>
+
+        <div class="header">
+            <h1 id="quizTitle">Quiz Title</h1>
+            <div class="subtitle" id="quizSubtitle">C:\Shelnet\Quizzes> Objective</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <div class="content" id="examContent">
+            </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // QUIZ CONFIG — edit this block when deriving a new quiz.
+        // Leave the rest of this file unchanged.
+        // ============================================================
+        const QUIZ_TITLE    = 'Practice Quiz 3.1';
+        const QUIZ_SUBTITLE = 'C:\\Shelnet\\Quizzes> CS0-003 Objective 3.1';
+        const ACCENT_HEX    = '#06b6d4';
+
+        const questions = [
+            {
+                q: 'A security analyst reviewing a phishing campaign observes that the attacker registered a lookalike domain, crafted a macro-enabled document, and sent it via email. Which phase of the Cyber Kill Chain does the email delivery represent MOST accurately?',
+                options: [
+                    'A. Weaponization, because the malicious document was constructed at this stage',
+                    'B. Delivery, because the weaponized payload was transmitted to the target',
+                    'C. Exploitation, because the email caused the victim to click a link',
+                    'D. Reconnaissance, because the attacker gathered target email addresses beforehand'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                explanation: 'Delivery is the Cyber Kill Chain phase in which the attacker transmits the weaponized payload (in this case the email with the malicious document) to the target. Weaponization (A) is when the payload is built; Exploitation (C) occurs when the victim executes the payload; Reconnaissance (D) is the earlier information-gathering phase.'
+            },
+            {
+                q: 'A SOC analyst investigating a breach discovers that the attacker installed a remote access trojan that phoned home on TCP 443 to blend in with HTTPS traffic. Which Cyber Kill Chain phase BEST describes this activity?',
+                options: [
+                    'A. Installation, because the trojan was placed on the host file system',
+                    'B. Actions on Objectives, because the attacker achieved their final goal',
+                    'C. Command and Control (C2), because the trojan established an outbound channel to the attacker',
+                    'D. Exploitation, because the trojan leveraged a software vulnerability to persist'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                explanation: 'C2 (Command and Control) is the phase where the implanted malware opens a communication channel back to the attacker\'s infrastructure. Installation (A) is the earlier phase when the trojan was written to disk; Actions on Objectives (B) is what follows C2 once control is established; Exploitation (D) refers to the initial code-execution event.'
+            },
+            {
+                q: 'An incident responder is mapping a confirmed intrusion to the Diamond Model of Intrusion Analysis. The team has identified the attacker group, the targeted organization, the C2 server IP, and the custom malware used. Which Diamond Model vertex does the custom malware represent MOST directly?',
+                options: [
+                    'A. Adversary, because the malware was created by the threat actor',
+                    'B. Infrastructure, because the malware communicates over network channels',
+                    'C. Victim, because the malware executes on the victim\'s endpoint',
+                    'D. Capability, because the malware is the tool used to accomplish the attack'
+                ],
+                correct: 3,
+                domain: 'Incident Response and Management',
+                explanation: 'In the Diamond Model, Capability represents the tools and techniques the adversary employs against the victim -- custom malware is the quintessential capability artifact. Adversary (A) is the threat actor identity; Infrastructure (B) is the C2 server IP; Victim (C) is the targeted organization.'
+            },
+            {
+                q: 'A tier-2 analyst is using MITRE ATT&CK to characterize observed attacker behaviors. The analyst notes that the attacker used a scheduled task for persistence and dumped LSASS memory for credential access. Which ATT&CK concept BEST describes these two observations?',
+                options: [
+                    'A. Techniques, because they are specific adversary behaviors mapped to tactics in the ATT&CK matrix',
+                    'B. Groups, because the behaviors identify a known threat actor cluster',
+                    'C. Software entries, because the behaviors correspond to named malware tools',
+                    'D. Sub-techniques only, because scheduled tasks and LSASS dumping are too granular for technique-level mapping'
+                ],
+                correct: 0,
+                domain: 'Incident Response and Management',
+                explanation: 'ATT&CK Techniques are the specific methods adversaries use to achieve tactical goals (e.g., T1053 Scheduled Task/Job for persistence, T1003.001 LSASS Memory for credential access). Groups (B) are named threat actor clusters; Software (C) are named tools; the claim in (D) is wrong -- both behaviors have technique-level entries, not sub-technique only.'
+            },
+            {
+                q: 'A security analyst is evaluating which framework to use to assess the physical security of a financial institution\'s data center, including personnel security and operational controls, in addition to its technical network controls. Which framework BEST supports this scope?',
+                options: [
+                    'A. MITRE ATT&CK, because it covers post-compromise TTP across all operating environments',
+                    'B. Cyber Kill Chain, because it maps attacker phases from reconnaissance to actions on objectives',
+                    'C. OSSTMM, because it provides a methodology for testing physical, human, and technical security channels',
+                    'D. Diamond Model, because it correlates adversary, victim, infrastructure, and capability'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                explanation: 'OSSTMM (Open Source Security Testing Methodology Manual) explicitly covers physical, human, wireless, telecommunications, and network security testing channels, making it the BEST fit for a scope that includes physical and operational controls. MITRE ATT&CK (A) and Cyber Kill Chain (B) are threat/attack frameworks, not testing methodologies; Diamond Model (D) is an intrusion-analysis framework.'
+            },
+            {
+                q: 'An IR team lead is briefing executives on how attackers typically progress from initial access to data exfiltration. The lead wants a linear, phase-based model that a non-technical audience can follow. Which framework MOST clearly illustrates this sequential attack progression?',
+                options: [
+                    'A. OWASP Testing Guide, because it breaks web application testing into numbered phases',
+                    'B. Cyber Kill Chain, because it presents a sequential seven-phase model of attacker activity',
+                    'C. MITRE ATT&CK, because it organizes TTP into a matrix of tactics and techniques',
+                    'D. Diamond Model, because it provides a four-vertex graph of intrusion components'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                explanation: 'The Cyber Kill Chain provides a linear seven-phase model (Reconnaissance through Actions on Objectives) that is easy for non-technical audiences to follow. OWASP Testing Guide (A) is a web testing methodology; MITRE ATT&CK (C) is a matrix, not a sequential narrative; the Diamond Model (D) is a relational graph, not a sequential flow.'
+            },
+            {
+                q: 'A SOC analyst receives a threat intelligence report describing an actor who gathered publicly available employee names and emails from LinkedIn before crafting spear-phishing lures. Which Cyber Kill Chain phase does this activity represent MOST accurately?',
+                options: [
+                    'A. Delivery, because the attacker sent communication to the target',
+                    'B. Reconnaissance, because the attacker collected target information from open sources',
+                    'C. Weaponization, because the attacker built a custom payload using gathered data',
+                    'D. Installation, because the attacker identified where to place future malware'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                explanation: 'Reconnaissance is the first Cyber Kill Chain phase, covering all pre-attack information gathering including OSINT on employees via LinkedIn. Delivery (A) is when the payload reaches the target; Weaponization (C) is crafting the payload; Installation (D) is placing malware post-exploitation.'
+            },
+            {
+                q: 'An incident responder is analyzing a breach where the attacker exploited a vulnerability in a web application to gain a shell, then pivoted to exfiltrate a customer database. The team wants to map the attacker\'s TTP to ATT&CK to identify detection gaps. Which ATT&CK component MOST directly provides mappable detection opportunities against these behaviors?',
+                options: [
+                    'A. ATT&CK Groups, which list known threat actor clusters and their attributed campaigns',
+                    'B. ATT&CK Techniques and Sub-techniques, which describe specific adversary behaviors and include detection notes',
+                    'C. ATT&CK Software, which enumerates malware families associated with threat groups',
+                    'D. ATT&CK Mitigations, which prescribe defensive controls without listing detection methods'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                explanation: 'ATT&CK Technique and Sub-technique pages include data sources, detection guidance, and mitigation references, making them the primary component for identifying detection opportunities. Groups (A) provide attribution context; Software (C) lists tools; Mitigations (D) are defensive prescriptions -- and the statement that they exclude detection methods is a mischaracterization.'
+            },
+            {
+                q: 'A digital forensics analyst is describing the Diamond Model to a new team member. The analyst explains that the C2 IP addresses, domain names, and email accounts used by the attacker all belong to the same vertex. Which Diamond Model vertex is the analyst describing MOST accurately?',
+                options: [
+                    'A. Infrastructure, because they are the network and communication resources the adversary uses',
+                    'B. Adversary, because they are controlled by the threat actor',
+                    'C. Capability, because these artifacts enable the attacker\'s malicious actions',
+                    'D. Victim, because they are the entry points targeted by the attacker'
+                ],
+                correct: 0,
+                domain: 'Incident Response and Management',
+                explanation: 'In the Diamond Model, Infrastructure comprises the IP addresses, domain names, email addresses, and other network resources the adversary leverages to stage and execute attacks. Capability (C) refers to the malware and exploits; Adversary (B) is the threat actor itself; Victim (D) is the targeted organization, not the attacker\'s own communication resources.'
+            },
+            {
+                q: 'A security analyst discovers that after exploitation, the attacker copied a custom backdoor to the Windows startup folder and added a registry Run key to ensure it executed at every boot. Which Cyber Kill Chain phase BEST describes this activity?',
+                options: [
+                    'A. Exploitation, because the attacker used a vulnerability to run the backdoor',
+                    'B. Command and Control (C2), because the backdoor beacons home after starting',
+                    'C. Delivery, because the backdoor was transferred from an external host',
+                    'D. Installation, because the attacker established persistence mechanisms on the host'
+                ],
+                correct: 3,
+                domain: 'Incident Response and Management',
+                explanation: 'Installation is the Cyber Kill Chain phase covering persistence establishment -- writing malware to disk and configuring autorun mechanisms like startup folders and registry Run keys. Exploitation (A) is the code-execution event that preceded this; C2 (B) is the subsequent outbound callback; Delivery (C) is the earlier payload transmission phase.'
+            },
+            {
+                q: 'A SOC analyst is comparing the OWASP Testing Guide to MITRE ATT&CK for use in a web application penetration test engagement. Which statement MOST accurately distinguishes the two frameworks?',
+                options: [
+                    'A. The OWASP Testing Guide is a prescriptive testing methodology for web applications, while MITRE ATT&CK is a knowledge base of observed adversary TTP across enterprise environments',
+                    'B. MITRE ATT&CK covers only network-layer attacks, while OWASP covers both network and application layers',
+                    'C. The OWASP Testing Guide is used exclusively for post-incident analysis, while MITRE ATT&CK is used only during active penetration testing',
+                    'D. Both frameworks provide identical coverage but MITRE ATT&CK uses numbered phases while OWASP uses named tactics'
+                ],
+                correct: 0,
+                domain: 'Incident Response and Management',
+                explanation: 'OWASP Testing Guide provides structured web application test cases (e.g., OTG-AUTHN, OTG-INPVAL categories), while MITRE ATT&CK is a threat knowledge base cataloging observed TTP used by real adversaries. Option B mischaracterizes ATT&CK scope; Option C mischaracterizes both frameworks\' use cases; Option D is factually wrong.'
+            },
+            {
+                q: 'An incident responder has confirmed that an attacker used stolen domain credentials to log in to a SharePoint server and download 50 GB of sensitive documents before the SOC detected the intrusion. Which Cyber Kill Chain phase MOST accurately describes the document exfiltration activity?',
+                options: [
+                    'A. Actions on Objectives, because the attacker accomplished their final goal of stealing data',
+                    'B. Reconnaissance, because the attacker surveyed which documents existed before downloading',
+                    'C. Installation, because the attacker placed themselves persistently inside the environment',
+                    'D. Exploitation, because the attacker exploited credential theft to access the server'
+                ],
+                correct: 0,
+                domain: 'Incident Response and Management',
+                explanation: 'Actions on Objectives is the final Cyber Kill Chain phase in which the attacker achieves their mission -- in this case, data exfiltration. Reconnaissance (B) is pre-attack; Installation (C) is persistence establishment; Exploitation (D) is the code/auth vulnerability phase that enabled initial access, not the subsequent data theft.'
+            },
+            {
+                q: 'A security analyst is mapping a threat group\'s campaign to the Diamond Model. The team confirmed the group is APT29, the targeted sector is government, the C2 uses Tor hidden services, and the group deployed a custom backdoor named SUNBURST. Which element maps to the Adversary vertex MOST accurately?',
+                options: [
+                    'A. Tor hidden services, because they are the communication channel the adversary relies on',
+                    'B. Government sector organizations, because they are the entities the adversary targets',
+                    'C. APT29, because they are the threat actor responsible for the intrusion',
+                    'D. SUNBURST, because it is the tool the adversary built and deployed'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                explanation: 'The Adversary vertex in the Diamond Model is the threat actor or group responsible for the intrusion -- APT29 in this case. Tor hidden services map to Infrastructure; government sector organizations map to Victim; SUNBURST maps to Capability.'
+            },
+            {
+                q: 'A SOC manager wants to evaluate the overall effectiveness of security controls against observed adversary behaviors across all attack phases. Which framework provides the MOST comprehensive mapping of adversary behaviors for this purpose?',
+                options: [
+                    'A. OSSTMM, because it provides quantitative metrics for security testing across all channels',
+                    'B. Cyber Kill Chain, because it covers every phase from reconnaissance through exfiltration',
+                    'C. MITRE ATT&CK, because it catalogs hundreds of observed techniques across all tactical phases including pre-attack and post-compromise behaviors',
+                    'D. OWASP Testing Guide, because it comprehensively covers all attack surfaces including network and mobile'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                explanation: 'MITRE ATT&CK provides the broadest and most granular coverage of adversary behaviors, with matrices for Enterprise, Mobile, and ICS environments plus hundreds of techniques across all tactical phases. The Cyber Kill Chain (B) is a high-level seven-phase model with less granularity; OSSTMM (A) is a testing methodology, not an adversary behavior catalog; OWASP (D) focuses on application security testing.'
+            },
+            {
+                q: 'A digital forensics analyst is analyzing a suspected nation-state intrusion. The analyst wants to understand the relationships between the attacker, their targets, the malware\'s functional capabilities, and the hosting infrastructure as an interconnected system. Which framework MOST directly supports this relational analysis approach?',
+                options: [
+                    'A. OWASP Testing Guide, because it provides structured test cases for analyzing web application attack vectors',
+                    'B. Cyber Kill Chain, because it traces the attack progression from beginning to end',
+                    'C. OSSTMM, because it quantifies security posture across physical and technical channels',
+                    'D. Diamond Model of Intrusion Analysis, because it models the relationships among adversary, victim, infrastructure, and capability as four connected vertices'
+                ],
+                correct: 3,
+                domain: 'Incident Response and Management',
+                explanation: 'The Diamond Model was specifically designed to represent the relationships between the four core elements of an intrusion (adversary, victim, infrastructure, capability) as a connected graph, enabling relational intelligence analysis. The Cyber Kill Chain (B) is a linear phase model; OWASP (A) is a web testing guide; OSSTMM (C) is a quantitative testing methodology.'
+            }
+        ];
+
+        // ============================================================
+        // END CONFIG — chrome below is shared. Do not edit when deriving.
+        // ============================================================
+
+        // Small util: convert '#06b6d4' -> 'rgba(6, 182, 212, 0.1)' for the dim variant.
+        function hexToRgba(hex, alpha) {
+            const h = hex.replace('#', '');
+            const r = parseInt(h.substring(0, 2), 16);
+            const g = parseInt(h.substring(2, 4), 16);
+            const b = parseInt(h.substring(4, 6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // --- APP STATE ---
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+
+        // --- DOM ELEMENTS ---
+        const contentDiv = document.getElementById('examContent');
+        const progressBar = document.getElementById('progressBar');
+
+        // --- INITIALIZATION ---
+        function init() {
+            // --- Apply CONFIG ---
+            document.title = QUIZ_TITLE;
+            document.getElementById('quizTitle').textContent = QUIZ_TITLE;
+            document.getElementById('quizSubtitle').textContent = QUIZ_SUBTITLE;
+            document.documentElement.style.setProperty('--accent', ACCENT_HEX);
+            document.documentElement.style.setProperty('--accent-dim', hexToRgba(ACCENT_HEX, 0.1));
+            document.documentElement.style.setProperty('--accent-glow', hexToRgba(ACCENT_HEX, 0.4));
+            document.documentElement.style.setProperty('--accent-select', hexToRgba(ACCENT_HEX, 0.3));
+
+            // --- existing init body continues below ---
+            renderQuestion();
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            const isLastQuestion = currentQuestionIndex === questions.length - 1;
+
+            // Update Progress
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // HTML Structure for Question
+            let html = `
+                <div class="question-header">
+                    <span class="question-number">QUESTION ${currentQuestionIndex + 1} OF ${questions.length}</span>
+                    <span class="domain-tag">${q.domain}</span>
+                </div>
+
+                <div class="question-text">${q.q}</div>
+
+                <div class="options">
+                    ${q.options.map((opt, index) => {
+                        const isSelected = userAnswers[currentQuestionIndex] === index;
+                        const label = String.fromCharCode(65 + index); // A, B, C, D
+                        return `
+                            <div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(${index})">
+                                <span class="option-label">${label}</span>
+                                <span class="option-text">${opt}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                <div class="navigation">
+                    <button class="btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
+                        &larr; Previous
+                    </button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" ${userAnswers[currentQuestionIndex] === null ? 'disabled' : ''}>
+                        ${isLastQuestion ? 'Finish Exam' : 'Next &rarr;'}
+                    </button>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+        }
+
+        function selectOption(index) {
+            userAnswers[currentQuestionIndex] = index;
+            // Re-render to show selection state (or just toggle class for performance, but re-render is safer for state sync)
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            // Calculate Score
+            let correctCount = 0;
+            questions.forEach((q, i) => {
+                if (userAnswers[i] === q.correct) correctCount++;
+            });
+
+            const score = Math.round((correctCount / questions.length) * 100);
+            const passed = score >= 83; // Approx 750/900
+            progressBar.style.width = '100%';
+
+            let html = `
+                <div class="results">
+                    <div class="score-card">
+                        <div class="subtitle">EXAM RESULTS</div>
+                        <div class="score-number">${score}</div>
+                        <div class="subtitle">SCORE / 100</div>
+                        <div class="pass-fail ${passed ? 'pass' : 'fail'}">
+                            ${passed ? 'PASS' : 'FAIL'}
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">${correctCount}</div>
+                            <div class="stat-label">Correct</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length - correctCount}</div>
+                            <div class="stat-label">Incorrect</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length}</div>
+                            <div class="stat-label">Total Questions</div>
+                        </div>
+                    </div>
+
+                    <div class="subtitle" style="margin-bottom: 20px;">Review Answers</div>
+
+                    ${questions.map((q, i) => {
+                        const userAnswer = userAnswers[i];
+                        const isCorrect = userAnswer === q.correct;
+                        const labelUser = String.fromCharCode(65 + userAnswer);
+                        const labelCorrect = String.fromCharCode(65 + q.correct);
+
+                        return `
+                            <div class="review-question ${isCorrect ? 'correct' : 'incorrect'}">
+                                <div class="review-header">
+                                    <span>Question ${i + 1}</span>
+                                    <span class="review-status ${isCorrect ? 'correct' : 'incorrect'}">
+                                        ${isCorrect ? 'CORRECT' : 'INCORRECT'}
+                                    </span>
+                                </div>
+                                <div class="review-text">${q.q}</div>
+
+                                <div class="review-answers">
+                                    <div class="answer-line">
+                                        <strong>Your Answer:</strong>
+                                        <span style="color: ${isCorrect ? 'var(--accent)' : 'var(--accent-red)'}">
+                                            ${labelUser}. ${q.options[userAnswer]}
+                                        </span>
+                                    </div>
+                                    <div class="answer-line">
+                                        <strong>Correct Answer:</strong>
+                                        <span style="color: var(--accent)">
+                                            ${labelCorrect}. ${q.options[q.correct]}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="explanation">
+                                    <div class="explanation-title">Explanation</div>
+                                    ${q.explanation}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+
+                    <div style="text-align: center; margin-top: 40px;">
+                        <button class="btn btn-primary" onclick="location.reload()" style="display: inline-flex;">
+                            Retake Exam
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+            window.scrollTo(0,0);
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
