@@ -488,26 +488,26 @@
             {
                 q: 'A security analyst is reviewing firewall logs and notices that an internal host is making short, periodic outbound HTTPS connections to the same external IP address every 60 seconds. The connections transfer minimal data each time. The host is a developer workstation that has no scheduled tasks requiring external access. Which of the following network-related indicators BEST describes this behavior?',
                 options: [
-                    'A. Bandwidth consumption',
+                    'A. Beaconing',
                     'B. Scans/sweeps',
-                    'C. Beaconing',
+                    'C. Bandwidth consumption',
                     'D. Activity on unexpected ports'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'Beaconing is characterized by regular, periodic, low-volume check-in connections from an infected host to a C2 server. Bandwidth consumption (A) refers to high-volume data movement rather than small, periodic signals.'
+                explanation: 'Beaconing is characterized by regular, periodic, low-volume check-in connections from an infected host to a C2 server. Bandwidth consumption (C) refers to high-volume data movement rather than small, periodic signals.'
             },
             {
                 q: 'A tier-1 analyst receives an alert from the EDR platform showing that a Windows host is consuming 98% of available RAM and the responsible process is not a recognized system process. The process was spawned by a document opened by a finance team member. Which of the following host-related indicators is the analyst observing?',
                 options: [
-                    'A. Processor consumption',
+                    'A. Memory consumption',
                     'B. Drive capacity consumption',
-                    'C. Memory consumption',
+                    'C. Processor consumption',
                     'D. Unauthorized scheduled tasks'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'Memory consumption refers to a process consuming abnormal amounts of RAM, which is a host-related indicator of malicious activity such as a memory-resident payload. Processor consumption (A) describes high CPU usage, not RAM saturation.'
+                explanation: 'Memory consumption refers to a process consuming abnormal amounts of RAM, which is a host-related indicator of malicious activity such as a memory-resident payload. Processor consumption (C) describes high CPU usage, not RAM saturation.'
             },
             {
                 q: 'A SOC analyst is investigating a Windows server that has been added to the domain without a change ticket. A review of event logs shows that new administrator-level accounts were created late on a weekend night, and previously restricted registry keys have been modified. Which of the following host-related indicators are present? (Select the option that includes ALL applicable indicators)',

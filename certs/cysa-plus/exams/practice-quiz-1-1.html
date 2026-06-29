@@ -488,26 +488,26 @@
             {
                 q: 'A SOC analyst is investigating a Windows endpoint that was flagged after unusual processes appeared in the task manager. The analyst wants to verify whether a key-value store used by Windows to hold system and application configuration was silently modified to achieve persistence. Which of the following OS concepts is the analyst examining?',
                 options: [
-                    'A. File structure configuration locations',
+                    'A. Windows Registry',
                     'B. Hardware architecture',
-                    'C. Windows Registry',
+                    'C. File structure configuration locations',
                     'D. System hardening baseline'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'The Windows Registry is the centralized key-value database where Windows stores configuration data including autorun keys that attackers commonly abuse for persistence. File structure (A) relates to where config files live on disk, not the registry.'
+                explanation: 'The Windows Registry is the centralized key-value database where Windows stores configuration data including autorun keys that attackers commonly abuse for persistence. File structure (C) relates to where config files live on disk, not the registry.'
             },
             {
                 q: 'A security analyst is reviewing an alert triggered by a workload running in a public cloud environment. The workload executes a function without any persistent server infrastructure and scales automatically on demand. Which of the following infrastructure concepts BEST describes this deployment model?',
                 options: [
-                    'A. Containerization',
+                    'A. Serverless',
                     'B. Virtualization',
-                    'C. Serverless',
+                    'C. Containerization',
                     'D. Hybrid cloud'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'Serverless computing executes code in response to events without provisioning or managing servers; the function-as-a-service model matches the description. Containerization (A) packages application code with its dependencies but still runs on underlying server infrastructure.'
+                explanation: 'Serverless computing executes code in response to events without provisioning or managing servers; the function-as-a-service model matches the description. Containerization (C) packages application code with its dependencies but still runs on underlying server infrastructure.'
             },
             {
                 q: 'A network engineer is segmenting a corporate environment to limit lateral movement by attackers. The design calls for a policy where every device must authenticate and be authorized before being trusted, regardless of whether it is inside or outside the traditional network perimeter. Which of the following network architecture models BEST describes this requirement?',
@@ -548,26 +548,26 @@
             {
                 q: 'A security analyst at a financial institution is reviewing traffic between internal systems and a partner organization. The analyst notices that an intermediate proxy device is decrypting HTTPS sessions to inspect the payload for malware before re-encrypting and forwarding the traffic to the destination. Which of the following encryption concepts does this describe?',
                 options: [
-                    'A. PKI',
+                    'A. SSL inspection',
                     'B. TLS mutual authentication',
-                    'C. SSL inspection',
+                    'C. PKI',
                     'D. Certificate pinning'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'SSL inspection (also called TLS inspection) terminates the encrypted session at a proxy, inspects the plaintext payload, then re-encrypts it before forwarding. PKI (A) is the broader framework of certificate management and is not the specific interception technique being described.'
+                explanation: 'SSL inspection (also called TLS inspection) terminates the encrypted session at a proxy, inspects the plaintext payload, then re-encrypts it before forwarding. PKI (C) is the broader framework of certificate management and is not the specific interception technique being described.'
             },
             {
                 q: 'A tier-1 analyst receives a ticket from HR reporting that a file containing employee names, Social Security numbers, and addresses was found in an unsanctioned cloud storage share. The analyst escalates to the DLP team. Which of the following sensitive data categories is MOST directly at risk in this scenario?',
                 options: [
-                    'A. CHD',
+                    'A. PII',
                     'B. PHI',
-                    'C. PII',
+                    'C. CHD',
                     'D. IP'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'PII includes names, Social Security numbers, and addresses - all information that can identify a specific individual. CHD (A) refers to cardholder data such as credit card numbers, which are not mentioned in the scenario.'
+                explanation: 'PII includes names, Social Security numbers, and addresses - all information that can identify a specific individual. CHD (C) refers to cardholder data such as credit card numbers, which are not mentioned in the scenario.'
             },
             {
                 q: 'A SOC analyst is designing the monitoring architecture for a new branch office that must extend corporate security policies to remote users without deploying on-premises hardware at that site. The solution should converge networking and security services in the cloud and enforce consistent policy for all users regardless of location. Which of the following network architecture models BEST fits this requirement?',

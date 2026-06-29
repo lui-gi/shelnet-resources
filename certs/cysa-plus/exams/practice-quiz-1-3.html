@@ -474,16 +474,16 @@
 
         const questions = [
             {
-                q: 'A security analyst needs to capture all network packets traversing a corporate switch port and inspect the full payload of individual frames using a GUI to follow TCP streams and decode protocols. Which of the following tools BEST meets this requirement?',
+                q: 'A SOC analyst is parsing authentication log lines to extract all source IP addresses that appear in failed-login events. The log format is consistent and the analyst wants to apply a pattern to match and capture only the IP field from each matching line without loading the logs into a SIEM. Which of the following tools or techniques is MOST appropriate for this task?',
                 options: [
-                    'A. Zeek',
-                    'B. tcpdump',
-                    'C. Nmap',
-                    'D. Wireshark'
+                    'A. Regular expressions',
+                    'B. awk',
+                    'C. grep',
+                    'D. jq'
                 ],
-                correct: 3,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'Wireshark provides GUI-based packet capture with deep protocol decoding, stream following, and frame-level payload inspection. tcpdump (B) is the correct category (packet capture) but is command-line only with no GUI and limited protocol decode depth.'
+                explanation: 'Regular expressions define a character-pattern syntax that can match and capture specific fields within text; applying a regex to the log lines directly extracts the IP field from each failed-login entry. awk (B) is a CLI text-processing tool that can apply field-based rules but is not the underlying pattern syntax being selected here; a regex is the technique, awk is one tool that can execute it.'
             },
             {
                 q: 'A SOC analyst is responding to a suspected intrusion on a headless Linux server and needs to capture packets using BPF filter syntax in a scriptable, lightweight manner without a graphical interface. Which of the following tools is MOST appropriate?',
@@ -512,50 +512,50 @@
             {
                 q: 'A SOC analyst is correlating authentication events, firewall logs, and endpoint telemetry from dozens of sources to identify whether a specific user account was involved in lateral movement over the past 72 hours. Which of the following tools BEST supports this large-scale log search and correlation task?',
                 options: [
-                    'A. EDR',
+                    'A. SIEM',
                     'B. SOAR',
-                    'C. SIEM',
+                    'C. EDR',
                     'D. Wireshark'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
                 explanation: 'A SIEM aggregates, indexes, and correlates log data from multiple sources, enabling timeline reconstruction and cross-source queries. SOAR (B) builds on SIEM by automating response playbooks but is not the primary tool for search and correlation of historical log data.'
             },
             {
                 q: 'A security analyst has identified a confirmed phishing campaign and wants to automatically enrich alerts with threat intelligence, open a ticket in the ITSM system, and notify the affected user via email without manual intervention. Which of the following tools BEST enables this automated response workflow?',
                 options: [
-                    'A. SIEM',
+                    'A. SOAR',
                     'B. EDR',
-                    'C. SOAR',
+                    'C. SIEM',
                     'D. AbuseIPDB'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'SOAR platforms execute playbooks that automate and orchestrate multi-step response actions across security tools, ITSM systems, and communication channels. A SIEM (A) can generate the initial alert but cannot natively execute the downstream ticket creation and notification workflow without SOAR orchestration.'
+                explanation: 'SOAR platforms execute playbooks that automate and orchestrate multi-step response actions across security tools, ITSM systems, and communication channels. A SIEM (C) can generate the initial alert but cannot natively execute the downstream ticket creation and notification workflow without SOAR orchestration.'
             },
             {
                 q: 'A tier-2 analyst is investigating a Windows endpoint where a user reported unexpected behavior. The analyst wants to detect malicious processes, collect endpoint telemetry, and remotely contain the host without relying on a centralized log search tool. Which of the following tools is MOST appropriate for this task?',
                 options: [
                     'A. SIEM',
                     'B. SOAR',
-                    'C. UEBA',
+                    'C. XDR',
                     'D. EDR'
                 ],
                 correct: 3,
                 domain: 'Security Operations',
-                explanation: 'EDR provides real-time endpoint telemetry, process visibility, and remote containment capabilities directly on the endpoint, making it the appropriate tool for investigating and containing a potentially compromised host. SIEM (A) aggregates logs centrally but does not provide direct endpoint telemetry or remote containment.'
+                explanation: 'EDR provides real-time endpoint telemetry, process visibility, and remote containment capabilities directly on the endpoint, making it the appropriate tool for investigating and containing a potentially compromised host. XDR (C) extends detection across multiple telemetry domains but its cross-domain correlation value-add is not needed when the scope is a single Windows endpoint requiring direct telemetry and containment.'
             },
             {
                 q: 'A security analyst receives a suspicious email and wants to verify whether the sending domain is authorized to use the sending IP address by checking the DNS record that lists permitted mail servers. Which of the following email analysis concepts addresses this check?',
                 options: [
-                    'A. DKIM',
+                    'A. SPF',
                     'B. DMARC',
-                    'C. SPF',
+                    'C. DKIM',
                     'D. Header analysis'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'SPF is a DNS record that specifies which IP addresses are authorized to send email on behalf of a domain; checking SPF validates that the sending server is legitimate. DKIM (A) uses a cryptographic signature to verify the email content has not been altered, but it does not specify authorized sending IPs.'
+                explanation: 'SPF is a DNS record that specifies which IP addresses are authorized to send email on behalf of a domain; checking SPF validates that the sending server is legitimate. DKIM (C) uses a cryptographic signature to verify the email content has not been altered, but it does not specify authorized sending IPs.'
             },
             {
                 q: 'A SOC analyst is triaging a suspicious email and wants to verify that the email content was not modified in transit by checking a cryptographic signature embedded in the email headers that was applied by the sending mail server. Which of the following email authentication mechanisms does this describe?',

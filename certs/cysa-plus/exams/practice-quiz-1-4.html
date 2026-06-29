@@ -476,12 +476,12 @@
             {
                 q: 'A threat-intel analyst is evaluating a newly received threat report about a nation-state actor. The report was published three weeks ago and describes TTPs that the group abandoned after their infrastructure was publicly exposed in a prior disclosure. Which intelligence confidence dimension is MOST degraded by this situation?',
                 options: [
-                    'A. Accuracy',
+                    'A. Timeliness',
                     'B. Relevancy',
-                    'C. Timeliness',
+                    'C. Accuracy',
                     'D. Completeness'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
                 explanation: 'Timeliness refers to how current the intelligence is; a three-week-old report describing TTPs the actor has already abandoned is not timely and significantly reduces its operational value. Relevancy (B) concerns whether the intel applies to the organization\'s environment, which is a separate confidence dimension.'
             },
@@ -512,14 +512,14 @@
             {
                 q: 'A threat-intel team subscribes to a commercial threat feed from a specialized vendor and receives structured indicator packages not available to the general public. The team also participates in an industry ISAC where members share incidents and indicators under a trust agreement. Which of the following collection method categories BEST describes both of these sources?',
                 options: [
-                    'A. Open source: blogs/forums',
+                    'A. Closed source: paid feeds and information sharing organizations',
                     'B. Open source: deep/dark web',
-                    'C. Closed source: paid feeds and information sharing organizations',
+                    'C. Open source: blogs/forums',
                     'D. Closed source: internal sources'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'Commercial threat feeds (paid feeds) and ISAC memberships (information sharing organizations) are both closed-source intelligence sources that require payment or a vetted trust agreement to access. Open-source blogs and forums (A) are publicly accessible without any access controls.'
+                explanation: 'Commercial threat feeds (paid feeds) and ISAC memberships (information sharing organizations) are both closed-source intelligence sources that require payment or a vetted trust agreement to access. Open-source blogs and forums (C) are publicly accessible without any access controls.'
             },
             {
                 q: 'A threat hunter is conducting a proactive hunt across the enterprise for evidence of a known APT technique involving DLL side-loading. The hunter begins by reviewing endpoint telemetry for unsigned DLLs loaded by legitimate system binaries. Which of the following threat-hunting concepts is the hunter applying?',
@@ -536,12 +536,12 @@
             {
                 q: 'A threat-intel analyst is assessing the confidence level of a newly received indicator. The indicator is a specific IP address associated with a C2 server. The source is a highly reputable commercial vendor with a proven track record, and the report was published this morning. However, the indicator describes attack patterns targeting industrial control systems, which the analyst\'s organization does not operate. Which confidence dimension is MOST affected?',
                 options: [
-                    'A. Timeliness',
+                    'A. Relevancy',
                     'B. Accuracy',
-                    'C. Relevancy',
+                    'C. Timeliness',
                     'D. Attribution'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
                 explanation: 'Relevancy measures whether the intelligence applies to the specific organization\'s environment and threat landscape; an indicator targeting ICS environments is not relevant to an organization that does not operate ICS. Accuracy (B) concerns whether the data is factually correct, which is not questioned here given the reputable source.'
             },

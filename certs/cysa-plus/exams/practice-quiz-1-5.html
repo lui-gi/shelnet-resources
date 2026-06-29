@@ -476,26 +476,26 @@
             {
                 q: 'A SOC manager is reviewing the team\'s alert handling workflow and identifies that analysts spend 40 minutes each shift manually copying IOC data from the SIEM into a spreadsheet before sharing it with the threat-intel team. The task is performed identically every shift with no judgment required. Which of the following process improvement approaches is MOST appropriate for this task?',
                 options: [
-                    'A. Single pane of glass',
+                    'A. Identification of tasks suitable for automation',
                     'B. Team coordination to manage automation',
-                    'C. Identification of tasks suitable for automation',
+                    'C. Single pane of glass',
                     'D. Data enrichment via orchestration'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'Identifying tasks suitable for automation requires recognizing work that is repetitive, rule-based, and does not require human judgment; the manual IOC copy task matches all three criteria. A single pane of glass (A) refers to a unified dashboard view, not a process evaluation methodology.'
+                explanation: 'Identifying tasks suitable for automation requires recognizing work that is repetitive, rule-based, and does not require human judgment; the manual IOC copy task matches all three criteria. A single pane of glass (C) refers to a unified dashboard view, not a process evaluation methodology.'
             },
             {
                 q: 'A SOC manager wants to automate the response to phishing alerts by having the system automatically pull email headers, enrich the sender IP against threat feeds, quarantine the message, and create an incident ticket without analyst intervention. Which of the following technologies BEST enables this multi-step automated workflow?',
                 options: [
-                    'A. SIEM',
+                    'A. SOAR',
                     'B. API integration only',
-                    'C. SOAR',
+                    'C. SIEM',
                     'D. EDR'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'SOAR platforms execute playbooks that automate and orchestrate sequences of response actions across multiple security tools, covering enrichment, quarantine, and ticketing in a single workflow. A SIEM (A) can detect and alert on phishing but cannot natively execute the downstream response actions without orchestration.'
+                explanation: 'SOAR platforms execute playbooks that automate and orchestrate sequences of response actions across multiple security tools, covering enrichment, quarantine, and ticketing in a single workflow. A SIEM (C) can detect and alert on phishing but cannot natively execute the downstream response actions without orchestration.'
             },
             {
                 q: 'A security operations team receives threat intelligence from five different vendor feeds in different formats and wants to normalize and combine them into a unified, enriched dataset before feeding them into the SIEM and EDR platforms. Which of the following streamlining capabilities does this describe?',
@@ -512,26 +512,26 @@
             {
                 q: 'A security analyst is configuring the SIEM to call an external threat reputation API each time a new alert fires, passing the suspicious IP address and receiving a JSON response with risk scores and categories. The integration uses a programmatic interface without manual steps. Which of the following technology integration mechanisms is being used?',
                 options: [
-                    'A. Webhooks',
+                    'A. API',
                     'B. Plugins',
-                    'C. API',
+                    'C. Webhooks',
                     'D. Single pane of glass'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'An API (Application Programming Interface) provides a programmatic interface for one system to call another and exchange data; the SIEM calling a reputation service and receiving a structured JSON response is a classic API integration pattern. Webhooks (A) are event-driven push callbacks where the external service sends data to the SIEM when an event occurs, not the pull model described here.'
+                explanation: 'An API (Application Programming Interface) provides a programmatic interface for one system to call another and exchange data; the SIEM calling a reputation service and receiving a structured JSON response is a classic API integration pattern. Webhooks (C) are event-driven push callbacks where the external service sends data to the SIEM when an event occurs, not the pull model described here.'
             },
             {
                 q: 'A threat-intelligence platform is configured to push a notification to the SOAR platform the moment a new high-severity indicator is published, triggering an automated hunt. The notification is event-driven and requires no polling from the SOAR side. Which of the following technology integration mechanisms does this describe?',
                 options: [
-                    'A. API polling',
+                    'A. Webhook',
                     'B. Plugin',
-                    'C. Webhook',
+                    'C. API polling',
                     'D. Single pane of glass'
                 ],
-                correct: 2,
+                correct: 0,
                 domain: 'Security Operations',
-                explanation: 'A webhook is an event-driven HTTP callback that pushes data from one system to another when a specific event occurs; the threat-intel platform notifying the SOAR on indicator publication is a webhook pattern. API polling (A) would require the SOAR to periodically query the threat-intel platform for new data, which is the opposite of the push model described.'
+                explanation: 'A webhook is an event-driven HTTP callback that pushes data from one system to another when a specific event occurs; the threat-intel platform notifying the SOAR on indicator publication is a webhook pattern. API polling (C) would require the SOAR to periodically query the threat-intel platform for new data, which is the opposite of the push model described.'
             },
             {
                 q: 'A security analyst is using a dashboard that displays real-time alerts from the SIEM, endpoint telemetry from the EDR, and network flow data from the firewall all in a single browser tab, eliminating the need to switch between three separate consoles. Which of the following security operations efficiency concepts does this represent?',
