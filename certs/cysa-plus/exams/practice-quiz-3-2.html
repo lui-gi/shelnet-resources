@@ -618,16 +618,16 @@
                 explanation: 'Legal hold requires that evidence be preserved unaltered, all actions documented, and data retained until legal proceedings are complete. Encrypting and cloud-uploading (B) may be part of secure storage but does not address alteration prevention; deleting temp files (C) directly violates legal hold by destroying potential evidence; user notification (D) may be required in some jurisdictions but is not the core legal hold procedure.'
             },
             {
-                q: 'A tier-2 analyst is triaging an incident where an employee\'s workstation shows signs of compromise but the employee is in the middle of a critical financial transaction. The IR team must choose a containment approach. Which method BEST balances containment with minimal business disruption in this scenario?',
+                q: 'A tier-2 analyst correlating events across SIEM, EDR, and DNS logs observes: failed Kerberos pre-authentication from a single account across 12 hosts in 4 minutes, a spike in outbound DNS queries with high-entropy subdomains from the same source IP 10 minutes later, and a proxy log entry showing a 400 KB POST to an uncategorized external host. Which log analysis technique BEST identifies the attack pattern represented by these three data points?',
                 options: [
-                    'A. Immediately power off the workstation and confiscate it as evidence without warning',
-                    'B. Apply network-layer containment by blocking the workstation\'s IP at the firewall and monitoring its traffic, allowing the transaction to complete before physical isolation',
-                    'C. Allow the workstation to remain fully operational and uncontained until the transaction is complete',
-                    'D. Migrate the financial transaction to a clean system and reimage the compromised workstation immediately'
+                    'A. Threshold-based alerting, because each individual event exceeds a static count limit',
+                    'B. Time-series correlation across multiple log sources to detect a behavioral attack chain spanning authentication, DNS, and proxy telemetry',
+                    'C. Signature matching against known malware hashes in the EDR log',
+                    'D. Baseline deviation analysis on DNS query volume alone'
                 ],
                 correct: 1,
                 domain: 'Incident Response and Management',
-                explanation: 'Network-layer containment (firewall block + traffic monitoring) stops attacker exfiltration and C2 callbacks while allowing the user to complete the critical transaction on the isolated host. Immediate power-off (A) destroys volatile evidence and stops the transaction; no containment (C) allows the attacker to continue operating; migrating the transaction (D) may be appropriate but reimaging immediately discards volatile evidence.'
+                explanation: 'Time-series correlation across SIEM, EDR, and DNS logs is the technique that surfaces multi-stage attack chains -- in this case a credential attack followed by DNS tunneling and data staging -- that no single-source alert would catch. Threshold alerting (A) fires on individual events, not behavioral sequences; signature matching (C) detects known file hashes, not behavioral patterns; baseline deviation on DNS alone (D) is a single-source technique that misses the authentication and proxy context.'
             },
             {
                 q: 'An incident responder is conducting RCA on a web application compromise. Using the 5 Whys technique, the team traces the root cause to a missing patch for a known CVE that was available for 90 days before exploitation. Which output of the RCA process MOST directly results from this finding?',
