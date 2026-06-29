@@ -848,6 +848,355 @@
                 objective: '1.5',
                 explanation: 'Orchestrating threat intelligence data includes threat feed combination - automatically merging, deduplicating, and enriching indicators from multiple sources into a single normalized stream for SIEM ingestion. Standardizing repeatable tasks via playbooks (A) describes SOAR-based workflow automation for alert handling, not the aggregation and normalization of threat intelligence feeds.'
             }
+            // Domain 2: Vulnerability Management (26 Q)
+            // Objective 2.1 - Given a scenario, implement vulnerability scanning
+            //                 methods and concepts. (5 Q) [Q29-Q33]
+            {
+                q: 'A vulnerability management engineer is planning a scan of a manufacturing floor that runs legacy SCADA sensors on an isolated OT network. The plant manager warns that the sensors have crashed under previous network probes. Which scanning approach BEST balances discovery coverage with operational safety for this environment?',
+                options: [
+                    'A. Passive scanning using a network tap to observe traffic without injecting probes',
+                    'B. Credentialed active scanning with throttled packet rates',
+                    'C. Non-credentialed external scanning from a DMZ vantage point',
+                    'D. Agent-based scanning installed on each SCADA sensor'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                objective: '2.1',
+                explanation: 'Passive scanning observes existing network traffic without injecting probe packets, eliminating the risk of crashing sensitive OT and SCADA devices that cannot tolerate aggressive probes. Credentialed active scanning (B) still sends packets to targets and has caused sensor resets in this environment, making it inappropriate regardless of rate throttling.'
+            },
+            {
+                q: 'A security analyst needs to verify that all hosts joining the corporate network comply with a hardened configuration standard before they are allowed to communicate. The analyst wants the scan to authenticate to each host and examine local settings such as password policy, enabled services, and registry values. Which scan configuration BEST meets this requirement?',
+                options: [
+                    'A. External non-credentialed scan from the perimeter',
+                    'B. Credentialed internal scan with a service account that has local admin rights',
+                    'C. Passive scan using network traffic mirroring',
+                    'D. Agent-based scan without authentication tokens'
+                ],
+                correct: 1,
+                domain: 'Vulnerability Management',
+                objective: '2.1',
+                explanation: 'A credentialed scan using a privileged service account allows the scanner to authenticate locally and enumerate password policies, running services, and registry settings, providing the configuration depth required for baseline compliance validation. A non-credentialed external scan (A) cannot access local OS settings and would miss the policy-level findings needed for baseline verification.'
+            },
+            {
+                q: 'A vulnerability analyst is designing a scan schedule for a 24/7 payment processing environment governed by PCI DSS. The application owner insists that scans must not run during peak transaction windows. Which scheduling consideration MOST directly reflects both the regulatory requirement and the operational constraint?',
+                options: [
+                    'A. Scheduling scans only during maintenance windows approved by the change board',
+                    'B. Running passive scans during peak hours and switching to active scans off-peak',
+                    'C. Triggering scans whenever a new CVE is published regardless of time',
+                    'D. Performing quarterly internal and external scans as mandated by PCI DSS, scheduled off-peak'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                objective: '2.1',
+                explanation: 'PCI DSS requires quarterly internal and external vulnerability scans; scheduling them during off-peak windows satisfies both the regulatory cadence and the operational sensitivity constraint. Running passive scans during peak hours (B) does not fulfill the PCI DSS active-scan requirement and would not detect configuration-level vulnerabilities.'
+            },
+            {
+                q: 'A vulnerability engineer wants to assess endpoints that roam outside the corporate network and rarely connect via VPN, ensuring scan results reflect their current patch state regardless of network location. Which deployment model BEST addresses this requirement?',
+                options: [
+                    'A. Scheduled internal network scans triggered nightly from a central scanner',
+                    'B. Passive scan using a cloud-hosted network tap',
+                    'C. External perimeter scan from a third-party service',
+                    'D. Agent-based scanning installed locally on each endpoint'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                objective: '2.1',
+                explanation: 'Agent-based scanning runs locally on the endpoint regardless of its network location, providing continuous and consistent coverage for remote and roaming devices that are rarely on the corporate network. Scheduled internal network scans (A) miss endpoints that are not connected to the corporate LAN at scan time, leaving significant coverage gaps.'
+            },
+            {
+                q: 'A security analyst is tasked with discovering all active IP addresses and open ports on a /24 corporate subnet before a credentialed vulnerability scan is run. The analyst needs a fast, lightweight host-discovery tool. Which tool is MOST appropriate for this asset-discovery step?',
+                options: [
+                    'A. Nmap',
+                    'B. Nessus',
+                    'C. Burp Suite',
+                    'D. OpenVAS'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                objective: '2.1',
+                explanation: 'Nmap is the standard tool for host discovery, port scanning, and service fingerprinting, making it the appropriate first step to enumerate active hosts and open ports before running a credentialed vulnerability scan. Nessus (B) is a full vulnerability scanner used after host discovery is complete; using it for initial asset enumeration adds unnecessary overhead.'
+            },
+            // Objective 2.2 - Given a scenario, analyze output from vulnerability
+            //                 assessment tools. (6 Q) [Q34-Q39]
+            {
+                q: 'A vulnerability analyst reviews a Nessus credentialed scan report and sees the plugin "MS17-010: EternalBlue SMB Remote Code Execution" flagged on a Windows Server 2019 host with CVSS Base Score 9.8. The administrator claims the patch was applied last month. What should the analyst do FIRST to determine whether the finding is a true positive?',
+                options: [
+                    'A. Accept the finding as confirmed and escalate immediately to the incident response team',
+                    'B. Check the Nessus plugin output for the specific registry key or patch KB the plugin checked, then verify that KB on the host',
+                    'C. Re-run the scan without credentials to see if the finding disappears',
+                    'D. Mark the finding as a false positive based on the administrator\'s statement'
+                ],
+                correct: 1,
+                domain: 'Vulnerability Management',
+                objective: '2.2',
+                explanation: 'Nessus credentialed plugins specify the registry keys or installed KB numbers they check; cross-referencing that detail against the actual host state is the accurate method to validate whether a claimed patch is genuinely installed. Accepting the administrator\'s statement without verification (D) risks closing a true positive if the patch was only partially applied or applied to a different component.'
+            },
+            {
+                q: 'A security engineer runs an OpenVAS scan against a set of web servers and receives a finding rated Critical with a Quality of Detection (QoD) value of 30%. The development team asks whether they should treat this as a confirmed vulnerability. What does a low QoD percentage MOST accurately indicate about this finding?',
+                options: [
+                    'A. The vulnerability has a low CVSS Base Score and can be deprioritized',
+                    'B. OpenVAS confirmed exploitation was successful during the scan',
+                    'C. The finding is based on indirect evidence such as version banners rather than active verification, increasing the chance of a false positive',
+                    'D. The finding should be discarded because OpenVAS does not support credentialed scanning'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                objective: '2.2',
+                explanation: 'A low QoD (Quality of Detection) percentage in OpenVAS indicates the detection method relied on indirect signals such as version string matching rather than active exploitation or authenticated checks, raising the likelihood the finding is a false positive. A low QoD is not a CVSS scoring metric (A) and has no direct bearing on the vulnerability\'s severity rating.'
+            },
+            {
+                q: 'A vulnerability analyst receives a Qualys scan report that lists several findings at Severity 5. The system owner asks whether these require emergency action. Which Qualys severity label is MOST accurately applied to Severity 5 findings?',
+                options: [
+                    'A. Critical - requiring remediation within 30 days per policy',
+                    'B. High - requiring remediation within 15 days per policy',
+                    'C. Urgent - requiring immediate remediation under the shortest SLO',
+                    'D. Medium - requiring remediation within 90 days per policy'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                objective: '2.2',
+                explanation: 'Qualys labels Severity 5 findings as "Urgent," which represents the highest severity tier in their scale and is subject to the shortest remediation timeline under most organizational SLOs. Severity 4 in the Qualys scale is labeled "Critical" (A), making "Critical" an incorrect label for Severity 5.'
+            },
+            {
+                q: 'A security analyst reviews an OWASP ZAP automated scan report for an internal web application and finds 350 alerts. The majority are flagged as "Low" or "Informational," but six are flagged "High." The analyst has two hours before a management briefing. Which ZAP report field MOST efficiently guides initial triage to the findings requiring immediate attention?',
+                options: [
+                    'A. The "CWE ID" field to group findings by weakness class',
+                    'B. The "Alert Count" field to identify which alert type occurred most frequently',
+                    'C. The "Confidence" field to identify findings ZAP verified automatically',
+                    'D. The "Risk" field filtered to "High" to isolate the six actionable findings'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                objective: '2.2',
+                explanation: 'ZAP\'s "Risk" field classifies each alert as High, Medium, Low, or Informational; filtering to "High" immediately surfaces the six findings that warrant priority attention before the briefing. The "Confidence" field (C) describes how certain ZAP is about a finding but does not rank business impact and is secondary to risk level for triage prioritization.'
+            },
+            {
+                q: 'A vulnerability analyst reviews a Burp Suite scan report and notices a finding labeled "SQL Injection" with confidence "Tentative" on an e-commerce search endpoint. The development team asks how to interpret the confidence rating before investing in remediation. What is the MOST accurate explanation of a "Tentative" confidence rating in Burp Suite?',
+                options: [
+                    'A. Burp successfully injected a payload and received a database error confirming the flaw is exploitable',
+                    'B. Burp detected behavioral anomalies suggesting a SQLi vulnerability may be present, but did not fully confirm exploitation',
+                    'C. The finding was added manually by the analyst and has not been scanned automatically',
+                    'D. Burp confirmed the vulnerability exists but assessed its CVSS score as below Critical'
+                ],
+                correct: 1,
+                domain: 'Vulnerability Management',
+                objective: '2.2',
+                explanation: 'A "Tentative" confidence rating in Burp Suite means the scanner observed anomalous behavior consistent with SQLi but did not obtain definitive proof such as a confirmed database error or out-of-band confirmation, requiring manual verification before reporting the flaw as confirmed. A "Firm" or "Certain" confidence rating (A) would indicate Burp had stronger evidence of exploitation, not "Tentative."'
+            },
+            {
+                q: 'A vulnerability analyst uses Nikto to scan an internal web server and receives the output: "Allowed HTTP Methods: OPTIONS, GET, HEAD, POST, PUT, DELETE, PATCH." The security team asks which part of this output is MOST significant as an immediate security concern. Which analyst interpretation is MOST accurate?',
+                options: [
+                    'A. The presence of the OPTIONS method is the primary concern because it enables server-side request forgery',
+                    'B. The presence of GET and POST is unusual and indicates the server is misconfigured',
+                    'C. The presence of PUT and DELETE methods is the primary concern because they allow unauthorized file creation and deletion if not properly restricted',
+                    'D. The complete method list is expected and indicates the server is correctly configured for REST API use'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                objective: '2.2',
+                explanation: 'Nikto flags PUT and DELETE as significant because, if unauthenticated or improperly authorized, these methods allow attackers to create, overwrite, or delete files on the web server, representing a direct path to data tampering or remote code execution. GET and POST (B) are expected on any web server and are not inherently concerning when flagged in the allowed methods list.'
+            },
+            // Objective 2.3 - Given a scenario, analyze data to prioritize
+            //                 vulnerabilities. (6 Q) [Q40-Q45]
+            {
+                q: 'A vulnerability analyst compares two findings on different hosts. CVE-Alpha has a CVSS v3.1 Base Score of 9.8, Attack Vector: Network, but its EPSS score is 0.02. CVE-Beta has a CVSS v3.1 Base Score of 7.1, Attack Vector: Network, and an EPSS score of 0.89. Exploit code for CVE-Beta was observed in a recent nation-state campaign. Which vulnerability should the analyst prioritize FIRST for emergency remediation?',
+                options: [
+                    'A. CVE-Beta, because the high EPSS score and active exploitation evidence indicate a much greater near-term exploitation probability',
+                    'B. CVE-Alpha, because a CVSS Base Score of 9.8 is Critical and always takes precedence over lower-scored findings',
+                    'C. Both simultaneously, because both have network-accessible attack vectors',
+                    'D. Neither immediately, because EPSS and CVSS must both exceed 9.0 before emergency remediation is triggered'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                objective: '2.3',
+                explanation: 'CVE-Beta\'s EPSS of 0.89 and observed exploitation in an active campaign indicate a very high probability of near-term weaponization, making real-world exploitability a stronger prioritization driver than the abstract severity of CVE-Alpha. Relying solely on CVSS Base Score (B) ignores exploitability context and would consistently overprioritize theoretical high-severity vulnerabilities that are rarely exploited.'
+            },
+            {
+                q: 'A vulnerability management team reviews scan results and finds a Critical-rated vulnerability on a file server that stores only archived marketing images with no PII, no financial data, and no connection to production systems. The same scan found a Medium-rated vulnerability on the HR database server that holds all employee records. Which factor MOST justifies prioritizing the Medium finding on the HR database over the Critical finding on the file server?',
+                options: [
+                    'A. CVSS temporal score, because the HR database finding has a higher exploit code maturity rating',
+                    'B. Asset criticality and data sensitivity, because the HR database stores high-value employee data making its risk impact significantly higher',
+                    'C. Attack vector, because the HR database server has a local attack vector and is therefore more accessible',
+                    'D. Scan frequency, because the HR database is scanned less often and findings on it are statistically more reliable'
+                ],
+                correct: 1,
+                domain: 'Vulnerability Management',
+                objective: '2.3',
+                explanation: 'Asset criticality and data sensitivity are context-awareness factors that can override raw CVSS severity; the HR database\'s high-value employee records make a successful exploit significantly more impactful than compromising an archive server with non-sensitive marketing images. CVSS temporal score (A) might narrow the gap in some scenarios but does not account for the fundamental difference in data sensitivity and business impact between the two hosts.'
+            },
+            {
+                q: 'A vulnerability analyst reviews a scan finding for a Remote Code Execution vulnerability on a web server. The CVSS v3.1 vector is AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H. A colleague argues the "Scope: Changed" metric is irrelevant to patch priority. Which counter-argument MOST accurately explains why scope change matters?',
+                options: [
+                    'A. Scope change means the vulnerability requires local network access, reducing its exploitability',
+                    'B. Scope change means exploitation only affects the vulnerable component and does not change the CVSS score significantly',
+                    'C. Scope change means a successful exploit can impact resources beyond the security authority of the vulnerable component, such as the underlying hypervisor or other tenants on shared infrastructure',
+                    'D. Scope change downgrades the vulnerability to High from Critical because impact spreads across a wider surface'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                objective: '2.3',
+                explanation: 'A CVSS Scope: Changed (S:C) metric indicates that exploitation can affect resources outside the vulnerable component\'s security authority, such as a hypervisor escape or container breakout, which substantially increases real-world impact and justifies higher remediation priority. Scope change does not restrict attack vector (A); AV:N in this vector already indicates network accessibility.'
+            },
+            {
+                q: 'An analyst receives a scan report flagging a critical vulnerability on a server that was placed in cold standby three weeks ago and has no network connectivity. The asset management database shows the server is scheduled for decommission next quarter. How should the analyst MOST accurately assess the risk of this finding?',
+                options: [
+                    'A. Treat the finding as Critical and escalate immediately because CVSS Base Score is unchanged by host status',
+                    'B. Treat the finding as Critical and patch the server before decommissioning to satisfy SLO timelines',
+                    'C. Deprioritize the finding based on context awareness, documenting that the isolated, offline server has effectively no exploitation path, and plan to validate before reactivation',
+                    'D. Mark the finding as a false positive because offline hosts cannot have exploitable vulnerabilities'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                objective: '2.3',
+                explanation: 'Context awareness in vulnerability prioritization accounts for whether a vulnerability has a viable exploitation path; an isolated offline server with no network connectivity presents negligible real-world risk and can be deprioritized with documented justification rather than consuming emergency remediation resources. Marking it a false positive (D) is incorrect because the vulnerability genuinely exists on the host; the risk is contextually low, not the finding itself erroneous.'
+            },
+            {
+                q: 'A zero-day vulnerability is disclosed publicly for a VPN appliance used by an organization with 3,000 remote employees. No CVE has been assigned and no scanner currently detects it. The vulnerability allows unauthenticated RCE. Which analyst action MOST advances the vulnerability management program given these constraints?',
+                options: [
+                    'A. Wait for the vendor to publish a CVE and update the scanner plugin before taking action',
+                    'B. Accept the risk formally because zero-day vulnerabilities cannot be mitigated without an official patch',
+                    'C. Disable the VPN appliance immediately and require all remote employees to work on-site until the CVE is published',
+                    'D. Apply compensating controls immediately such as restricting VPN access to known IP ranges, and monitor threat intelligence feeds for a vendor patch or temporary mitigation guidance'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                objective: '2.3',
+                explanation: 'When scanner detection is unavailable for a zero-day, the correct response is to apply compensating controls that reduce the exploitation surface, such as IP allow-listing, while monitoring threat intelligence for vendor mitigations or patches. Waiting for a CVE assignment (A) is the wrong approach because zero-days are by definition exploitable before a CVE is published, and delaying action during active exploitation risk is indefensible.'
+            },
+            {
+                q: 'A security analyst reviews a scan finding with CVSS v3.1 metrics showing Confidentiality Impact: None, Integrity Impact: High, Availability Impact: None. A business analyst argues the finding can be ignored because no data is exposed to attackers. What is the BEST analyst counter-argument?',
+                options: [
+                    'A. Integrity impact means an attacker can modify data without detection, which can lead to fraudulent transactions, corrupted records, or supply chain tampering even without data disclosure',
+                    'B. A finding with high integrity impact but no confidentiality or availability impact should be treated as Low severity because only one impact dimension is affected',
+                    'C. Integrity impact alone is sufficient to justify Critical priority under PCI DSS regardless of other metrics',
+                    'D. CVSS scores with zero confidentiality impact are automatically downgraded to Medium by most vulnerability management platforms'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                objective: '2.3',
+                explanation: 'High integrity impact means an attacker can alter data without authorization, which can cause significant harm through data manipulation, fraud, or supply chain attacks even when no confidential data is directly exposed. The argument that only one CVSS dimension is affected (B) is incorrect because CVSS does not require all three impact dimensions to be elevated for a finding to be high severity.'
+            },
+            // Objective 2.4 - Given a scenario, recommend controls to mitigate attacks
+            //                 and software vulnerabilities. (5 Q) [Q46-Q50]
+            {
+                q: 'A web application security analyst discovers that the login page reflects the value of a URL parameter directly into the page\'s HTML response without encoding. A penetration tester demonstrates that inserting a script tag in the parameter causes it to execute in any visitor\'s browser. Which control MOST directly mitigates this reflected XSS vulnerability?',
+                options: [
+                    'A. Enforcing HTTPS on all pages to encrypt traffic between the client and server',
+                    'B. Implementing a Content Security Policy header that restricts script sources and blocks inline script execution',
+                    'C. Output encoding all dynamic content rendered in the HTML response so that user-supplied values cannot be interpreted as executable markup',
+                    'D. Adding parameterized queries to the login endpoint\'s database calls'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                objective: '2.4',
+                explanation: 'Output encoding transforms characters like < and > into their HTML entity equivalents, preventing browser interpretation of injected markup as executable script, which is the direct fix for a reflected XSS caused by unencoded user-supplied values in the HTML response. Parameterized queries (D) mitigate SQLi by separating code from data in database calls and do not address XSS in the HTML rendering layer.'
+            },
+            {
+                q: 'An application security team discovers that a legacy web application builds database queries by concatenating a user-supplied search term directly into the SQL string without any sanitization. A penetration tester demonstrates extraction of the entire user table using a UNION-based injection. Which control BEST prevents this injection flaw?',
+                options: [
+                    'A. Deploying a WAF rule to block requests containing SQL keywords in query parameters',
+                    'B. Enabling HTTPS on the application to encrypt the injected payloads in transit',
+                    'C. Implementing input validation to reject numeric-only fields that contain alphabetic characters',
+                    'D. Rewriting database calls to use parameterized queries or stored procedures so user input is treated as data rather than executable SQL'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                objective: '2.4',
+                explanation: 'Parameterized queries separate SQL code from user-supplied data by treating all input as parameter values the database engine never interprets as SQL syntax, which is the definitive fix for SQLi. A WAF rule (A) is a compensating control that can filter known attack patterns but can be bypassed by encoding or novel payloads, and does not fix the underlying injection flaw in application code.'
+            },
+            {
+                q: 'A security analyst finds that a web application makes server-side HTTP requests to URLs constructed from a user-supplied parameter. A penetration tester demonstrates accessing the AWS instance metadata endpoint at 169.254.169.254 through this flaw. Which control MOST directly mitigates this SSRF vulnerability?',
+                options: [
+                    'A. Implementing an allow-list of approved destination URLs or IP ranges that the server-side request function is permitted to reach',
+                    'B. Deploying a CDN in front of the application to cache responses and reduce direct server exposure',
+                    'C. Requiring MFA for all application users to prevent unauthorized access to the parameter',
+                    'D. Rotating the AWS IAM credentials exposed through the metadata endpoint after the penetration test'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                objective: '2.4',
+                explanation: 'An allow-list restricting server-side requests to known, approved destinations prevents SSRF by ensuring the application cannot be directed to reach internal cloud metadata endpoints or other unauthorized targets. Rotating IAM credentials (D) is an important incident-response step after a confirmed SSRF but does not fix the underlying vulnerability and would need to be repeated after every future exploitation.'
+            },
+            {
+                q: 'A vulnerability analyst reviews a web application and finds that a file upload feature allows any file type. An attacker uploaded a PHP script disguised as an image, which executed when accessed via the browser, achieving RCE. Which control BEST prevents remote code execution via this file upload vulnerability?',
+                options: [
+                    'A. Enabling server-side encryption for all uploaded files so their contents cannot be read',
+                    'B. Validating uploaded files using server-side content inspection and restricting execution permissions on the upload directory so stored files cannot be run as scripts',
+                    'C. Adding CSRF tokens to the upload form to prevent cross-site request forgery against the upload endpoint',
+                    'D. Blocking all file uploads from unauthenticated users'
+                ],
+                correct: 1,
+                domain: 'Vulnerability Management',
+                objective: '2.4',
+                explanation: 'Server-side content inspection validates that uploaded files match their declared type, and removing execute permissions from the upload directory prevents the web server from running uploaded scripts even if a disguised file passes type checks. Adding CSRF tokens (C) prevents cross-site upload requests but does not prevent an authenticated attacker from uploading and executing a malicious file.'
+            },
+            {
+                q: 'A security engineer reviews application logs and discovers an authentication endpoint that performs file path lookups using a user-supplied filename parameter. A security researcher demonstrates reading /etc/passwd by supplying the value ../../etc/passwd. Which control MOST directly mitigates this directory traversal vulnerability?',
+                options: [
+                    'A. Deploying a network IDS to alert on path traversal sequences in HTTP requests',
+                    'B. Requiring TLS 1.3 for all connections to the authentication endpoint',
+                    'C. Logging all file access attempts to the SIEM for post-incident analysis',
+                    'D. Canonicalizing and validating file paths on the server side so that resolved paths are restricted to an approved base directory before any file is opened'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                objective: '2.4',
+                explanation: 'Canonicalizing the resolved path and verifying it begins with the allowed base directory ensures the application cannot traverse outside its intended file scope regardless of how the path traversal sequences are encoded. A network IDS alert (A) detects traversal attempts but does not block them, and an alert without prevention still allows the attacker to read sensitive files before the alert is acted upon.'
+            },
+            // Objective 2.5 - Explain concepts related to vulnerability response,
+            //                 handling, and management. (4 Q) [Q51-Q54]
+            {
+                q: 'A vulnerability management analyst discovers that a critical unpatched vulnerability exists in a medical imaging device that cannot be taken offline for patching because doing so would interrupt patient care. The vendor has not released a patch. The security team adds a network-level firewall rule restricting access to the device to only approved clinical workstations. Which risk management concept BEST describes this firewall rule in the context of the vulnerability response?',
+                options: [
+                    'A. Risk acceptance, because the team acknowledged the vulnerability without remediating it',
+                    'B. Risk avoidance, because the team eliminated the attack vector by blocking access to the device',
+                    'C. Compensating control, because the firewall rule reduces exposure without directly patching the underlying vulnerability',
+                    'D. Corrective control, because the firewall rule reverses damage caused by prior exploitation of the vulnerability'
+                ],
+                correct: 2,
+                domain: 'Vulnerability Management',
+                objective: '2.5',
+                explanation: 'A compensating control provides an alternative safeguard that reduces risk when the primary control (patching) cannot be applied; the firewall rule limits exposure to the vulnerability without eliminating the underlying flaw. Risk acceptance (A) would mean formally acknowledging the risk and taking no additional protective action, whereas implementing the firewall rule is an active mitigation step.'
+            },
+            {
+                q: 'An organization\'s change management policy requires that a patch for a Critical vulnerability complete testing, implementation, rollback, and validation phases before being closed. A security engineer asks why the rollback phase is required even when the patch appears successful after implementation. Which explanation MOST accurately states the purpose of the rollback phase in patching?',
+                options: [
+                    'A. Rollback ensures the patch is cryptographically signed before being pushed to production systems',
+                    'B. Rollback ensures that if the patch causes service disruption or compatibility failures, the system can be restored to its pre-patch state quickly and safely',
+                    'C. Rollback automatically re-applies the patch if it is removed by an attacker during the maintenance window',
+                    'D. Rollback is a compliance requirement that records patch installation events in the audit log for regulatory review'
+                ],
+                correct: 1,
+                domain: 'Vulnerability Management',
+                objective: '2.5',
+                explanation: 'The rollback phase ensures a recovery path exists if the patch causes unintended side effects such as service degradation or application failures after implementation, allowing the team to revert to the stable pre-patch state without extended downtime. Rollback does not involve cryptographic signing (A), which is a distribution-integrity control applied before the patch is deployed.'
+            },
+            {
+                q: 'A vulnerability management engineer is reviewing the organization\'s attack surface and wants to identify externally exposed assets that are not listed in the internal asset inventory. Which attack surface management technique MOST directly supports discovering these unknown external assets?',
+                options: [
+                    'A. Running credentialed internal scans of the production subnet to verify known assets',
+                    'B. Deploying a network IDS on the perimeter to detect inbound exploitation attempts against known assets',
+                    'C. Reviewing the change management database to identify systems added in the last quarter',
+                    'D. Passive discovery using OSINT tools to enumerate public DNS records, certificate transparency logs, and internet-exposed IP ranges associated with the organization'
+                ],
+                correct: 3,
+                domain: 'Vulnerability Management',
+                objective: '2.5',
+                explanation: 'Passive discovery through OSINT enumeration of public DNS records, certificate transparency logs, and IP WHOIS data surfaces externally exposed assets that may not appear in the internal inventory, directly supporting edge discovery as part of attack surface management. Internal credentialed scans (A) only cover assets already known and inventoried and cannot discover shadow IT or forgotten internet-facing systems.'
+            },
+            {
+                q: 'A vulnerability management program manager reviews the secure SDLC practices and wants to ensure that developers receive feedback on security flaws before code is merged into the main branch. Which two secure coding practices have the MOST impact when integrated into the CI/CD pipeline at the code-review stage?',
+                options: [
+                    'A. SAST and DAST integrated into the CI/CD pipeline to catch injection flaws and configuration errors before merge',
+                    'B. Manual penetration testing and red team exercises performed after each sprint',
+                    'C. Threat modeling workshops conducted annually before architecture reviews',
+                    'D. Bug bounty programs that reward external researchers for discovering post-release vulnerabilities'
+                ],
+                correct: 0,
+                domain: 'Vulnerability Management',
+                objective: '2.5',
+                explanation: 'SAST analyzes source code at rest to catch injection flaws and insecure patterns during development, while DAST tests the running application for runtime vulnerabilities; integrating both into the CI/CD pipeline surfaces security issues before code merges, embodying the shift-left principle. Manual penetration testing (B) and red team exercises are valuable but occur after development and cannot provide the real-time, per-commit feedback that pipeline-integrated SAST and DAST provide.'
+            }
         ];
 
         // ============================================================
