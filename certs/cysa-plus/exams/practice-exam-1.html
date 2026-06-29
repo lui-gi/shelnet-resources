@@ -1196,6 +1196,227 @@
                 domain: 'Vulnerability Management',
                 objective: '2.5',
                 explanation: 'SAST analyzes source code at rest to catch injection flaws and insecure patterns during development, while DAST tests the running application for runtime vulnerabilities; integrating both into the CI/CD pipeline surfaces security issues before code merges, embodying the shift-left principle. Manual penetration testing (B) and red team exercises are valuable but occur after development and cannot provide the real-time, per-commit feedback that pipeline-integrated SAST and DAST provide.'
+            },
+            {
+                q: 'A security analyst is building an incident response report after confirming an attacker registered a lookalike domain, hosted a malicious ISO, and served it via a drive-by download. The team wants to map each attacker action to the Cyber Kill Chain. Which phase MOST accurately describes the act of hosting the malicious ISO on attacker-controlled infrastructure before any victim interaction?',
+                options: [
+                    'A. Weaponization, because the attacker combined the payload with a delivery mechanism into a deployable artifact',
+                    'B. Delivery, because the ISO was made available for download by the victim',
+                    'C. Exploitation, because the ISO exploited the victim browser to execute code',
+                    'D. Installation, because the attacker set up the hosting server as persistence infrastructure'
+                ],
+                correct: 0,
+                domain: 'Incident Response and Management',
+                objective: '3.1',
+                explanation: 'Weaponization is the Cyber Kill Chain phase in which the attacker packages the exploit and payload into a deliverable artifact -- hosting a malicious ISO on attacker infrastructure represents this stage because the weapon is prepared before any victim interaction. Delivery (B) is the subsequent phase when the victim actually retrieves or receives the artifact; Exploitation (C) is when the payload executes on the victim system; Installation (D) is persistence establishment post-exploitation.'
+            },
+            {
+                q: 'An incident responder is mapping a confirmed intrusion to the Diamond Model. The team determines that the attacker used a rented VPS, a compromised third-party CDN node, and registered domains with privacy protection to route all traffic. Which Diamond Model vertex do the VPS, CDN node, and registered domains collectively represent MOST accurately?',
+                options: [
+                    'A. Capability, because they are tools the adversary uses to execute the attack',
+                    'B. Adversary, because the attacker controls them',
+                    'C. Infrastructure, because they are the network and communication resources the adversary leverages',
+                    'D. Victim, because they are intermediate systems between the attacker and the target'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                objective: '3.1',
+                explanation: 'In the Diamond Model, Infrastructure comprises the IP addresses, domain names, VPS nodes, and other network resources the adversary uses to stage and conduct attacks. Capability (A) refers to the malware or exploit tools, not the hosting and routing resources; Adversary (B) is the threat actor identity; Victim (D) represents the targeted organization, not the attacker\'s own relay infrastructure.'
+            },
+            {
+                q: 'A SOC team is adopting MITRE ATT&CK to improve detection coverage. A senior analyst explains that before mapping techniques, the team must understand the overarching goals each technique serves. Which ATT&CK component represents these overarching adversary goals that techniques are organized under MOST directly?',
+                options: [
+                    'A. Sub-techniques, which provide granular implementation variants of a parent technique',
+                    'B. Tactics, which represent the adversary\'s immediate technical goal and organize techniques in the ATT&CK matrix columns',
+                    'C. Groups, which attribute specific technique usage to named threat actor clusters',
+                    'D. Mitigations, which prescribe defensive actions mapped against each technique'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                objective: '3.1',
+                explanation: 'ATT&CK Tactics represent the "why" -- the adversary\'s immediate technical objective (e.g., Persistence, Lateral Movement) -- and serve as the column headers under which techniques are organized. Sub-techniques (A) are granular variants beneath a technique; Groups (C) are named threat actor clusters attributed to specific techniques; Mitigations (D) are defensive prescriptions, not organizational goals.'
+            },
+            {
+                q: 'A security team evaluating web application security testing tools wants a methodology that provides specific test cases for verifying authentication bypass, session management weaknesses, and injection flaws in a structured, repeatable way. Which framework MOST directly satisfies this requirement?',
+                options: [
+                    'A. Diamond Model of Intrusion Analysis, because it maps the relationships between adversary, victim, infrastructure, and capability',
+                    'B. Cyber Kill Chain, because it breaks attacker activity into sequential phases from reconnaissance through exfiltration',
+                    'C. MITRE ATT&CK, because it catalogs post-compromise techniques used against enterprise environments',
+                    'D. OWASP Testing Guide, because it provides numbered, category-specific test cases covering authentication, session management, and injection testing for web applications'
+                ],
+                correct: 3,
+                domain: 'Incident Response and Management',
+                objective: '3.1',
+                explanation: 'The OWASP Testing Guide is a prescriptive web application security testing methodology organized into test categories (e.g., OTG-AUTHN, OTG-SESS, OTG-INPVAL) that directly map to authentication, session management, and injection test cases. The Diamond Model (A) is an intrusion-analysis framework; the Cyber Kill Chain (B) is a linear attack-phase model; MITRE ATT&CK (C) catalogs post-compromise enterprise TTP, not structured web test cases.'
+            },
+            {
+                q: 'A SOC analyst is reviewing a threat intelligence report and wants to determine at which Cyber Kill Chain phase a defensive control would have the greatest impact on stopping an intrusion before the attacker achieves persistence. Which phase represents the BEST interception point to prevent an attacker from establishing persistence after exploitation?',
+                options: [
+                    'A. Reconnaissance, because blocking the attacker\'s information gathering prevents the entire campaign',
+                    'B. Delivery, because stopping the payload before it reaches the target prevents any execution',
+                    'C. Installation, because intercepting the attacker\'s attempt to write malware to disk and configure autorun mechanisms stops persistence before it is established',
+                    'D. Actions on Objectives, because blocking the attacker\'s final goal prevents the most damaging outcome'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                objective: '3.1',
+                explanation: 'Installation is the phase where the attacker writes malware to disk and sets up persistence mechanisms such as registry Run keys or startup folder entries -- intercepting at this phase directly prevents persistence from being established. Reconnaissance (A) and Delivery (B) are earlier phases that, while valuable interception points, occur before exploitation and do not specifically address persistence; Actions on Objectives (D) is the final phase, meaning damage has already progressed well beyond persistence.'
+            },
+            {
+                q: 'An incident responder is triaging a potential compromise on a Linux server. The analyst runs netstat and identifies an established outbound TCP connection to an unknown external IP on port 4444. A ps output shows the connection is owned by a process named "update_helper" running from /tmp. What should the analyst do FIRST?',
+                options: [
+                    'A. Immediately power off the server to prevent further data exfiltration',
+                    'B. Isolate the server from the network to contain the active C2 channel while preserving volatile memory for forensic capture',
+                    'C. Submit the binary at /tmp/update_helper to VirusTotal to determine if it is a known malware family',
+                    'D. Search the SIEM for lateral movement events originating from this server\'s IP before taking any containment action'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                objective: '3.2',
+                explanation: 'Network isolation is the correct FIRST containment action -- it terminates the active C2 channel and stops lateral movement while preserving the ability to capture volatile memory artifacts from the live system. Powering off (A) destroys RAM and encryption keys needed for forensics; submitting to VirusTotal (C) is analysis, not containment, and should follow isolation; SIEM review (D) is valuable scope expansion but should not delay stopping the active C2 connection.'
+            },
+            {
+                q: 'A digital forensics analyst is preparing to acquire a forensic image from a powered-off laptop seized in a corporate investigation. The analyst must ensure the image is legally defensible and bit-for-bit identical to the original. Which combination of tools and practices MOST directly satisfies both requirements?',
+                options: [
+                    'A. Boot the laptop into a live OS, image the drive with dd, and encrypt the output file before storage',
+                    'B. Use a hardware write blocker during acquisition, generate SHA-256 hashes of both the source drive and the forensic image, and document both values in the chain of custody record',
+                    'C. Clone the drive directly to a spare drive using a consumer disk duplicator without recording hash values',
+                    'D. Acquire the image over the network using an agent installed on the target OS to avoid physical access'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                objective: '3.2',
+                explanation: 'A hardware write blocker prevents any writes to the source drive, and matching SHA-256 hashes of the source and image prove bit-for-bit integrity -- both are essential for legal defensibility. Booting into a live OS (A) may alter timestamps and drive metadata before imaging; cloning without hash documentation (C) cannot prove integrity; network agent acquisition (D) requires the OS to be running and risks altering evidence.'
+            },
+            {
+                q: 'A SOC analyst receives a SIEM alert showing that a service account normally used only for scheduled batch jobs has authenticated interactively to five different workstations within a 10-minute window. Which category of IOC does this MOST likely represent?',
+                options: [
+                    'A. Bandwidth consumption anomaly indicating data staging before exfiltration',
+                    'B. Beaconing behavior indicating an established C2 callback pattern',
+                    'C. Unauthorized privilege use -- an anomalous authentication pattern suggesting the service account credentials have been compromised and are being used for lateral movement',
+                    'D. Unauthorized scheduled task indicating the attacker created a persistence mechanism using the service account'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                objective: '3.2',
+                explanation: 'A service account authenticating interactively to multiple workstations in rapid succession is an authentication anomaly IOC consistent with compromised credentials being used for lateral movement -- service accounts should not perform interactive logins across workstations. Bandwidth anomalies (A) relate to data volume; beaconing (B) is periodic outbound communication; unauthorized scheduled tasks (D) involve persistence, not the login pattern described.'
+            },
+            {
+                q: 'An IR team has contained a breach affecting six database servers by isolating them at the network layer. Before re-imaging, the team needs to determine what data may have been exfiltrated. Which log source and analysis technique MOST effectively answers this question?',
+                options: [
+                    'A. Review Windows Event Logs on each server for failed login attempts during the attacker\'s dwell period',
+                    'B. Correlate outbound firewall and proxy logs from the affected servers\' IP addresses during the known dwell period to identify large data transfers to external destinations',
+                    'C. Run a credentialed vulnerability scan against the isolated servers to identify unpatched CVEs',
+                    'D. Review SIEM alerts that fired during the dwell period to count the number of distinct IOC detected'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                objective: '3.2',
+                explanation: 'Outbound firewall and proxy log correlation across the known dwell window identifies large data transfers to external IPs, which is the most direct method for scoping potential exfiltration from the database servers. Failed login logs (A) reveal access attempts, not data movement; vulnerability scanning (C) finds patching gaps, not exfiltration evidence; counting distinct IOC in SIEM alerts (D) measures detection coverage, not data volume transferred.'
+            },
+            {
+                q: 'An incident responder is performing eradication on a Windows endpoint after confirming an attacker used a scheduled task and a registry Run key for persistence. Which eradication step MOST directly removes both persistence mechanisms before the system is returned to production?',
+                options: [
+                    'A. Reset the local administrator password and enable the Windows firewall host-based rules',
+                    'B. Run a full antivirus scan and quarantine any detected files',
+                    'C. Remove the malicious scheduled task entries and delete the identified registry Run key values, then verify no additional persistence artifacts remain via EDR threat hunting',
+                    'D. Apply all outstanding OS patches and restart the system to complete updates'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                objective: '3.2',
+                explanation: 'Eradication requires explicitly removing each identified persistence mechanism -- deleting the scheduled task and the registry Run key values -- followed by EDR-assisted threat hunting to confirm no additional artifacts remain. Resetting passwords (A) addresses credential exposure but does not remove persistence artifacts; AV quarantine (B) may miss registry entries and non-file-based persistence; applying patches (D) closes the initial vector but does not remove existing persistence.'
+            },
+            {
+                q: 'A SOC analyst is reviewing a phishing-related compromise. The attacker sent a spear-phishing email, the user clicked a link that delivered a dropper, and the dropper downloaded a second-stage payload from an external URL. The team must determine the order of evidence collection. Which data type should be collected FIRST based on order of volatility?',
+                options: [
+                    'A. The phishing email headers archived in the mail gateway logs',
+                    'B. The dropper file saved in the user\'s Downloads folder',
+                    'C. The live RAM contents of the workstation, which contain the running second-stage payload and active network connections',
+                    'D. Browser history showing the URL the user clicked'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                objective: '3.2',
+                explanation: 'RAM is the most volatile evidence source -- running processes, decryption keys, and active network connections are lost on power-off or reboot, making it the highest-priority collection target per order of volatility. Phishing email headers (A), the dropper file on disk (B), and browser history (D) all persist on disk after a system restart and can be collected after volatile evidence is secured.'
+            },
+            {
+                q: 'A SOC analyst is analyzing an alert from the EDR indicating that a PowerShell process spawned from a Word macro made a connection to an external IP. The analyst correlates this with a proxy log showing a 2 MB POST to the same IP 45 seconds later. Which conclusion about the attack chain MOST accurately describes the sequence represented by these two events?',
+                options: [
+                    'A. The Word macro triggered a C2 callback that was then used to exfiltrate data via an HTTP POST',
+                    'B. The proxy log POST represents a software update request triggered by the antivirus agent on the workstation',
+                    'C. The PowerShell process indicates a legitimate administrative script that coincidentally connected to the same IP',
+                    'D. The two events are unrelated; EDR and proxy data must be validated independently before correlating'
+                ],
+                correct: 0,
+                domain: 'Incident Response and Management',
+                objective: '3.2',
+                explanation: 'A macro-spawned PowerShell process connecting to an external IP followed 45 seconds later by a 2 MB outbound POST to the same IP is the classic macro-based C2 callback followed by data exfiltration pattern. Options B, C, and D all propose benign or unrelated explanations that are inconsistent with a Word macro spawning PowerShell -- a non-standard behavior that EDR correctly flags -- and the timing correlation between the two events.'
+            },
+            {
+                q: 'A newly hired IR manager is building the organization\'s IR program from scratch. The manager identifies that before any incident occurs, the team needs documented procedures, defined roles, trained personnel, and appropriate tooling. Which IR life cycle phase encompasses all of these activities MOST accurately?',
+                options: [
+                    'A. Detection and Analysis, because the team must be able to identify incidents before responding',
+                    'B. Containment, Eradication, and Recovery, because these are the active response phases that require tools and trained staff',
+                    'C. Post-Incident Activity, because lessons learned feed back into improving the program',
+                    'D. Preparation, because this phase covers all activities that enable the organization to respond effectively before an incident occurs'
+                ],
+                correct: 3,
+                domain: 'Incident Response and Management',
+                objective: '3.3',
+                explanation: 'Preparation is the IR life cycle phase that encompasses building the IR plan, defining roles and responsibilities, training personnel, assembling tooling, and developing playbooks -- all activities that occur before any incident. Detection and Analysis (A), Containment (B), and Post-Incident Activity (C) are subsequent phases that occur during or after an active incident.'
+            },
+            {
+                q: 'An IR team lead is reviewing the organization\'s incident response plan and finds it lacks specific step-by-step procedures for responding to ransomware. The team lead wants to develop a document that provides exact commands, tool invocations, and decision checkpoints for analysts to follow during a ransomware incident. Which document type MOST directly addresses this requirement?',
+                options: [
+                    'A. A tabletop exercise script that simulates a ransomware scenario for the IR team to discuss',
+                    'B. A runbook with specific technical steps, tool commands, and decision points for ransomware response',
+                    'C. An updated IR plan appendix listing the contact information for the ransomware response team',
+                    'D. A BC/DR plan section defining the RTO and RPO for systems affected by ransomware'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                objective: '3.3',
+                explanation: 'A runbook provides the specific technical how-to steps -- exact commands, tool invocations, and decision checkpoints -- that analysts execute during an active incident, which is exactly what the team lead requires for ransomware response. A tabletop exercise script (A) is for discussion-based simulation; contact information (C) is an administrative artifact, not procedural guidance; the BC/DR plan (D) addresses continuity and recovery objectives, not step-by-step analyst procedures.'
+            },
+            {
+                q: 'A SOC manager wants to determine how long, on average, it takes the team to begin actively working an incident after detecting it. Which KPI MOST directly measures this time window?',
+                options: [
+                    'A. MTTD, which measures the average time from incident occurrence to the moment the SOC first detects it',
+                    'B. MTTR (Mean Time to Respond), which measures the average time from detection to the completion of the team\'s initial response actions',
+                    'C. Alert volume, which measures the total number of alerts generated per day across all detection sources',
+                    'D. MTTC, which measures the average time from detection to full containment of the incident'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                objective: '3.3',
+                explanation: 'MTTR (Mean Time to Respond) measures the time elapsed from detection until the team completes its initial response actions, directly capturing how quickly analysts begin actively working an incident after it is detected. MTTD (A) measures the time from incident occurrence to detection -- a different window; alert volume (C) is a throughput metric, not a time-based performance measure; MTTC (D) measures containment speed, which is a later milestone than initial response.'
+            },
+            {
+                q: 'An IR team completes a post-incident review after a credential-stuffing attack. The lessons-learned facilitator asks the team to identify one preparation gap that most directly enabled the attacker to succeed. The team determines that no documented procedure existed for detecting or responding to credential-stuffing patterns in the SIEM. Which post-incident output MOST directly translates this finding into a preparation improvement?',
+                options: [
+                    'A. Publishing an external blog post describing the attack to alert the industry',
+                    'B. Increasing the MTTD KPI target threshold so future similar incidents are flagged more quickly',
+                    'C. Creating a credential-stuffing detection rule in the SIEM and a corresponding playbook section defining the triage and response steps',
+                    'D. Rotating all service account credentials across the enterprise as a precautionary measure'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                objective: '3.3',
+                explanation: 'The lessons-learned finding (no detection rule or response procedure for credential stuffing) directly maps to the corrective action of creating the missing SIEM detection rule and a playbook section for responding to it -- closing the identified preparation gap. An external blog post (A) benefits the community but does not improve internal detection or procedures; adjusting MTTD targets (B) changes the KPI threshold but not the underlying detection capability; rotating service account credentials (D) is a precautionary step unrelated to the root cause of missing detection logic.'
+            },
+            {
+                q: 'A SOC manager is presenting the quarter\'s IR metrics to the executive team. The manager explains that MTTR (Mean Time to Respond) decreased by 40% while MTTD stayed the same. Which interpretation of these combined metrics is MOST accurate?',
+                options: [
+                    'A. The SOC is detecting incidents faster than the previous quarter, which allowed response to begin sooner',
+                    'B. The SOC\'s containment capability has improved, as evidenced by the faster MTTD',
+                    'C. Detection speed is unchanged, but the IR team is completing initial response actions more quickly after detection -- suggesting improved analyst efficiency or better playbook execution',
+                    'D. The improvement in MTTR indicates the SOC is resolving more alert volume per analyst per shift'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                objective: '3.3',
+                explanation: 'A stable MTTD combined with a 40% decrease in MTTR (Mean Time to Respond) means detection speed is unchanged but the team is responding more quickly after detection, indicating improved response efficiency such as better playbooks or analyst training. Option A incorrectly describes an MTTD improvement; Option B confuses MTTD with MTTC; Option D conflates MTTR with alert throughput, which is measured by alert volume, not MTTR.'
             }
         ];
 
