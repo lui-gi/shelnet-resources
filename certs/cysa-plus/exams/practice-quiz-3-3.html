@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelnet Quiz</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #0c0c0c;
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --accent: #3b82f6; /* Default — overridden per-quiz via ACCENT_HEX in CONFIG */
+            --accent-dim: rgba(59, 130, 246, 0.1); /* Default — overridden via setProperty in init() */
+            --accent-glow: rgba(59, 130, 246, 0.4); /* Default — overridden via setProperty in init() */
+            --accent-select: rgba(59, 130, 246, 0.3); /* Default — overridden via setProperty in init() */
+            --accent-red: #ef4444;
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            /* Grid Background Effect */
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Selection Color */
+        ::selection {
+            background: var(--accent-select);
+            color: #dbeafe;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Terminal Header Bar --- */
+        .terminal-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot.red { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); }
+        .dot.yellow { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); }
+        .dot.green { background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); }
+
+        /* --- Brutal Header Section --- */
+        .header {
+            padding: 40px 40px 20px 40px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .header .subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: block;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-container {
+            width: 100%;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        /* --- Content Area --- */
+        .content {
+            padding: 40px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .question-number {
+            font-family: var(--font-mono);
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .domain-tag {
+            font-family: var(--font-mono);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            color: #eee;
+            font-weight: 400;
+        }
+
+        /* --- Options --- */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .option:hover {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .option.selected {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+
+        .option-label {
+            font-family: var(--font-mono);
+            margin-right: 20px;
+            color: var(--text-muted);
+            font-weight: bold;
+            min-width: 25px;
+        }
+
+        .option.selected .option-label {
+            color: var(--accent);
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .option.selected .option-text {
+            color: #fff;
+        }
+
+        /* --- Buttons --- */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 50px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .btn-primary {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: var(--border-color);
+        }
+
+        /* --- Results Screen --- */
+        .results {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .score-card {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Terminal scanline effect for score */
+        .score-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: rgba(255,255,255,0.1);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .score-number {
+            font-size: 5rem;
+            font-weight: bold;
+            font-family: var(--font-mono);
+            margin: 10px 0;
+            color: #fff;
+        }
+
+        .pass-fail {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            display: inline-block;
+            border: 1px solid currentColor;
+            margin-top: 20px;
+        }
+
+        .pass { color: var(--accent); }
+        .fail { color: var(--accent-red); }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            font-family: var(--font-mono);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        /* Review Section */
+        .review-question {
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.02);
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid transparent;
+        }
+
+        .review-question.correct { border-left-color: var(--accent); }
+        .review-question.incorrect { border-left-color: var(--accent-red); }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .review-status.correct { color: var(--accent); }
+        .review-status.incorrect { color: var(--accent-red); }
+
+        .review-text {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .review-answers {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .answer-line {
+            margin-bottom: 8px;
+            display: flex;
+        }
+
+        .answer-line strong {
+            width: 140px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            border-left: 2px solid var(--text-muted);
+            background: rgba(255,255,255,0.03);
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+
+        .explanation-title {
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0c0c0c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) #0c0c0c;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .content { padding: 20px; }
+            .question-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .score-number { font-size: 3rem; }
+            .navigation { flex-direction: column; gap: 15px; }
+            .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="terminal-bar">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+            <span style="margin-left: 10px;">bash — user@shelnet-exam: ~</span>
+        </div>
+
+        <div class="header">
+            <h1 id="quizTitle">Quiz Title</h1>
+            <div class="subtitle" id="quizSubtitle">C:\Shelnet\Quizzes> Objective</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <div class="content" id="examContent">
+            </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // QUIZ CONFIG — edit this block when deriving a new quiz.
+        // Leave the rest of this file unchanged.
+        // ============================================================
+        const QUIZ_TITLE    = 'Practice Quiz 3.3';
+        const QUIZ_SUBTITLE = 'C:\\Shelnet\\Quizzes> CS0-003 Objective 3.3';
+        const ACCENT_HEX    = '#06b6d4';
+
+        const questions = [
+            {
+                q: 'A SOC manager is reviewing the team\'s incident response readiness and wants to validate that the IR plan, communication channels, and escalation procedures work correctly without disrupting production systems. Which preparation activity BEST meets this requirement?',
+                options: [
+                    'A. Conducting a live-fire red team engagement against production systems to test real defenses',
+                    'B. Running a tabletop exercise where IR team members walk through a simulated scenario and discuss their responses',
+                    'C. Deploying an additional SIEM instance to increase log coverage before the next incident',
+                    'D. Updating the DR plan to include ransomware recovery runbooks'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                explanation: 'A tabletop exercise is a discussion-based simulation that validates IR plan procedures, communication flows, and escalation paths without touching production systems. A live-fire red team engagement (A) tests real defenses but disrupts production; adding a SIEM (C) improves detection capability, not plan validation; updating DR runbooks (D) is a useful preparation step but does not validate the existing IR plan.'
+            },
+            {
+                q: 'An IR lead is building an IR plan for a healthcare organization and must ensure the plan addresses the organization\'s ability to continue delivering patient care if critical systems are taken offline during a security incident. Which preparation element MOST directly supports this requirement?',
+                options: [
+                    'A. Including BC/DR provisions in the IR plan so that patient care continuity procedures are defined before an incident occurs',
+                    'B. Deploying EDR on all clinical workstations to detect threats before they cause downtime',
+                    'C. Establishing a CSIRT retainer with a third-party IR firm to provide surge support during incidents',
+                    'D. Conducting quarterly phishing simulations to reduce the likelihood of the initial compromise'
+                ],
+                correct: 0,
+                domain: 'Incident Response and Management',
+                explanation: 'Integrating BC/DR provisions into the IR plan ensures that continuity of operations (including patient care) is addressed as part of the incident response framework. EDR (B) improves detection but does not address continuity; a CSIRT retainer (C) provides response capacity but not operational continuity procedures; phishing simulations (D) reduce attack probability, not recovery capability.'
+            },
+            {
+                q: 'A SOC analyst is reviewing the organization\'s runbooks and playbooks. The analyst notes that the phishing response playbook specifies a high-level decision tree for triaging phishing emails, while the phishing runbook provides step-by-step commands to extract email headers and block sender domains. Which statement MOST accurately distinguishes these two documents?',
+                options: [
+                    'A. A playbook and a runbook are identical documents that differ only in name depending on vendor preference',
+                    'B. A runbook is a high-level strategic guide while a playbook contains the operational step-by-step procedures',
+                    'C. A playbook defines what to do and when at a decision-tree level, while a runbook provides the specific technical how-to steps',
+                    'D. A playbook is used only during the post-incident phase while a runbook is used only during active response'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                explanation: 'A playbook defines the workflow and decision logic (what to do, when, and in what order), while a runbook provides the specific technical commands and step-by-step procedures for executing each task. They are not identical (A); the description in (B) reverses the roles; both documents are used across the IR lifecycle, not limited to a single phase (D).'
+            },
+            {
+                q: 'A SOC manager receives the after-action report for a recent ransomware incident. The report shows the SOC took 14 hours to detect the intrusion and 6 hours to contain it once detected. Which IR metrics MOST directly measure these two time periods?',
+                options: [
+                    'A. MTTR and MTTC, which measure time to respond and time to contain respectively',
+                    'B. MTTD and MTTR, which measure time to detect and time to respond respectively',
+                    'C. MTTC and MTTD, which measure time to contain and time to detect respectively',
+                    'D. MTTD and MTTC, which measure the time from incident start to detection and the time from detection to containment respectively'
+                ],
+                correct: 3,
+                domain: 'Incident Response and Management',
+                explanation: 'MTTD (Mean Time to Detect) measures how long from incident start until the SOC detected it (14 hours in this case); MTTC (Mean Time to Contain) measures how long from detection until containment was achieved (6 hours). MTTR (B, A) measures the time from detection to full remediation/resolution, which is a different -- and longer -- time period than containment alone.'
+            },
+            {
+                q: 'An IR team lead is conducting a lessons-learned meeting three days after a major phishing compromise. A junior analyst suggests immediately updating all systems before the meeting concludes. The team lead explains that lessons learned has a specific purpose that should not be conflated with remediation actions. Which statement BEST describes the primary purpose of the lessons-learned activity?',
+                options: [
+                    'A. To assign blame to the team members who missed the initial alerts and failed to contain the incident faster',
+                    'B. To analyze what happened, why it happened, what the team did well, what could be improved, and to produce actionable recommendations that feed back into preparation',
+                    'C. To formally declare the incident closed and archive all associated documentation',
+                    'D. To notify regulators and executive stakeholders of the incident timeline and impact'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                explanation: 'Lessons learned is a structured post-incident analysis session focused on improving future response -- examining what worked, what did not, and capturing actionable recommendations to update plans, playbooks, and training. It is explicitly not a blame session (A); formal incident closure (C) is a separate administrative step; regulatory notification (D) is a communication activity that should have occurred during active response.'
+            },
+            {
+                q: 'A SOC manager is tasked with measuring the effectiveness of the organization\'s incident detection capability over the past quarter. Which metric MOST directly quantifies detection effectiveness in this context?',
+                options: [
+                    'A. MTTD, which measures the average time elapsed between incident occurrence and SOC detection',
+                    'B. MTTR, which measures the average time from detection to full remediation of an incident',
+                    'C. Alert volume, which counts the total number of alerts generated by the SIEM per day',
+                    'D. MTTC, which measures the average time from detection to successful containment'
+                ],
+                correct: 0,
+                domain: 'Incident Response and Management',
+                explanation: 'MTTD directly measures detection speed -- the lower the MTTD, the more effective the detection capability. MTTR (B) measures remediation speed, not detection; alert volume (C) is a throughput metric that does not indicate detection speed or accuracy; MTTC (D) measures containment speed, which comes after detection.'
+            },
+            {
+                q: 'An IR team is updating its communication plan following a breach. The team lead wants to ensure that during a future incident, the right stakeholders receive updates at the right intervals and that sensitive incident details do not leak to unauthorized parties. Which preparation element MOST directly addresses this requirement?',
+                options: [
+                    'A. A training program that teaches all employees to recognize phishing emails',
+                    'B. A SIEM tuning effort to reduce false positive alert volume',
+                    'C. A communication plan that defines stakeholder roles, escalation paths, notification timelines, and information-sharing restrictions',
+                    'D. A BC/DR plan that ensures systems remain available during extended incident response operations'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                explanation: 'A communication plan is the preparation document that explicitly defines who receives what information, when, through which channels, and with what restrictions -- directly addressing the stakeholder notification and information control requirements. Phishing training (A) reduces attack probability; SIEM tuning (B) reduces alert noise; BC/DR planning (D) addresses operational continuity, not communication governance.'
+            },
+            {
+                q: 'A SOC manager is performing a post-incident review after a SOC analyst failed to escalate a critical alert because the escalation threshold criteria were not defined in the current IR playbook. Which post-incident activity output MOST directly addresses this gap?',
+                options: [
+                    'A. Updating the MTTD KPI target to require earlier detection in the next quarter',
+                    'B. Purchasing an additional SOAR platform to automate escalation decisions',
+                    'C. Conducting a full re-audit of all security controls in the environment',
+                    'D. Adding explicit escalation threshold criteria and decision logic to the IR playbook as a corrective action from lessons learned'
+                ],
+                correct: 3,
+                domain: 'Incident Response and Management',
+                explanation: 'The lessons-learned corrective action directly identified the gap (undefined escalation thresholds) and the appropriate output is updating the playbook to include that logic. Adjusting MTTD KPIs (A) changes a metric but not the process deficiency; buying a SOAR (B) may automate decisions eventually but does not immediately fix the undefined criteria; a full control audit (C) is disproportionate to the identified root cause.'
+            },
+            {
+                q: 'An incident responder is preparing training materials for new SOC analysts joining the IR team. The training must teach analysts to follow documented, repeatable procedures during active incidents without improvising. Which preparation tool MOST directly supports this training objective?',
+                options: [
+                    'A. Runbooks, because they provide step-by-step technical instructions that analysts execute consistently during incident response',
+                    'B. After-action reports from past incidents, because they document what the team did wrong and should be avoided',
+                    'C. The IR plan, because it is a high-level governance document that describes the overall response program',
+                    'D. Threat intelligence feeds, because they provide real-time IOC data that analysts must learn to consume'
+                ],
+                correct: 0,
+                domain: 'Incident Response and Management',
+                explanation: 'Runbooks are the procedural documents that provide exact step-by-step commands and decision logic for analysts to follow consistently during active incidents -- ideal for training on repeatable execution. After-action reports (B) are retrospective; the IR plan (C) is high-level governance, not a step-by-step execution guide; threat intel feeds (D) provide context data, not procedural instructions.'
+            },
+            {
+                q: 'A SOC manager reviews a quarterly KPI report showing MTTD has increased from 2 hours to 8 hours over the past quarter while alert volume has remained constant. Which interpretation of this trend is MOST accurate?',
+                options: [
+                    'A. The SOC is detecting more sophisticated attacks that are harder to identify quickly',
+                    'B. The SOC\'s detection capability has degraded -- incidents are going undetected longer, indicating a need to investigate analyst workload, alert triage processes, or detection rule quality',
+                    'C. The increase in MTTD is expected and indicates the SOC is prioritizing higher-fidelity alerts over volume',
+                    'D. MTTD increasing while alert volume stays constant proves the SIEM is generating fewer actionable alerts'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                explanation: 'A rising MTTD with stable alert volume is a KPI red flag -- it means the SOC is taking longer to detect incidents despite the same workload, suggesting analyst capacity issues, degraded detection rules, or process gaps. Attributing the delay to sophisticated attacks (A) is speculation without supporting data; (C) reverses the implication; MTTD measures time to detection, not alert actionability (D).'
+            },
+            {
+                q: 'An IR lead is establishing a forensic analysis process to be used after every significant incident. The lead wants the forensic output to directly inform improvements to detection rules and IR playbooks. Which post-incident activity MOST directly links forensic analysis output to preparation improvements?',
+                options: [
+                    'A. Publishing IOC from the investigation to external threat-sharing platforms for community benefit',
+                    'B. Storing forensic images in a long-term evidence repository for potential future litigation',
+                    'C. Using forensic analysis findings to identify attacker TTP, then updating SIEM detection rules and IR playbooks to address those TTP in future incidents',
+                    'D. Notifying affected individuals and regulators about the scope of data compromise identified in forensics'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                explanation: 'Using forensic findings to identify attacker TTP and feeding those directly into SIEM rule updates and playbook revisions creates a closed improvement loop between post-incident analysis and preparation. Publishing IOC externally (A) benefits the community but does not directly improve internal detection rules; evidence storage (B) supports litigation; regulatory notification (D) is a compliance requirement, not a preparation improvement.'
+            },
+            {
+                q: 'A SOC manager is comparing MTTR and MTTC as KPIs for executive reporting. An executive asks why the organization tracks both metrics instead of just MTTR. Which explanation MOST accurately describes the distinction?',
+                options: [
+                    'A. MTTC measures how quickly the SOC stops active attacker operations, while MTTR measures how long it takes to fully restore affected systems and close the incident -- providing two distinct views of response performance',
+                    'B. MTTR and MTTC are synonymous terms used interchangeably in different regulatory frameworks',
+                    'C. MTTC applies to malware incidents only, while MTTR applies to all incident types including phishing and insider threat',
+                    'D. MTTR is calculated from incident detection while MTTC is calculated from the first analyst response action'
+                ],
+                correct: 0,
+                domain: 'Incident Response and Management',
+                explanation: 'MTTC (Mean Time to Contain) measures speed of containment -- stopping active attacker activity -- which is a time-critical operational metric. MTTR (Mean Time to Respond/Remediate) measures the full resolution timeline including eradication and recovery. Tracking both gives leadership visibility into containment speed and full recovery duration separately. They are not synonymous (B); scope restrictions by incident type (C) are not correct; both are measured from detection (D) is only partially accurate and mischaracterizes MTTC start.'
+            },
+            {
+                q: 'An IR team lead is reviewing the organization\'s IR plan and finds it has not been updated in two years and does not reflect new cloud infrastructure added during a migration. Which preparation activity MOST directly addresses this gap?',
+                options: [
+                    'A. Replacing the IR plan entirely with a vendor-provided template that covers cloud environments',
+                    'B. Scheduling a plan review cycle with defined owners and update triggers, and immediately revising the plan to include cloud-specific contact lists, runbooks, and escalation paths',
+                    'C. Conducting an additional tabletop exercise to identify gaps instead of directly editing the plan',
+                    'D. Notifying the CISO that the IR plan is out of date and requesting additional budget before proceeding'
+                ],
+                correct: 1,
+                domain: 'Incident Response and Management',
+                explanation: 'The most direct corrective action is to update the IR plan immediately to include cloud-specific procedures and establish a recurring review cycle so the plan stays current. Replacing with a vendor template (A) discards organizational context; a tabletop exercise (C) identifies additional gaps but does not fix the known ones; requesting budget (D) delays action and is not required to update a document.'
+            },
+            {
+                q: 'A SOC manager is preparing an after-action report following a data breach. Which element of the after-action report is MOST critical for ensuring the lessons learned translate into measurable improvements?',
+                options: [
+                    'A. A detailed timeline of all attacker actions from initial access through containment',
+                    'B. An executive summary of the incident scope and business impact for the board',
+                    'C. A list of specific corrective actions with assigned owners, deadlines, and success criteria',
+                    'D. Copies of all forensic images and log extracts collected during the investigation'
+                ],
+                correct: 2,
+                domain: 'Incident Response and Management',
+                explanation: 'Corrective actions with assigned owners, deadlines, and measurable success criteria are what convert lessons learned into actual improvements -- without accountability and metrics, findings remain unaddressed. A detailed timeline (A) is valuable but descriptive; the executive summary (B) communicates impact but does not drive improvement; forensic copies (D) are evidentiary artifacts, not improvement mechanisms.'
+            },
+            {
+                q: 'A SOC manager is designing the training curriculum for a new IR team. The manager wants to test how team members coordinate under realistic pressure without the risk of causing an actual outage. Which training method MOST effectively meets this objective?',
+                options: [
+                    'A. Assigning team members to complete online IR certification courses at their own pace',
+                    'B. Running annual credentialed vulnerability scans and reviewing findings as a team exercise',
+                    'C. Having team members shadow senior analysts during real incidents to learn by observation',
+                    'D. Conducting simulated IR exercises using realistic attack scenarios in a non-production environment, including communication drills and escalation role-plays'
+                ],
+                correct: 3,
+                domain: 'Incident Response and Management',
+                explanation: 'Simulated IR exercises in a non-production environment test team coordination, communication, and escalation under realistic pressure without risk to production systems -- the MOST effective method for the described objective. Online certifications (A) provide knowledge but not coordination practice; vulnerability scan reviews (B) test analysis skills, not IR coordination; shadowing (C) is passive observation, not active coordination training.'
+            }
+        ];
+
+        // ============================================================
+        // END CONFIG — chrome below is shared. Do not edit when deriving.
+        // ============================================================
+
+        // Small util: convert '#06b6d4' -> 'rgba(6, 182, 212, 0.1)' for the dim variant.
+        function hexToRgba(hex, alpha) {
+            const h = hex.replace('#', '');
+            const r = parseInt(h.substring(0, 2), 16);
+            const g = parseInt(h.substring(2, 4), 16);
+            const b = parseInt(h.substring(4, 6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // --- APP STATE ---
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+
+        // --- DOM ELEMENTS ---
+        const contentDiv = document.getElementById('examContent');
+        const progressBar = document.getElementById('progressBar');
+
+        // --- INITIALIZATION ---
+        function init() {
+            // --- Apply CONFIG ---
+            document.title = QUIZ_TITLE;
+            document.getElementById('quizTitle').textContent = QUIZ_TITLE;
+            document.getElementById('quizSubtitle').textContent = QUIZ_SUBTITLE;
+            document.documentElement.style.setProperty('--accent', ACCENT_HEX);
+            document.documentElement.style.setProperty('--accent-dim', hexToRgba(ACCENT_HEX, 0.1));
+            document.documentElement.style.setProperty('--accent-glow', hexToRgba(ACCENT_HEX, 0.4));
+            document.documentElement.style.setProperty('--accent-select', hexToRgba(ACCENT_HEX, 0.3));
+
+            // --- existing init body continues below ---
+            renderQuestion();
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            const isLastQuestion = currentQuestionIndex === questions.length - 1;
+
+            // Update Progress
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // HTML Structure for Question
+            let html = `
+                <div class="question-header">
+                    <span class="question-number">QUESTION ${currentQuestionIndex + 1} OF ${questions.length}</span>
+                    <span class="domain-tag">${q.domain}</span>
+                </div>
+
+                <div class="question-text">${q.q}</div>
+
+                <div class="options">
+                    ${q.options.map((opt, index) => {
+                        const isSelected = userAnswers[currentQuestionIndex] === index;
+                        const label = String.fromCharCode(65 + index); // A, B, C, D
+                        return `
+                            <div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(${index})">
+                                <span class="option-label">${label}</span>
+                                <span class="option-text">${opt}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                <div class="navigation">
+                    <button class="btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
+                        &larr; Previous
+                    </button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" ${userAnswers[currentQuestionIndex] === null ? 'disabled' : ''}>
+                        ${isLastQuestion ? 'Finish Exam' : 'Next &rarr;'}
+                    </button>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+        }
+
+        function selectOption(index) {
+            userAnswers[currentQuestionIndex] = index;
+            // Re-render to show selection state (or just toggle class for performance, but re-render is safer for state sync)
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            // Calculate Score
+            let correctCount = 0;
+            questions.forEach((q, i) => {
+                if (userAnswers[i] === q.correct) correctCount++;
+            });
+
+            const score = Math.round((correctCount / questions.length) * 100);
+            const passed = score >= 83; // Approx 750/900
+            progressBar.style.width = '100%';
+
+            let html = `
+                <div class="results">
+                    <div class="score-card">
+                        <div class="subtitle">EXAM RESULTS</div>
+                        <div class="score-number">${score}</div>
+                        <div class="subtitle">SCORE / 100</div>
+                        <div class="pass-fail ${passed ? 'pass' : 'fail'}">
+                            ${passed ? 'PASS' : 'FAIL'}
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">${correctCount}</div>
+                            <div class="stat-label">Correct</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length - correctCount}</div>
+                            <div class="stat-label">Incorrect</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${questions.length}</div>
+                            <div class="stat-label">Total Questions</div>
+                        </div>
+                    </div>
+
+                    <div class="subtitle" style="margin-bottom: 20px;">Review Answers</div>
+
+                    ${questions.map((q, i) => {
+                        const userAnswer = userAnswers[i];
+                        const isCorrect = userAnswer === q.correct;
+                        const labelUser = String.fromCharCode(65 + userAnswer);
+                        const labelCorrect = String.fromCharCode(65 + q.correct);
+
+                        return `
+                            <div class="review-question ${isCorrect ? 'correct' : 'incorrect'}">
+                                <div class="review-header">
+                                    <span>Question ${i + 1}</span>
+                                    <span class="review-status ${isCorrect ? 'correct' : 'incorrect'}">
+                                        ${isCorrect ? 'CORRECT' : 'INCORRECT'}
+                                    </span>
+                                </div>
+                                <div class="review-text">${q.q}</div>
+
+                                <div class="review-answers">
+                                    <div class="answer-line">
+                                        <strong>Your Answer:</strong>
+                                        <span style="color: ${isCorrect ? 'var(--accent)' : 'var(--accent-red)'}">
+                                            ${labelUser}. ${q.options[userAnswer]}
+                                        </span>
+                                    </div>
+                                    <div class="answer-line">
+                                        <strong>Correct Answer:</strong>
+                                        <span style="color: var(--accent)">
+                                            ${labelCorrect}. ${q.options[q.correct]}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="explanation">
+                                    <div class="explanation-title">Explanation</div>
+                                    ${q.explanation}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+
+                    <div style="text-align: center; margin-top: 40px;">
+                        <button class="btn btn-primary" onclick="location.reload()" style="display: inline-flex;">
+                            Retake Exam
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            contentDiv.innerHTML = html;
+            window.scrollTo(0,0);
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
