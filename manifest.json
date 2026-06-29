@@ -1,5 +1,5 @@
 {
-  "version": "2.3.0",
+  "version": "2.4.0",
   "lastUpdated": "2026-06-29T00:00:00Z",
   "certs": {
     "a-plus": {
@@ -44,7 +44,7 @@
       "code": "CS0-003",
       "accent": "cyan",
       "blurb": "Cybersecurity analyst skills: security operations, vulnerability management, and incident response.",
-      "locked": true,
+      "locked": false,
       "bytes": { "count": 480 },
       "resources": {
         "pbqs": [
@@ -52,7 +52,9 @@
           { "id": 2, "title": "SIEM Log Triage", "filename": "siem-log-triage-pbq-2.html", "description": "Triage a 12-line SIEM queue: label each line Benign, Investigate, or Escalate." },
           { "id": 3, "title": "Tool Selection from Output", "filename": "tool-selection-pbq-3.html", "description": "Pick the right tool for each task from a 12-tool inventory; distractors stay in their lane." }
         ],
-        "exams": [],
+        "exams": [
+          { "id": 1, "title": "CySA+ Practice Exam 1 (CS0-003)", "filename": "practice-exam-1.html", "description": "85 questions covering all four CS0-003 domains: security operations, vulnerability management, incident response and management, and reporting and communication." }
+        ],
         "quizzes": [
           { "id": 1,  "title": "Practice Quiz 1.1",  "filename": "practice-quiz-1-1.html", "objective": "1.1", "description": "15 questions: System and network architecture concepts in security operations." },
           { "id": 2,  "title": "Practice Quiz 1.2",  "filename": "practice-quiz-1-2.html", "objective": "1.2", "description": "15 questions: Analyze indicators of potentially malicious activity." },
