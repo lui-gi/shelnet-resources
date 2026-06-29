@@ -986,7 +986,7 @@
             {
                 q: 'A vulnerability analyst uses Nikto to scan an internal web server and receives the output: "Allowed HTTP Methods: OPTIONS, GET, HEAD, POST, PUT, DELETE, PATCH." The security team asks which part of this output is MOST significant as an immediate security concern. Which analyst interpretation is MOST accurate?',
                 options: [
-                    'A. The presence of the OPTIONS method is the primary concern because it enables server-side request forgery',
+                    'A. The presence of the OPTIONS method is the primary concern because it enables SSRF',
                     'B. The presence of GET and POST is unusual and indicates the server is misconfigured',
                     'C. The presence of PUT and DELETE methods is the primary concern because they allow unauthorized file creation and deletion if not properly restricted',
                     'D. The complete method list is expected and indicates the server is correctly configured for REST API use'
@@ -1122,7 +1122,7 @@
                 options: [
                     'A. Enabling server-side encryption for all uploaded files so their contents cannot be read',
                     'B. Validating uploaded files using server-side content inspection and restricting execution permissions on the upload directory so stored files cannot be run as scripts',
-                    'C. Adding CSRF tokens to the upload form to prevent cross-site request forgery against the upload endpoint',
+                    'C. Adding CSRF tokens to the upload form to prevent CSRF against the upload endpoint',
                     'D. Blocking all file uploads from unauthenticated users'
                 ],
                 correct: 1,
