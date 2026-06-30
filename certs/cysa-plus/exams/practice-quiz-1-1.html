@@ -6,461 +6,284 @@
     <title>Shelnet Quiz</title>
     <style>
         :root {
-            --bg-color: #000000;
-            --card-bg: #0c0c0c;
-            --text-main: #ffffff;
-            --text-muted: rgba(255, 255, 255, 0.6);
-            --border-color: rgba(255, 255, 255, 0.15);
-            --accent: #3b82f6; /* Default — overridden per-quiz via ACCENT_HEX in CONFIG */
-            --accent-dim: rgba(59, 130, 246, 0.1); /* Default — overridden via setProperty in init() */
-            --accent-glow: rgba(59, 130, 246, 0.4); /* Default — overridden via setProperty in init() */
-            --accent-select: rgba(59, 130, 246, 0.3); /* Default — overridden via setProperty in init() */
-            --accent-red: #ef4444;
-            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            --font-mono: 'Courier New', Courier, monospace;
+            --bg:           #000000;
+            --text-90:      rgba(255, 255, 255, 0.90);
+            --text-70:      rgba(255, 255, 255, 0.70);
+            --text-45:      rgba(255, 255, 255, 0.45);
+            --text-30:      rgba(255, 255, 255, 0.30);
+            --rule:         rgba(255, 255, 255, 0.15);
+            --accent:       #38bdf8; /* Default — overridden per-quiz via ACCENT_HEX */
+            --accent-tint:  rgba(56, 189, 248, 0.14); /* selected-row */
+            --accent-hover: rgba(56, 189, 248, 0.08); /* hover-row */
+            --pass-green:   #43c08c;
+            --wrong-red:    #fb7185;
+            --font-mono:    'Courier New', Courier, monospace;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body { background: var(--bg); }
 
         body {
-            font-family: var(--font-sans);
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            font-family: var(--font-mono);
+            color: var(--text-90);
             min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            /* Grid Background Effect */
-            background-image:
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
+            padding: 32px 0 48px;
+            line-height: 1.5;
+            font-size: 15px;
         }
 
-        /* Selection Color */
         ::selection {
-            background: var(--accent-select);
-            color: #dbeafe;
+            background: var(--accent-tint);
+            color: #fff;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            min-height: 600px;
+        .col {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        /* --- Header --- */
+        .title-row {
             display: flex;
-            flex-direction: column;
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px 24px;
+            color: var(--text-90);
         }
 
-        /* --- Terminal Header Bar --- */
-        .terminal-bar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid var(--border-color);
-            font-family: var(--font-mono);
-            font-size: 12px;
-            color: var(--text-muted);
+        .title-row .meta {
+            color: var(--text-45);
+            font-size: 13px;
         }
 
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        .dot.red { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); }
-        .dot.yellow { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); }
-        .dot.green { background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); }
-
-        /* --- Brutal Header Section --- */
-        .header {
-            padding: 40px 40px 20px 40px;
-            border-bottom: 1px solid var(--border-color);
+        .rule {
+            border-top: 1px solid var(--rule);
+            margin: 12px 0 0;
         }
 
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-            margin-bottom: 10px;
-            line-height: 1;
-        }
-
-        .header .subtitle {
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            display: block;
-        }
-
-        /* --- Progress Bar --- */
-        .progress-container {
-            width: 100%;
+        .progress {
             height: 2px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.06);
+            margin-top: 0;
         }
 
         .progress-fill {
             height: 100%;
             background: var(--accent);
             width: 0%;
-            transition: width 0.3s ease;
-            box-shadow: 0 0 10px var(--accent);
+            transition: width 0.25s ease;
         }
 
-        /* --- Content Area --- */
-        .content {
-            padding: 40px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
+        /* --- Question --- */
+        .content { margin-top: 32px; }
 
-        .question-header {
+        .q-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px dashed var(--border-color);
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 4px 24px;
+            color: var(--text-70);
+            font-size: 13px;
         }
 
-        .question-number {
-            font-family: var(--font-mono);
-            color: var(--accent);
-            font-size: 0.9rem;
-        }
+        .q-header .count { color: var(--accent); }
+        .q-header .domain { color: var(--text-45); }
 
-        .domain-tag {
-            font-family: var(--font-mono);
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-color);
-            padding: 4px 12px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .question-text {
-            font-size: 1.25rem;
+        .stem {
+            color: var(--text-90);
+            font-size: 17px;
             line-height: 1.6;
-            margin-bottom: 40px;
-            color: #eee;
-            font-weight: 400;
+            margin: 24px 0 32px;
         }
 
-        /* --- Options --- */
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        .options { display: flex; flex-direction: column; gap: 2px; }
 
         .option {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            padding: 20px;
+            display: flex;
+            align-items: baseline;
+            gap: 18px;
+            padding: 10px 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            position: relative;
-        }
-
-        .option:hover {
-            border-color: var(--accent);
-            background: rgba(255,255,255,0.04);
-        }
-
-        .option.selected {
-            background: var(--accent-dim);
-            border-color: var(--accent);
-        }
-
-        .option-label {
-            font-family: var(--font-mono);
-            margin-right: 20px;
-            color: var(--text-muted);
-            font-weight: bold;
-            min-width: 25px;
-        }
-
-        .option.selected .option-label {
-            color: var(--accent);
-        }
-
-        .option-text {
-            flex: 1;
-            font-size: 1rem;
-            color: rgba(255,255,255,0.8);
-        }
-
-        .option.selected .option-text {
-            color: #fff;
-        }
-
-        /* --- Buttons --- */
-        .navigation {
-            display: flex;
-            justify-content: space-between;
-            margin-top: auto;
-            padding-top: 50px;
-        }
-
-        .btn {
-            padding: 12px 24px;
             background: transparent;
-            border: 1px solid var(--border-color);
-            color: #fff;
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            border: 0;
+            color: var(--text-90);
+            font: inherit;
+            text-align: left;
+            width: 100%;
+            transition: background-color 0.12s ease;
+        }
+
+        .option:hover { background: var(--accent-hover); }
+        .option.selected { background: var(--accent-tint); }
+
+        .option .label {
+            color: var(--text-45);
+            min-width: 1.5ch;
+        }
+
+        .option.selected .label { color: var(--accent); }
+
+        .option .text { flex: 1; }
+
+        /* --- Footer hints --- */
+        .hints {
+            margin-top: 32px;
+            color: var(--text-45);
+            font-size: 13px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 18px;
+        }
+
+        .hints .key { color: var(--accent); margin-right: 4px; }
+        .hints .verb { color: var(--text-90); }
+        .hints .verb:hover { text-decoration: underline; }
+        .hints .verb.disabled { color: var(--text-30); cursor: not-allowed; }
+        .hints .verb.disabled:hover { text-decoration: none; }
+
+        button.verb {
+            background: transparent;
+            border: 0;
+            font: inherit;
+            padding: 0;
             cursor: pointer;
-            transition: all 0.2s;
+        }
+
+        /* --- Results --- */
+        .results-heading {
+            color: var(--text-70);
+            font-size: 15px;
+            margin-bottom: 0;
+        }
+
+        .score-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 28px;
+            margin-top: 28px;
+            align-items: baseline;
+        }
+
+        .score-row .label { color: var(--text-45); }
+        .score-row .score-val { color: var(--text-90); }
+        .score-row .verdict-pass { color: var(--pass-green); }
+        .score-row .verdict-fail { color: var(--wrong-red); }
+        .score-row .threshold   { color: var(--text-45); }
+
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 36px;
+            margin-top: 16px;
+            align-items: baseline;
+        }
+
+        .stats-row .stat-label { color: var(--text-45); margin-right: 8px; }
+        .stats-row .stat-val   { color: var(--text-90); }
+
+        .review-heading {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            color: var(--text-70);
+            margin: 36px 0 16px;
         }
 
-        .btn:hover:not(:disabled) {
-            background: #fff;
-            color: #000;
-            border-color: #fff;
+        .review-heading .dashes {
+            color: var(--text-30);
+            flex: 1;
+            border-top: 1px solid var(--rule);
+            margin-left: 4px;
+            transform: translateY(1px);
         }
 
-        .btn-primary {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: var(--accent);
-            color: #000;
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            border-color: var(--border-color);
-        }
-
-        /* --- Results Screen --- */
-        .results {
-            animation: fadeIn 0.5s ease;
-        }
-
-        .score-card {
-            border: 1px solid var(--border-color);
-            background: rgba(255,255,255,0.02);
-            padding: 40px;
-            text-align: center;
-            margin-bottom: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Terminal scanline effect for score */
-        .score-card::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 2px;
-            background: rgba(255,255,255,0.1);
-            animation: scan 2s linear infinite;
-        }
-
-        @keyframes scan {
-            0% { top: 0%; opacity: 0; }
-            50% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-        }
-
-        .score-number {
-            font-size: 5rem;
-            font-weight: bold;
-            font-family: var(--font-mono);
-            margin: 10px 0;
-            color: #fff;
-        }
-
-        .pass-fail {
-            font-family: var(--font-mono);
-            font-size: 1.5rem;
-            padding: 10px 20px;
-            display: inline-block;
-            border: 1px solid currentColor;
-            margin-top: 20px;
-        }
-
-        .pass { color: var(--accent); }
-        .fail { color: var(--accent-red); }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #fff;
-            font-family: var(--font-mono);
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            margin-top: 5px;
-        }
-
-        /* Review Section */
-        .review-question {
-            border: 1px solid var(--border-color);
-            background: rgba(255,255,255,0.02);
-            padding: 25px;
-            margin-bottom: 20px;
-            border-left: 4px solid transparent;
-        }
-
-        .review-question.correct { border-left-color: var(--accent); }
-        .review-question.incorrect { border-left-color: var(--accent-red); }
-
-        .review-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-        }
-
-        .review-status.correct { color: var(--accent); }
-        .review-status.incorrect { color: var(--accent-red); }
-
-        .review-text {
-            font-size: 1.1rem;
-            color: #fff;
+        .review-q {
+            border-left: 2px solid var(--text-30);
+            padding: 0 0 8px 14px;
             margin-bottom: 20px;
         }
 
-        .review-answers {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-        }
+        .review-q.correct   { border-left-color: var(--accent); }
+        .review-q.incorrect { border-left-color: var(--wrong-red); }
 
-        .answer-line {
+        .review-q .status {
+            font-size: 13px;
             margin-bottom: 8px;
-            display: flex;
+            color: var(--text-70);
         }
 
-        .answer-line strong {
-            width: 140px;
-            color: var(--text-muted);
-            flex-shrink: 0;
+        .review-q .status .glyph-correct   { color: var(--accent); margin: 0 8px; }
+        .review-q .status .glyph-incorrect { color: var(--wrong-red); margin: 0 8px; }
+        .review-q .status .verdict.correct   { color: var(--accent); }
+        .review-q .status .verdict.incorrect { color: var(--wrong-red); }
+
+        .review-q .stem-mini {
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 10px;
+            line-height: 1.55;
         }
 
-        .explanation {
-            margin-top: 15px;
-            padding: 15px;
-            border-left: 2px solid var(--text-muted);
-            background: rgba(255,255,255,0.03);
-            font-size: 0.95rem;
-            color: #ccc;
+        .review-q .ans-line {
+            display: grid;
+            grid-template-columns: 18ch 1fr;
+            gap: 4px 8px;
+            font-size: 14px;
+            margin-bottom: 2px;
         }
 
-        .explanation-title {
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 5px;
+        .review-q .ans-line .ans-label { color: var(--text-45); }
+        .review-q .ans-line.right .ans-val { color: var(--accent); }
+        .review-q .ans-line.wrong .ans-val { color: var(--wrong-red); }
+        .review-q .ans-line.skipped .ans-val { color: var(--text-45); }
+
+        .review-q .explanation {
+            margin-top: 10px;
+            color: var(--text-70);
+            font-size: 14px;
+            line-height: 1.55;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .review-q .explanation .arrow { color: var(--accent); margin-right: 6px; }
+
+        .retake-row {
+            margin-top: 36px;
+            text-align: center;
+            color: var(--text-90);
         }
+
+        .retake-row .key { color: var(--accent); margin-right: 4px; }
+        .retake-row button.verb:hover { text-decoration: underline; }
 
         /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0c0c0c;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
-        }
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: var(--accent) #0c0c0c;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
+        * { scrollbar-width: thin; scrollbar-color: var(--accent) #000; }
 
-        /* Mobile Adjustments */
-        @media (max-width: 768px) {
-            .header h1 { font-size: 2rem; }
-            .content { padding: 20px; }
-            .question-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .score-number { font-size: 3rem; }
-            .navigation { flex-direction: column; gap: 15px; }
-            .btn { width: 100%; justify-content: center; }
+        /* Mobile */
+        @media (max-width: 600px) {
+            .col { padding: 0 24px; }
+            .stem { font-size: 16px; }
+            body { font-size: 14px; padding: 24px 0 36px; }
+            .review-q .ans-line { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="terminal-bar">
-            <div class="dot red"></div>
-            <div class="dot yellow"></div>
-            <div class="dot green"></div>
-            <span style="margin-left: 10px;">bash — user@shelnet-exam: ~</span>
+    <div class="col">
+        <div class="title-row">
+            <span id="quizTitle">quiz</span>
+            <span class="meta" id="quizMeta">— · — · 0q</span>
         </div>
+        <div class="rule"></div>
+        <div class="progress"><div class="progress-fill" id="progressBar"></div></div>
 
-        <div class="header">
-            <h1 id="quizTitle">Quiz Title</h1>
-            <div class="subtitle" id="quizSubtitle">C:\Shelnet\Quizzes> Objective</div>
-        </div>
-
-        <div class="progress-container">
-            <div class="progress-fill" id="progressBar"></div>
-        </div>
-
-        <div class="content" id="examContent">
-            </div>
+        <div class="content" id="examContent"></div>
     </div>
 
     <script>
@@ -468,190 +291,115 @@
         // QUIZ CONFIG — edit this block when deriving a new quiz.
         // Leave the rest of this file unchanged.
         // ============================================================
-        const QUIZ_TITLE    = 'Practice Quiz 1.1';
-        const QUIZ_SUBTITLE = 'C:\\Shelnet\\Quizzes> CS0-003 Objective 1.1';
-        const ACCENT_HEX    = '#06b6d4';
+        const QUIZ_TITLE    = "practice quiz 1.1";
+        const QUIZ_SUBTITLE = "cysa-plus · obj 1.1";
+        const ACCENT_HEX    = "#22d3ee";
 
         const questions = [
             {
-                q: 'A security analyst is onboarding a new set of Linux servers into the SOC monitoring platform. The analyst needs to ensure that all log timestamps are consistent across the infrastructure so that correlated events can be accurately sequenced. Which of the following log ingestion concepts is MOST critical to configure first?',
-                options: [
-                    'A. Logging levels',
-                    'B. Time synchronization',
-                    'C. Log rotation policies',
-                    'D. Syslog forwarding rules'
-                ],
+                q: "A security analyst is onboarding a new set of Linux servers into the SOC monitoring platform. The analyst needs to ensure that all log timestamps are consistent across the infrastructure so that correlated events can be accurately sequenced. Which of the following log ingestion concepts is MOST critical to configure first?",
+                options: ["Logging levels", "Time synchronization", "Log rotation policies", "Syslog forwarding rules"],
                 correct: 1,
-                domain: 'Security Operations',
-                explanation: 'Time synchronization ensures all devices share a consistent clock, which is essential for accurately correlating events across sources in a SIEM. Logging levels (A) control verbosity but do not affect timestamp accuracy.'
+                domain: "Security Operations",
+                explanation: "Time synchronization ensures all devices share a consistent clock, which is essential for accurately correlating events across sources in a SIEM. Logging levels (1) control verbosity but do not affect timestamp accuracy."
             },
             {
-                q: 'A SOC analyst is investigating a Windows endpoint that was flagged after unusual processes appeared in the task manager. The analyst wants to verify whether a key-value store used by Windows to hold system and application configuration was silently modified to achieve persistence. Which of the following OS concepts is the analyst examining?',
-                options: [
-                    'A. Windows Registry',
-                    'B. Hardware architecture',
-                    'C. File structure configuration locations',
-                    'D. System hardening baseline'
-                ],
+                q: "A SOC analyst is investigating a Windows endpoint that was flagged after unusual processes appeared in the task manager. The analyst wants to verify whether a key-value store used by Windows to hold system and application configuration was silently modified to achieve persistence. Which of the following OS concepts is the analyst examining?",
+                options: ["Windows Registry", "Hardware architecture", "File structure configuration locations", "System hardening baseline"],
                 correct: 0,
-                domain: 'Security Operations',
-                explanation: 'The Windows Registry is the centralized key-value database where Windows stores configuration data including autorun keys that attackers commonly abuse for persistence. File structure (C) relates to where config files live on disk, not the registry.'
+                domain: "Security Operations",
+                explanation: "The Windows Registry is the centralized key-value database where Windows stores configuration data including autorun keys that attackers commonly abuse for persistence. File structure (3) relates to where config files live on disk, not the registry."
             },
             {
-                q: 'A security analyst is reviewing an alert triggered by a workload running in a public cloud environment. The workload executes a function without any persistent server infrastructure and scales automatically on demand. Which of the following infrastructure concepts BEST describes this deployment model?',
-                options: [
-                    'A. Serverless',
-                    'B. Virtualization',
-                    'C. Containerization',
-                    'D. Hybrid cloud'
-                ],
+                q: "A security analyst is reviewing an alert triggered by a workload running in a public cloud environment. The workload executes a function without any persistent server infrastructure and scales automatically on demand. Which of the following infrastructure concepts BEST describes this deployment model?",
+                options: ["Serverless", "Virtualization", "Containerization", "Hybrid cloud"],
                 correct: 0,
-                domain: 'Security Operations',
-                explanation: 'Serverless computing executes code in response to events without provisioning or managing servers; the function-as-a-service model matches the description. Containerization (C) packages application code with its dependencies but still runs on underlying server infrastructure.'
+                domain: "Security Operations",
+                explanation: "Serverless computing executes code in response to events without provisioning or managing servers; the function-as-a-service model matches the description. Containerization (3) packages application code with its dependencies but still runs on underlying server infrastructure."
             },
             {
-                q: 'A network engineer is segmenting a corporate environment to limit lateral movement by attackers. The design calls for a policy where every device must authenticate and be authorized before being trusted, regardless of whether it is inside or outside the traditional network perimeter. Which of the following network architecture models BEST describes this requirement?',
-                options: [
-                    'A. SDN',
-                    'B. Zero trust',
-                    'C. SASE',
-                    'D. Network segmentation'
-                ],
+                q: "A network engineer is segmenting a corporate environment to limit lateral movement by attackers. The design calls for a policy where every device must authenticate and be authorized before being trusted, regardless of whether it is inside or outside the traditional network perimeter. Which of the following network architecture models BEST describes this requirement?",
+                options: ["SDN", "Zero trust", "SASE", "Network segmentation"],
                 correct: 1,
-                domain: 'Security Operations',
-                explanation: 'Zero trust mandates that no device or user is implicitly trusted based on network location; every access request is verified. SASE (C) combines networking and security into a cloud-delivered service but is not specifically the model that eliminates implicit internal trust.'
+                domain: "Security Operations",
+                explanation: "Zero trust mandates that no device or user is implicitly trusted based on network location; every access request is verified. SASE (3) combines networking and security into a cloud-delivered service but is not specifically the model that eliminates implicit internal trust."
             },
             {
-                q: 'A SOC analyst is reviewing identity logs and notices that a user authenticated to three different SaaS applications using a single set of credentials with no additional prompts. The organization has federated identity configured across all three applications. Which of the following identity and access management capabilities is being demonstrated?',
-                options: [
-                    'A. MFA',
-                    'B. PAM',
-                    'C. CASB',
-                    'D. SSO'
-                ],
+                q: "A SOC analyst is reviewing identity logs and notices that a user authenticated to three different SaaS applications using a single set of credentials with no additional prompts. The organization has federated identity configured across all three applications. Which of the following identity and access management capabilities is being demonstrated?",
+                options: ["MFA", "PAM", "CASB", "SSO"],
                 correct: 3,
-                domain: 'Security Operations',
-                explanation: 'SSO allows a user to authenticate once and gain access to multiple applications without re-entering credentials; federation enables this across organizational boundaries. MFA (A) adds authentication factors but does not reduce the number of login prompts across systems.'
+                domain: "Security Operations",
+                explanation: "SSO allows a user to authenticate once and gain access to multiple applications without re-entering credentials; federation enables this across organizational boundaries. MFA (1) adds authentication factors but does not reduce the number of login prompts across systems."
             },
             {
-                q: 'A security engineer is deploying a solution to monitor and control access to cloud-hosted SaaS applications used by employees. The solution must enforce data security policies and provide visibility into sensitive data leaving the organization through those cloud services. Which of the following technologies BEST meets this requirement?',
-                options: [
-                    'A. PAM',
-                    'B. CASB',
-                    'C. SSO',
-                    'D. Federation'
-                ],
+                q: "A security engineer is deploying a solution to monitor and control access to cloud-hosted SaaS applications used by employees. The solution must enforce data security policies and provide visibility into sensitive data leaving the organization through those cloud services. Which of the following technologies BEST meets this requirement?",
+                options: ["PAM", "CASB", "SSO", "Federation"],
                 correct: 1,
-                domain: 'Security Operations',
-                explanation: 'A CASB sits between users and cloud service providers to enforce security policies, monitor activity, and prevent data leakage from SaaS applications. PAM (A) manages privileged accounts but does not provide visibility and control over cloud SaaS usage.'
+                domain: "Security Operations",
+                explanation: "A CASB sits between users and cloud service providers to enforce security policies, monitor activity, and prevent data leakage from SaaS applications. PAM (1) manages privileged accounts but does not provide visibility and control over cloud SaaS usage."
             },
             {
-                q: 'A security analyst at a financial institution is reviewing traffic between internal systems and a partner organization. The analyst notices that an intermediate proxy device is decrypting HTTPS sessions to inspect the payload for malware before re-encrypting and forwarding the traffic to the destination. Which of the following encryption concepts does this describe?',
-                options: [
-                    'A. SSL inspection',
-                    'B. TLS mutual authentication',
-                    'C. PKI',
-                    'D. Certificate pinning'
-                ],
+                q: "A security analyst at a financial institution is reviewing traffic between internal systems and a partner organization. The analyst notices that an intermediate proxy device is decrypting HTTPS sessions to inspect the payload for malware before re-encrypting and forwarding the traffic to the destination. Which of the following encryption concepts does this describe?",
+                options: ["SSL inspection", "TLS mutual authentication", "PKI", "Certificate pinning"],
                 correct: 0,
-                domain: 'Security Operations',
-                explanation: 'SSL inspection (also called TLS inspection) terminates the encrypted session at a proxy, inspects the plaintext payload, then re-encrypts it before forwarding. PKI (C) is the broader framework of certificate management and is not the specific interception technique being described.'
+                domain: "Security Operations",
+                explanation: "SSL inspection (also called TLS inspection) terminates the encrypted session at a proxy, inspects the plaintext payload, then re-encrypts it before forwarding. PKI (3) is the broader framework of certificate management and is not the specific interception technique being described."
             },
             {
-                q: 'A tier-1 analyst receives a ticket from HR reporting that a file containing employee names, Social Security numbers, and addresses was found in an unsanctioned cloud storage share. The analyst escalates to the DLP team. Which of the following sensitive data categories is MOST directly at risk in this scenario?',
-                options: [
-                    'A. PII',
-                    'B. PHI',
-                    'C. CHD',
-                    'D. IP'
-                ],
+                q: "A tier-1 analyst receives a ticket from HR reporting that a file containing employee names, Social Security numbers, and addresses was found in an unsanctioned cloud storage share. The analyst escalates to the DLP team. Which of the following sensitive data categories is MOST directly at risk in this scenario?",
+                options: ["PII", "PHI", "CHD", "IP"],
                 correct: 0,
-                domain: 'Security Operations',
-                explanation: 'PII includes names, Social Security numbers, and addresses - all information that can identify a specific individual. CHD (C) refers to cardholder data such as credit card numbers, which are not mentioned in the scenario.'
+                domain: "Security Operations",
+                explanation: "PII includes names, Social Security numbers, and addresses - all information that can identify a specific individual. CHD (3) refers to cardholder data such as credit card numbers, which are not mentioned in the scenario."
             },
             {
-                q: 'A SOC analyst is designing the monitoring architecture for a new branch office that must extend corporate security policies to remote users without deploying on-premises hardware at that site. The solution should converge networking and security services in the cloud and enforce consistent policy for all users regardless of location. Which of the following network architecture models BEST fits this requirement?',
-                options: [
-                    'A. Zero trust',
-                    'B. SDN',
-                    'C. SASE',
-                    'D. On-premises perimeter'
-                ],
+                q: "A SOC analyst is designing the monitoring architecture for a new branch office that must extend corporate security policies to remote users without deploying on-premises hardware at that site. The solution should converge networking and security services in the cloud and enforce consistent policy for all users regardless of location. Which of the following network architecture models BEST fits this requirement?",
+                options: ["Zero trust", "SDN", "SASE", "On-premises perimeter"],
                 correct: 2,
-                domain: 'Security Operations',
-                explanation: 'SASE converges wide-area networking with security services such as CASB, SWG, and ZTNA into a cloud-delivered platform, providing consistent policy enforcement for distributed users without on-premises appliances. SDN (B) is software-defined networking that abstracts network control but does not converge security services in the cloud.'
+                domain: "Security Operations",
+                explanation: "SASE converges wide-area networking with security services such as CASB, SWG, and ZTNA into a cloud-delivered platform, providing consistent policy enforcement for distributed users without on-premises appliances. SDN (2) is software-defined networking that abstracts network control but does not converge security services in the cloud."
             },
             {
-                q: 'A security analyst is hardening a set of Linux servers that will host containerized microservices. The analyst must ensure that containers are isolated from each other and from the host operating system to limit the blast radius of a container escape. Which of the following infrastructure concepts is the analyst primarily applying?',
-                options: [
-                    'A. Serverless',
-                    'B. Virtualization',
-                    'C. System hardening',
-                    'D. Containerization'
-                ],
+                q: "A security analyst is hardening a set of Linux servers that will host containerized microservices. The analyst must ensure that containers are isolated from each other and from the host operating system to limit the blast radius of a container escape. Which of the following infrastructure concepts is the analyst primarily applying?",
+                options: ["Serverless", "Virtualization", "System hardening", "Containerization"],
                 correct: 3,
-                domain: 'Security Operations',
-                explanation: 'Containerization packages applications in isolated runtime environments sharing the host OS kernel; namespace isolation and hardened container configurations limit the impact of a container escape. Virtualization (B) provides hardware-level isolation via hypervisors but is the underlying technology, not the specific isolation concept being applied.'
+                domain: "Security Operations",
+                explanation: "Containerization packages applications in isolated runtime environments sharing the host OS kernel; namespace isolation and hardened container configurations limit the impact of a container escape. Virtualization (2) provides hardware-level isolation via hypervisors but is the underlying technology, not the specific isolation concept being applied."
             },
             {
-                q: 'A security analyst is reviewing access logs and discovers that a developer account has been authenticating to a privileged administrative console that manages production database credentials. No ticket exists authorizing this access. The organization uses a dedicated platform to manage, rotate, and audit access to privileged credentials. Which of the following identity and access management solutions should have prevented this access?',
-                options: [
-                    'A. SSO',
-                    'B. MFA',
-                    'C. Federation',
-                    'D. PAM'
-                ],
+                q: "A security analyst is reviewing access logs and discovers that a developer account has been authenticating to a privileged administrative console that manages production database credentials. No ticket exists authorizing this access. The organization uses a dedicated platform to manage, rotate, and audit access to privileged credentials. Which of the following identity and access management solutions should have prevented this access?",
+                options: ["SSO", "MFA", "Federation", "PAM"],
                 correct: 3,
-                domain: 'Security Operations',
-                explanation: 'PAM controls and audits access to privileged credentials and administrative systems, requiring approval workflows and logging all sessions, which would have prevented unauthorized developer access to the production credential vault. MFA (B) adds authentication factors but does not restrict which systems a user is authorized to access.'
+                domain: "Security Operations",
+                explanation: "PAM controls and audits access to privileged credentials and administrative systems, requiring approval workflows and logging all sessions, which would have prevented unauthorized developer access to the production credential vault. MFA (2) adds authentication factors but does not restrict which systems a user is authorized to access."
             },
             {
-                q: 'A tier-2 analyst is reviewing a DLP alert generated when a user attempted to email a spreadsheet to a personal email address. The spreadsheet contains 16-digit numbers in a format matching payment card data. Which of the following sensitive data types is the DLP policy MOST likely designed to protect?',
-                options: [
-                    'A. PII',
-                    'B. PHI',
-                    'C. CHD',
-                    'D. IP'
-                ],
+                q: "A tier-2 analyst is reviewing a DLP alert generated when a user attempted to email a spreadsheet to a personal email address. The spreadsheet contains 16-digit numbers in a format matching payment card data. Which of the following sensitive data types is the DLP policy MOST likely designed to protect?",
+                options: ["PII", "PHI", "CHD", "IP"],
                 correct: 2,
-                domain: 'Security Operations',
-                explanation: 'CHD (cardholder data) includes primary account numbers (PANs) and associated payment card data protected under PCI DSS; 16-digit numbers matching card formats are the primary indicator. PII (A) encompasses personal identifiers such as names and SSNs, which are not described in this scenario.'
+                domain: "Security Operations",
+                explanation: "CHD (cardholder data) includes primary account numbers (PANs) and associated payment card data protected under PCI DSS; 16-digit numbers matching card formats are the primary indicator. PII (1) encompasses personal identifiers such as names and SSNs, which are not described in this scenario."
             },
             {
-                q: 'A SOC analyst is reviewing certificates presented during a TLS handshake and needs to verify whether a certificate was issued by a trusted entity and has not been revoked. The analyst also needs to understand the chain of trust back to the root certificate authority. Which of the following encryption frameworks encompasses certificate issuance, validation, and revocation?',
-                options: [
-                    'A. SSL inspection',
-                    'B. PKI',
-                    'C. MFA',
-                    'D. Federation'
-                ],
+                q: "A SOC analyst is reviewing certificates presented during a TLS handshake and needs to verify whether a certificate was issued by a trusted entity and has not been revoked. The analyst also needs to understand the chain of trust back to the root certificate authority. Which of the following encryption frameworks encompasses certificate issuance, validation, and revocation?",
+                options: ["SSL inspection", "PKI", "MFA", "Federation"],
                 correct: 1,
-                domain: 'Security Operations',
-                explanation: 'PKI is the framework of policies, hardware, software, and procedures needed to create, manage, distribute, use, store, and revoke digital certificates and manage public-key encryption. SSL inspection (A) is a specific technique that uses PKI components but is not the framework itself.'
+                domain: "Security Operations",
+                explanation: "PKI is the framework of policies, hardware, software, and procedures needed to create, manage, distribute, use, store, and revoke digital certificates and manage public-key encryption. SSL inspection (1) is a specific technique that uses PKI components but is not the framework itself."
             },
             {
-                q: 'A security analyst is evaluating how to extend the corporate network securely to a new cloud environment while maintaining centralized control of network routing policies and allowing dynamic policy changes without reconfiguring physical hardware. Which of the following network architecture concepts BEST addresses this requirement?',
-                options: [
-                    'A. Zero trust',
-                    'B. Network segmentation',
-                    'C. SDN',
-                    'D. SASE'
-                ],
+                q: "A security analyst is evaluating how to extend the corporate network securely to a new cloud environment while maintaining centralized control of network routing policies and allowing dynamic policy changes without reconfiguring physical hardware. Which of the following network architecture concepts BEST addresses this requirement?",
+                options: ["Zero trust", "Network segmentation", "SDN", "SASE"],
                 correct: 2,
-                domain: 'Security Operations',
-                explanation: 'SDN separates the control plane from the data plane, enabling centralized, software-driven management of network routing and policy without reconfiguring physical devices. Zero trust (A) is an access control philosophy, not a network management architecture.'
+                domain: "Security Operations",
+                explanation: "SDN separates the control plane from the data plane, enabling centralized, software-driven management of network routing and policy without reconfiguring physical devices. Zero trust (1) is an access control philosophy, not a network management architecture."
             },
             {
-                q: 'A security analyst is configuring a new SIEM to receive logs from Windows endpoints, Linux servers, and network appliances. The analyst needs to ensure that lower-priority informational messages are collected separately from critical alerts to avoid alert fatigue during incident triage. Which of the following log ingestion concepts controls this behavior?',
-                options: [
-                    'A. Time synchronization',
-                    'B. Log rotation',
-                    'C. Logging levels',
-                    'D. Syslog forwarding'
-                ],
+                q: "A security analyst is configuring a new SIEM to receive logs from Windows endpoints, Linux servers, and network appliances. The analyst needs to ensure that lower-priority informational messages are collected separately from critical alerts to avoid alert fatigue during incident triage. Which of the following log ingestion concepts controls this behavior?",
+                options: ["Time synchronization", "Log rotation", "Logging levels", "Syslog forwarding"],
                 correct: 2,
-                domain: 'Security Operations',
-                explanation: 'Logging levels (such as DEBUG, INFO, WARNING, ERROR, CRITICAL) determine the severity threshold for which messages are captured and forwarded; configuring appropriate levels prevents low-priority noise from overwhelming high-priority alerts. Time synchronization (A) ensures timestamp accuracy but does not control which severity messages are collected.'
+                domain: "Security Operations",
+                explanation: "Logging levels (such as DEBUG, INFO, WARNING, ERROR, CRITICAL) determine the severity threshold for which messages are captured and forwarded; configuring appropriate levels prevents low-priority noise from overwhelming high-priority alerts. Time synchronization (1) ensures timestamp accuracy but does not control which severity messages are collected."
             }
         ];
 
@@ -659,7 +407,6 @@
         // END CONFIG — chrome below is shared. Do not edit when deriving.
         // ============================================================
 
-        // Small util: convert '#06b6d4' -> 'rgba(6, 182, 212, 0.1)' for the dim variant.
         function hexToRgba(hex, alpha) {
             const h = hex.replace('#', '');
             const r = parseInt(h.substring(0, 2), 16);
@@ -671,73 +418,79 @@
         // --- APP STATE ---
         let currentQuestionIndex = 0;
         let userAnswers = new Array(questions.length).fill(null);
+        let onResults = false;
 
-        // --- DOM ELEMENTS ---
+        // --- DOM ---
         const contentDiv = document.getElementById('examContent');
         const progressBar = document.getElementById('progressBar');
 
-        // --- INITIALIZATION ---
+        // --- INIT ---
         function init() {
-            // --- Apply CONFIG ---
             document.title = QUIZ_TITLE;
             document.getElementById('quizTitle').textContent = QUIZ_TITLE;
-            document.getElementById('quizSubtitle').textContent = QUIZ_SUBTITLE;
+            document.getElementById('quizMeta').textContent =
+                `${QUIZ_SUBTITLE} · ${questions.length}q`;
             document.documentElement.style.setProperty('--accent', ACCENT_HEX);
-            document.documentElement.style.setProperty('--accent-dim', hexToRgba(ACCENT_HEX, 0.1));
-            document.documentElement.style.setProperty('--accent-glow', hexToRgba(ACCENT_HEX, 0.4));
-            document.documentElement.style.setProperty('--accent-select', hexToRgba(ACCENT_HEX, 0.3));
-
-            // --- existing init body continues below ---
+            document.documentElement.style.setProperty('--accent-tint',  hexToRgba(ACCENT_HEX, 0.14));
+            document.documentElement.style.setProperty('--accent-hover', hexToRgba(ACCENT_HEX, 0.08));
             renderQuestion();
         }
 
-        // --- RENDER FUNCTIONS ---
-        function renderQuestion() {
-            const q = questions[currentQuestionIndex];
-            const isLastQuestion = currentQuestionIndex === questions.length - 1;
-
-            // Update Progress
-            const progress = ((currentQuestionIndex) / questions.length) * 100;
-            progressBar.style.width = `${progress}%`;
-
-            // HTML Structure for Question
-            let html = `
-                <div class="question-header">
-                    <span class="question-number">QUESTION ${currentQuestionIndex + 1} OF ${questions.length}</span>
-                    <span class="domain-tag">${q.domain}</span>
-                </div>
-
-                <div class="question-text">${q.q}</div>
-
-                <div class="options">
-                    ${q.options.map((opt, index) => {
-                        const isSelected = userAnswers[currentQuestionIndex] === index;
-                        const label = String.fromCharCode(65 + index); // A, B, C, D
-                        return `
-                            <div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(${index})">
-                                <span class="option-label">${label}</span>
-                                <span class="option-text">${opt}</span>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-
-                <div class="navigation">
-                    <button class="btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
-                        &larr; Previous
-                    </button>
-                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" ${userAnswers[currentQuestionIndex] === null ? 'disabled' : ''}>
-                        ${isLastQuestion ? 'Finish Exam' : 'Next &rarr;'}
-                    </button>
-                </div>
-            `;
-
-            contentDiv.innerHTML = html;
+        function escapeHtml(s) {
+            return String(s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
 
-        function selectOption(index) {
-            userAnswers[currentQuestionIndex] = index;
-            // Re-render to show selection state (or just toggle class for performance, but re-render is safer for state sync)
+        // --- RENDER ---
+        function renderQuestion() {
+            onResults = false;
+            const q = questions[currentQuestionIndex];
+            const isLast = currentQuestionIndex === questions.length - 1;
+            const isFirst = currentQuestionIndex === 0;
+            const picked = userAnswers[currentQuestionIndex];
+
+            progressBar.style.width = `${(currentQuestionIndex / questions.length) * 100}%`;
+
+            const optionsHtml = q.options.map((opt, i) => `
+                <button type="button"
+                        class="option ${picked === i ? 'selected' : ''}"
+                        onclick="selectOption(${i})">
+                    <span class="label">${i + 1}</span>
+                    <span class="text">${escapeHtml(opt)}</span>
+                </button>
+            `).join('');
+
+            const prevHtml = isFirst
+                ? ''
+                : `<button type="button" class="verb" onclick="prevQuestion()"><span class="key">&larr;</span>prev</button>`;
+
+            const nextLabel = isLast ? 'finish' : 'next';
+            const nextEnabled = picked !== null;
+            const nextHtml = nextEnabled
+                ? `<button type="button" class="verb" onclick="nextQuestion()"><span class="key">&#x21B5;</span>${nextLabel}</button>`
+                : `<span class="verb disabled"><span class="key">&#x21B5;</span>${nextLabel}</span>`;
+
+            contentDiv.innerHTML = `
+                <div class="q-header">
+                    <span class="count">question ${currentQuestionIndex + 1} of ${questions.length}</span>
+                    <span class="domain">[ ${escapeHtml(q.domain.toLowerCase())} ]</span>
+                </div>
+
+                <div class="stem">${escapeHtml(q.q)}</div>
+
+                <div class="options">${optionsHtml}</div>
+
+                <div class="hints">
+                    <span><span class="key">1-${q.options.length}</span>select</span>
+                    ${prevHtml ? `<span>${prevHtml}</span>` : ''}
+                    <span>${nextHtml}</span>
+                </div>
+            `;
+        }
+
+        function selectOption(i) {
+            userAnswers[currentQuestionIndex] = i;
             renderQuestion();
         }
 
@@ -749,6 +502,7 @@
         }
 
         function nextQuestion() {
+            if (userAnswers[currentQuestionIndex] === null) return;
             if (currentQuestionIndex < questions.length - 1) {
                 currentQuestionIndex++;
                 renderQuestion();
@@ -758,96 +512,87 @@
         }
 
         function showResults() {
-            // Calculate Score
+            onResults = true;
             let correctCount = 0;
-            questions.forEach((q, i) => {
-                if (userAnswers[i] === q.correct) correctCount++;
-            });
-
+            questions.forEach((q, i) => { if (userAnswers[i] === q.correct) correctCount++; });
             const score = Math.round((correctCount / questions.length) * 100);
-            const passed = score >= 83; // Approx 750/900
+            const passed = score >= 83;
             progressBar.style.width = '100%';
 
-            let html = `
-                <div class="results">
-                    <div class="score-card">
-                        <div class="subtitle">EXAM RESULTS</div>
-                        <div class="score-number">${score}</div>
-                        <div class="subtitle">SCORE / 100</div>
-                        <div class="pass-fail ${passed ? 'pass' : 'fail'}">
-                            ${passed ? 'PASS' : 'FAIL'}
+            const reviewHtml = questions.map((q, i) => {
+                const userAnswer = userAnswers[i];
+                const skipped = userAnswer === null;
+                const isCorrect = !skipped && userAnswer === q.correct;
+                const userLabel = skipped ? '—' : `${userAnswer + 1}  ${escapeHtml(q.options[userAnswer])}`;
+                const correctLabel = `${q.correct + 1}  ${escapeHtml(q.options[q.correct])}`;
+                const statusGlyph = isCorrect
+                    ? `<span class="glyph-correct">&#x2713;</span><span class="verdict correct">correct</span>`
+                    : `<span class="glyph-incorrect">&#x2717;</span><span class="verdict incorrect">${skipped ? 'skipped' : 'incorrect'}</span>`;
+                const yourLineClass = skipped ? 'skipped' : (isCorrect ? 'right' : 'wrong');
+                return `
+                    <div class="review-q ${isCorrect ? 'correct' : 'incorrect'}">
+                        <div class="status">Q.${i + 1}${statusGlyph}</div>
+                        <div class="stem-mini">${escapeHtml(q.q)}</div>
+                        <div class="ans-line ${yourLineClass}">
+                            <span class="ans-label">your answer:</span>
+                            <span class="ans-val">${userLabel}</span>
                         </div>
+                        <div class="ans-line right">
+                            <span class="ans-label">correct answer:</span>
+                            <span class="ans-val">${correctLabel}</span>
+                        </div>
+                        <div class="explanation"><span class="arrow">&rsaquo;</span>${escapeHtml(q.explanation)}</div>
                     </div>
+                `;
+            }).join('');
 
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-number">${correctCount}</div>
-                            <div class="stat-label">Correct</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">${questions.length - correctCount}</div>
-                            <div class="stat-label">Incorrect</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">${questions.length}</div>
-                            <div class="stat-label">Total Questions</div>
-                        </div>
-                    </div>
+            contentDiv.innerHTML = `
+                <div class="results-heading">results</div>
 
-                    <div class="subtitle" style="margin-bottom: 20px;">Review Answers</div>
+                <div class="score-row">
+                    <span><span class="label">score</span> <span class="score-val">${score} / 100</span></span>
+                    <span class="${passed ? 'verdict-pass' : 'verdict-fail'}">${passed ? 'pass' : 'fail'}</span>
+                    <span class="threshold">(&ge; 83 to pass)</span>
+                </div>
 
-                    ${questions.map((q, i) => {
-                        const userAnswer = userAnswers[i];
-                        const isCorrect = userAnswer === q.correct;
-                        const labelUser = String.fromCharCode(65 + userAnswer);
-                        const labelCorrect = String.fromCharCode(65 + q.correct);
+                <div class="stats-row">
+                    <span><span class="stat-label">correct</span><span class="stat-val">${correctCount}</span></span>
+                    <span><span class="stat-label">incorrect</span><span class="stat-val">${questions.length - correctCount}</span></span>
+                    <span><span class="stat-label">total</span><span class="stat-val">${questions.length}</span></span>
+                </div>
 
-                        return `
-                            <div class="review-question ${isCorrect ? 'correct' : 'incorrect'}">
-                                <div class="review-header">
-                                    <span>Question ${i + 1}</span>
-                                    <span class="review-status ${isCorrect ? 'correct' : 'incorrect'}">
-                                        ${isCorrect ? 'CORRECT' : 'INCORRECT'}
-                                    </span>
-                                </div>
-                                <div class="review-text">${q.q}</div>
+                <div class="review-heading">review<span class="dashes"></span></div>
 
-                                <div class="review-answers">
-                                    <div class="answer-line">
-                                        <strong>Your Answer:</strong>
-                                        <span style="color: ${isCorrect ? 'var(--accent)' : 'var(--accent-red)'}">
-                                            ${labelUser}. ${q.options[userAnswer]}
-                                        </span>
-                                    </div>
-                                    <div class="answer-line">
-                                        <strong>Correct Answer:</strong>
-                                        <span style="color: var(--accent)">
-                                            ${labelCorrect}. ${q.options[q.correct]}
-                                        </span>
-                                    </div>
-                                </div>
+                ${reviewHtml}
 
-                                <div class="explanation">
-                                    <div class="explanation-title">Explanation</div>
-                                    ${q.explanation}
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-
-                    <div style="text-align: center; margin-top: 40px;">
-                        <button class="btn btn-primary" onclick="location.reload()" style="display: inline-flex;">
-                            Retake Exam
-                        </button>
-                    </div>
+                <div class="retake-row">
+                    <button type="button" class="verb" onclick="location.reload()"><span class="key">&#x21B5;</span>retake</button>
                 </div>
             `;
-
-            contentDiv.innerHTML = html;
-            window.scrollTo(0,0);
+            window.scrollTo(0, 0);
         }
 
-        // Start
+        // --- KEYBOARD ---
+        window.addEventListener('keydown', (e) => {
+            const tag = document.activeElement && document.activeElement.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+            if (onResults) {
+                if (e.key === 'Enter') { e.preventDefault(); location.reload(); }
+                return;
+            }
+
+            if (/^[1-9]$/.test(e.key)) {
+                const i = Number(e.key) - 1;
+                const q = questions[currentQuestionIndex];
+                if (i < q.options.length) { e.preventDefault(); selectOption(i); }
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault(); prevQuestion();
+            } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+                e.preventDefault(); nextQuestion();
+            }
+        });
+
         init();
     </script>
 </body>

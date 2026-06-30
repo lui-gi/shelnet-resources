@@ -6,461 +6,284 @@
     <title>Shelnet Quiz</title>
     <style>
         :root {
-            --bg-color: #000000;
-            --card-bg: #0c0c0c;
-            --text-main: #ffffff;
-            --text-muted: rgba(255, 255, 255, 0.6);
-            --border-color: rgba(255, 255, 255, 0.15);
-            --accent: #3b82f6; /* Default — overridden per-quiz via ACCENT_HEX in CONFIG */
-            --accent-dim: rgba(59, 130, 246, 0.1); /* Default — overridden via setProperty in init() */
-            --accent-glow: rgba(59, 130, 246, 0.4); /* Default — overridden via setProperty in init() */
-            --accent-select: rgba(59, 130, 246, 0.3); /* Default — overridden via setProperty in init() */
-            --accent-red: #ef4444;
-            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            --font-mono: 'Courier New', Courier, monospace;
+            --bg:           #000000;
+            --text-90:      rgba(255, 255, 255, 0.90);
+            --text-70:      rgba(255, 255, 255, 0.70);
+            --text-45:      rgba(255, 255, 255, 0.45);
+            --text-30:      rgba(255, 255, 255, 0.30);
+            --rule:         rgba(255, 255, 255, 0.15);
+            --accent:       #38bdf8; /* Default — overridden per-quiz via ACCENT_HEX */
+            --accent-tint:  rgba(56, 189, 248, 0.14); /* selected-row */
+            --accent-hover: rgba(56, 189, 248, 0.08); /* hover-row */
+            --pass-green:   #43c08c;
+            --wrong-red:    #fb7185;
+            --font-mono:    'Courier New', Courier, monospace;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body { background: var(--bg); }
 
         body {
-            font-family: var(--font-sans);
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            font-family: var(--font-mono);
+            color: var(--text-90);
             min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            /* Grid Background Effect */
-            background-image:
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
+            padding: 32px 0 48px;
+            line-height: 1.5;
+            font-size: 15px;
         }
 
-        /* Selection Color */
         ::selection {
-            background: var(--accent-select);
-            color: #dbeafe;
+            background: var(--accent-tint);
+            color: #fff;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            min-height: 600px;
+        .col {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        /* --- Header --- */
+        .title-row {
             display: flex;
-            flex-direction: column;
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px 24px;
+            color: var(--text-90);
         }
 
-        /* --- Terminal Header Bar --- */
-        .terminal-bar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid var(--border-color);
-            font-family: var(--font-mono);
-            font-size: 12px;
-            color: var(--text-muted);
+        .title-row .meta {
+            color: var(--text-45);
+            font-size: 13px;
         }
 
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        .dot.red { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); }
-        .dot.yellow { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); }
-        .dot.green { background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); }
-
-        /* --- Brutal Header Section --- */
-        .header {
-            padding: 40px 40px 20px 40px;
-            border-bottom: 1px solid var(--border-color);
+        .rule {
+            border-top: 1px solid var(--rule);
+            margin: 12px 0 0;
         }
 
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-            margin-bottom: 10px;
-            line-height: 1;
-        }
-
-        .header .subtitle {
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            display: block;
-        }
-
-        /* --- Progress Bar --- */
-        .progress-container {
-            width: 100%;
+        .progress {
             height: 2px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.06);
+            margin-top: 0;
         }
 
         .progress-fill {
             height: 100%;
             background: var(--accent);
             width: 0%;
-            transition: width 0.3s ease;
-            box-shadow: 0 0 10px var(--accent);
+            transition: width 0.25s ease;
         }
 
-        /* --- Content Area --- */
-        .content {
-            padding: 40px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
+        /* --- Question --- */
+        .content { margin-top: 32px; }
 
-        .question-header {
+        .q-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px dashed var(--border-color);
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 4px 24px;
+            color: var(--text-70);
+            font-size: 13px;
         }
 
-        .question-number {
-            font-family: var(--font-mono);
-            color: var(--accent);
-            font-size: 0.9rem;
-        }
+        .q-header .count { color: var(--accent); }
+        .q-header .domain { color: var(--text-45); }
 
-        .domain-tag {
-            font-family: var(--font-mono);
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-color);
-            padding: 4px 12px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .question-text {
-            font-size: 1.25rem;
+        .stem {
+            color: var(--text-90);
+            font-size: 17px;
             line-height: 1.6;
-            margin-bottom: 40px;
-            color: #eee;
-            font-weight: 400;
+            margin: 24px 0 32px;
         }
 
-        /* --- Options --- */
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        .options { display: flex; flex-direction: column; gap: 2px; }
 
         .option {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            padding: 20px;
+            display: flex;
+            align-items: baseline;
+            gap: 18px;
+            padding: 10px 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            position: relative;
-        }
-
-        .option:hover {
-            border-color: var(--accent);
-            background: rgba(255,255,255,0.04);
-        }
-
-        .option.selected {
-            background: var(--accent-dim);
-            border-color: var(--accent);
-        }
-
-        .option-label {
-            font-family: var(--font-mono);
-            margin-right: 20px;
-            color: var(--text-muted);
-            font-weight: bold;
-            min-width: 25px;
-        }
-
-        .option.selected .option-label {
-            color: var(--accent);
-        }
-
-        .option-text {
-            flex: 1;
-            font-size: 1rem;
-            color: rgba(255,255,255,0.8);
-        }
-
-        .option.selected .option-text {
-            color: #fff;
-        }
-
-        /* --- Buttons --- */
-        .navigation {
-            display: flex;
-            justify-content: space-between;
-            margin-top: auto;
-            padding-top: 50px;
-        }
-
-        .btn {
-            padding: 12px 24px;
             background: transparent;
-            border: 1px solid var(--border-color);
-            color: #fff;
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            border: 0;
+            color: var(--text-90);
+            font: inherit;
+            text-align: left;
+            width: 100%;
+            transition: background-color 0.12s ease;
+        }
+
+        .option:hover { background: var(--accent-hover); }
+        .option.selected { background: var(--accent-tint); }
+
+        .option .label {
+            color: var(--text-45);
+            min-width: 1.5ch;
+        }
+
+        .option.selected .label { color: var(--accent); }
+
+        .option .text { flex: 1; }
+
+        /* --- Footer hints --- */
+        .hints {
+            margin-top: 32px;
+            color: var(--text-45);
+            font-size: 13px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 18px;
+        }
+
+        .hints .key { color: var(--accent); margin-right: 4px; }
+        .hints .verb { color: var(--text-90); }
+        .hints .verb:hover { text-decoration: underline; }
+        .hints .verb.disabled { color: var(--text-30); cursor: not-allowed; }
+        .hints .verb.disabled:hover { text-decoration: none; }
+
+        button.verb {
+            background: transparent;
+            border: 0;
+            font: inherit;
+            padding: 0;
             cursor: pointer;
-            transition: all 0.2s;
+        }
+
+        /* --- Results --- */
+        .results-heading {
+            color: var(--text-70);
+            font-size: 15px;
+            margin-bottom: 0;
+        }
+
+        .score-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 28px;
+            margin-top: 28px;
+            align-items: baseline;
+        }
+
+        .score-row .label { color: var(--text-45); }
+        .score-row .score-val { color: var(--text-90); }
+        .score-row .verdict-pass { color: var(--pass-green); }
+        .score-row .verdict-fail { color: var(--wrong-red); }
+        .score-row .threshold   { color: var(--text-45); }
+
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 36px;
+            margin-top: 16px;
+            align-items: baseline;
+        }
+
+        .stats-row .stat-label { color: var(--text-45); margin-right: 8px; }
+        .stats-row .stat-val   { color: var(--text-90); }
+
+        .review-heading {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            color: var(--text-70);
+            margin: 36px 0 16px;
         }
 
-        .btn:hover:not(:disabled) {
-            background: #fff;
-            color: #000;
-            border-color: #fff;
+        .review-heading .dashes {
+            color: var(--text-30);
+            flex: 1;
+            border-top: 1px solid var(--rule);
+            margin-left: 4px;
+            transform: translateY(1px);
         }
 
-        .btn-primary {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: var(--accent);
-            color: #000;
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            border-color: var(--border-color);
-        }
-
-        /* --- Results Screen --- */
-        .results {
-            animation: fadeIn 0.5s ease;
-        }
-
-        .score-card {
-            border: 1px solid var(--border-color);
-            background: rgba(255,255,255,0.02);
-            padding: 40px;
-            text-align: center;
-            margin-bottom: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Terminal scanline effect for score */
-        .score-card::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 2px;
-            background: rgba(255,255,255,0.1);
-            animation: scan 2s linear infinite;
-        }
-
-        @keyframes scan {
-            0% { top: 0%; opacity: 0; }
-            50% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-        }
-
-        .score-number {
-            font-size: 5rem;
-            font-weight: bold;
-            font-family: var(--font-mono);
-            margin: 10px 0;
-            color: #fff;
-        }
-
-        .pass-fail {
-            font-family: var(--font-mono);
-            font-size: 1.5rem;
-            padding: 10px 20px;
-            display: inline-block;
-            border: 1px solid currentColor;
-            margin-top: 20px;
-        }
-
-        .pass { color: var(--accent); }
-        .fail { color: var(--accent-red); }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #fff;
-            font-family: var(--font-mono);
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            margin-top: 5px;
-        }
-
-        /* Review Section */
-        .review-question {
-            border: 1px solid var(--border-color);
-            background: rgba(255,255,255,0.02);
-            padding: 25px;
-            margin-bottom: 20px;
-            border-left: 4px solid transparent;
-        }
-
-        .review-question.correct { border-left-color: var(--accent); }
-        .review-question.incorrect { border-left-color: var(--accent-red); }
-
-        .review-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-        }
-
-        .review-status.correct { color: var(--accent); }
-        .review-status.incorrect { color: var(--accent-red); }
-
-        .review-text {
-            font-size: 1.1rem;
-            color: #fff;
+        .review-q {
+            border-left: 2px solid var(--text-30);
+            padding: 0 0 8px 14px;
             margin-bottom: 20px;
         }
 
-        .review-answers {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-        }
+        .review-q.correct   { border-left-color: var(--accent); }
+        .review-q.incorrect { border-left-color: var(--wrong-red); }
 
-        .answer-line {
+        .review-q .status {
+            font-size: 13px;
             margin-bottom: 8px;
-            display: flex;
+            color: var(--text-70);
         }
 
-        .answer-line strong {
-            width: 140px;
-            color: var(--text-muted);
-            flex-shrink: 0;
+        .review-q .status .glyph-correct   { color: var(--accent); margin: 0 8px; }
+        .review-q .status .glyph-incorrect { color: var(--wrong-red); margin: 0 8px; }
+        .review-q .status .verdict.correct   { color: var(--accent); }
+        .review-q .status .verdict.incorrect { color: var(--wrong-red); }
+
+        .review-q .stem-mini {
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 10px;
+            line-height: 1.55;
         }
 
-        .explanation {
-            margin-top: 15px;
-            padding: 15px;
-            border-left: 2px solid var(--text-muted);
-            background: rgba(255,255,255,0.03);
-            font-size: 0.95rem;
-            color: #ccc;
+        .review-q .ans-line {
+            display: grid;
+            grid-template-columns: 18ch 1fr;
+            gap: 4px 8px;
+            font-size: 14px;
+            margin-bottom: 2px;
         }
 
-        .explanation-title {
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 5px;
+        .review-q .ans-line .ans-label { color: var(--text-45); }
+        .review-q .ans-line.right .ans-val { color: var(--accent); }
+        .review-q .ans-line.wrong .ans-val { color: var(--wrong-red); }
+        .review-q .ans-line.skipped .ans-val { color: var(--text-45); }
+
+        .review-q .explanation {
+            margin-top: 10px;
+            color: var(--text-70);
+            font-size: 14px;
+            line-height: 1.55;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .review-q .explanation .arrow { color: var(--accent); margin-right: 6px; }
+
+        .retake-row {
+            margin-top: 36px;
+            text-align: center;
+            color: var(--text-90);
         }
+
+        .retake-row .key { color: var(--accent); margin-right: 4px; }
+        .retake-row button.verb:hover { text-decoration: underline; }
 
         /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0c0c0c;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
-        }
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: var(--accent) #0c0c0c;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
+        * { scrollbar-width: thin; scrollbar-color: var(--accent) #000; }
 
-        /* Mobile Adjustments */
-        @media (max-width: 768px) {
-            .header h1 { font-size: 2rem; }
-            .content { padding: 20px; }
-            .question-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .score-number { font-size: 3rem; }
-            .navigation { flex-direction: column; gap: 15px; }
-            .btn { width: 100%; justify-content: center; }
+        /* Mobile */
+        @media (max-width: 600px) {
+            .col { padding: 0 24px; }
+            .stem { font-size: 16px; }
+            body { font-size: 14px; padding: 24px 0 36px; }
+            .review-q .ans-line { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="terminal-bar">
-            <div class="dot red"></div>
-            <div class="dot yellow"></div>
-            <div class="dot green"></div>
-            <span style="margin-left: 10px;">bash — user@shelnet-exam: ~</span>
+    <div class="col">
+        <div class="title-row">
+            <span id="quizTitle">quiz</span>
+            <span class="meta" id="quizMeta">— · — · 0q</span>
         </div>
+        <div class="rule"></div>
+        <div class="progress"><div class="progress-fill" id="progressBar"></div></div>
 
-        <div class="header">
-            <h1 id="quizTitle">Quiz Title</h1>
-            <div class="subtitle" id="quizSubtitle">C:\Shelnet\Quizzes> Objective</div>
-        </div>
-
-        <div class="progress-container">
-            <div class="progress-fill" id="progressBar"></div>
-        </div>
-
-        <div class="content" id="examContent">
-            </div>
+        <div class="content" id="examContent"></div>
     </div>
 
     <script>
@@ -468,190 +291,115 @@
         // QUIZ CONFIG — edit this block when deriving a new quiz.
         // Leave the rest of this file unchanged.
         // ============================================================
-        const QUIZ_TITLE    = 'Practice Quiz 2.2';
-        const QUIZ_SUBTITLE = 'C:\\Shelnet\\Quizzes> CS0-003 Objective 2.2';
-        const ACCENT_HEX    = '#06b6d4';
+        const QUIZ_TITLE    = "practice quiz 2.2";
+        const QUIZ_SUBTITLE = "cysa-plus · obj 2.2";
+        const ACCENT_HEX    = "#22d3ee";
 
         const questions = [
             {
-                q: 'A Nessus scan of a web server returns a finding titled "SSL Certificate Cannot Be Trusted" with severity set to Medium. The certificate was issued by an internal CA not in Nessus\'s trusted root store. How should the analyst FIRST handle this finding?',
-                options: [
-                    'A. Escalate immediately as a critical finding because untrusted certificates indicate active MITM attacks',
-                    'B. Validate whether the CA is a known internal root before marking as a false positive',
-                    'C. Suppress the plugin permanently because internal CAs always generate this finding',
-                    'D. Replace the certificate with a public CA-issued certificate to close the finding'
-                ],
+                q: "A Nessus scan of a web server returns a finding titled \"SSL Certificate Cannot Be Trusted\" with severity set to Medium. The certificate was issued by an internal CA not in Nessus's trusted root store. How should the analyst FIRST handle this finding?",
+                options: ["Escalate immediately as a critical finding because untrusted certificates indicate active MITM attacks", "Validate whether the CA is a known internal root before marking as a false positive", "Suppress the plugin permanently because internal CAs always generate this finding", "Replace the certificate with a public CA-issued certificate to close the finding"],
                 correct: 1,
-                domain: 'Vulnerability Management',
-                explanation: 'The analyst must first validate context: if the certificate was issued by a legitimate internal CA, the finding is a false positive caused by Nessus lacking the private root. Escalating as critical (A) is premature; suppressing permanently (C) could mask future real issues; replacing the cert (D) is a remediation step, not a triage step.'
+                domain: "Vulnerability Management",
+                explanation: "The analyst must first validate context: if the certificate was issued by a legitimate internal CA, the finding is a false positive caused by Nessus lacking the private root. Escalating as critical (1) is premature; suppressing permanently (3) could mask future real issues; replacing the cert (4) is a remediation step, not a triage step."
             },
             {
-                q: 'An OpenVAS scan output shows a finding with QoD (Quality of Detection) of 30% for a critical Apache vulnerability. The analyst must decide how much confidence to place in this result. What does a low QoD percentage MOST indicate?',
-                options: [
-                    'A. The vulnerability was confirmed by authenticating to the host and reading the installed version',
-                    'B. OpenVAS detected the issue via banner-grabbing or indirect evidence, making the finding less reliable',
-                    'C. The finding was generated by a community-contributed plugin that lacks vendor validation',
-                    'D. The CVSS base score was calculated without access to vendor advisory data'
-                ],
+                q: "An OpenVAS scan output shows a finding with QoD (Quality of Detection) of 30% for a critical Apache vulnerability. The analyst must decide how much confidence to place in this result. What does a low QoD percentage MOST indicate?",
+                options: ["The vulnerability was confirmed by authenticating to the host and reading the installed version", "OpenVAS detected the issue via banner-grabbing or indirect evidence, making the finding less reliable", "The finding was generated by a community-contributed plugin that lacks vendor validation", "The CVSS base score was calculated without access to vendor advisory data"],
                 correct: 1,
-                domain: 'Vulnerability Management',
-                explanation: 'QoD in OpenVAS measures detection confidence: low percentages (e.g., 30%) mean the scanner relied on indirect evidence such as banners or version strings rather than direct exploitation or credentialed inspection. High QoD (A) indicates credentialed or confirmed findings; community plugins (C) and CVSS scoring (D) are not what QoD measures.'
+                domain: "Vulnerability Management",
+                explanation: "QoD in OpenVAS measures detection confidence: low percentages (e.g., 30%) mean the scanner relied on indirect evidence such as banners or version strings rather than direct exploitation or credentialed inspection. High QoD (1) indicates credentialed or confirmed findings; community plugins (3) and CVSS scoring (4) are not what QoD measures."
             },
             {
-                q: 'A Qualys scan report groups findings into severity levels 1 through 5. A system administrator asks which severity level warrants immediate patching under the organization\'s SLO. Which Qualys severity is MOST accurately classified as "Urgent" and assigned the shortest remediation timeline?',
-                options: [
-                    'A. Severity 3 (Medium)',
-                    'B. Severity 2 (Low)',
-                    'C. Severity 4 (Critical)',
-                    'D. Severity 5 (Urgent)'
-                ],
+                q: "A Qualys scan report groups findings into severity levels 1 through 5. A system administrator asks which severity level warrants immediate patching under the organization's SLO. Which Qualys severity is MOST accurately classified as \"Urgent\" and assigned the shortest remediation timeline?",
+                options: ["Severity 3 (Medium)", "Severity 2 (Low)", "Severity 4 (Critical)", "Severity 5 (Urgent)"],
                 correct: 3,
-                domain: 'Vulnerability Management',
-                explanation: 'Qualys uses a 1-5 scale where Severity 5 is labeled "Urgent" and carries the highest priority. Most SLOs assign the shortest remediation window (e.g., 15-30 days) to Severity 5 findings. Severity 4 (C) is labeled "Critical" and is also high priority but not the top tier; Severities 2-3 (A, B) are lower priority.'
+                domain: "Vulnerability Management",
+                explanation: "Qualys uses a 1-5 scale where Severity 5 is labeled \"Urgent\" and carries the highest priority. Most SLOs assign the shortest remediation window (e.g., 15-30 days) to Severity 5 findings. Severity 4 (3) is labeled \"Critical\" and is also high priority but not the top tier; Severities 2-3 (A, B) are lower priority."
             },
             {
-                q: 'While reviewing a Burp Suite Pro scan report, an analyst notices a "Reflected XSS" finding with confidence "Firm" on a login page. The finding was auto-discovered by the scanner. Which action should the analyst take NEXT to verify the finding before escalation?',
-                options: [
-                    'A. Immediately patch the login page and close the finding without manual verification',
-                    'B. Mark the finding as a false positive because scanners frequently misidentify XSS on login pages',
-                    'C. Manually replay the request in Burp Repeater to confirm that the payload reflects in the browser response',
-                    'D. Escalate to the development team and request a full application rewrite'
-                ],
+                q: "While reviewing a Burp Suite Pro scan report, an analyst notices a \"Reflected XSS\" finding with confidence \"Firm\" on a login page. The finding was auto-discovered by the scanner. Which action should the analyst take NEXT to verify the finding before escalation?",
+                options: ["Immediately patch the login page and close the finding without manual verification", "Mark the finding as a false positive because scanners frequently misidentify XSS on login pages", "Manually replay the request in Burp Repeater to confirm that the payload reflects in the browser response", "Escalate to the development team and request a full application rewrite"],
                 correct: 2,
-                domain: 'Vulnerability Management',
-                explanation: 'Even a "Firm" confidence finding should be manually verified: replaying the request in Burp Repeater confirms whether the payload reflects and is executable. Patching without verification (A) skips confirmation; marking as false positive (B) could miss a real vulnerability; requesting a full rewrite (D) is disproportionate before confirmation.'
+                domain: "Vulnerability Management",
+                explanation: "Even a \"Firm\" confidence finding should be manually verified: replaying the request in Burp Repeater confirms whether the payload reflects and is executable. Patching without verification (1) skips confirmation; marking as false positive (2) could miss a real vulnerability; requesting a full rewrite (4) is disproportionate before confirmation."
             },
             {
-                q: 'A Nikto scan against an internal web server returns: "Server may be vulnerable to CVE-2021-41773 (Apache path traversal/RCE)." The web server is running Apache 2.4.49. How should the analyst BEST interpret this Nikto output?',
-                options: [
-                    'A. The finding is definitely a false positive because Nikto relies only on banner checks',
-                    'B. Nikto confirmed RCE via an active exploit attempt, so the server is fully compromised',
-                    'C. Nikto matched the banner version to a known vulnerable range; the analyst should verify the Apache version and patch level',
-                    'D. The severity is informational only; CVE-2021-41773 affects only Windows IIS servers'
-                ],
+                q: "A Nikto scan against an internal web server returns: \"Server may be vulnerable to CVE-2021-41773 (Apache path traversal/RCE).\" The web server is running Apache 2.4.49. How should the analyst BEST interpret this Nikto output?",
+                options: ["The finding is definitely a false positive because Nikto relies only on banner checks", "Nikto confirmed RCE via an active exploit attempt, so the server is fully compromised", "Nikto matched the banner version to a known vulnerable range; the analyst should verify the Apache version and patch level", "The severity is informational only; CVE-2021-41773 affects only Windows IIS servers"],
                 correct: 2,
-                domain: 'Vulnerability Management',
-                explanation: 'Nikto uses version-based and signature checks; for CVE-2021-41773 it flags Apache 2.4.49 based on the version banner. The analyst should verify the actual installed version and patch status rather than treating the Nikto output as definitive. Nikto does not execute exploits (B); dismissing as a false positive (A) is unwarranted; CVE-2021-41773 is an Apache Linux vulnerability, not Windows IIS (D).'
+                domain: "Vulnerability Management",
+                explanation: "Nikto uses version-based and signature checks; for CVE-2021-41773 it flags Apache 2.4.49 based on the version banner. The analyst should verify the actual installed version and patch status rather than treating the Nikto output as definitive. Nikto does not execute exploits (2); dismissing as a false positive (1) is unwarranted; CVE-2021-41773 is an Apache Linux vulnerability, not Windows IIS (4)."
             },
             {
-                q: 'An OWASP ZAP automated scan of a web application generates 400 alerts. The security engineer needs to identify findings that require immediate developer attention. Which ZAP alert field is MOST useful for initial triage prioritization?',
-                options: [
-                    'A. Alert name (CWE reference)',
-                    'B. Risk level (High/Medium/Low/Informational) combined with confidence level',
-                    'C. URL parameter name where the payload was injected',
-                    'D. HTTP response code returned by the server'
-                ],
+                q: "An OWASP ZAP automated scan of a web application generates 400 alerts. The security engineer needs to identify findings that require immediate developer attention. Which ZAP alert field is MOST useful for initial triage prioritization?",
+                options: ["Alert name (CWE reference)", "Risk level (High/Medium/Low/Informational) combined with confidence level", "URL parameter name where the payload was injected", "HTTP response code returned by the server"],
                 correct: 1,
-                domain: 'Vulnerability Management',
-                explanation: 'ZAP\'s risk level combined with confidence is the primary triage filter: High-risk, High-confidence findings are the most actionable. CWE references (A) inform remediation strategy; the parameter name (C) and response code (D) help reproduction but are not initial prioritization fields.'
+                domain: "Vulnerability Management",
+                explanation: "ZAP's risk level combined with confidence is the primary triage filter: High-risk, High-confidence findings are the most actionable. CWE references (1) inform remediation strategy; the parameter name (3) and response code (4) help reproduction but are not initial prioritization fields."
             },
             {
-                q: 'A vulnerability analyst reviews a Nessus credentialed scan and finds the plugin "SMB Signing Not Required" with CVSS Base Score 5.3 (Medium). The affected host is a domain controller. How should asset criticality MOST influence the analyst\'s response priority?',
-                options: [
-                    'A. The finding should be treated as Low priority because the CVSS score is below 7.0',
-                    'B. The finding should be closed as a false positive because domain controllers are protected by Active Directory',
-                    'C. Asset criticality should be ignored; CVSS alone determines patch priority',
-                    'D. Priority should be elevated because a domain controller is a high-value asset and SMB relay attacks targeting it can result in domain compromise'
-                ],
+                q: "A vulnerability analyst reviews a Nessus credentialed scan and finds the plugin \"SMB Signing Not Required\" with CVSS Base Score 5.3 (Medium). The affected host is a domain controller. How should asset criticality MOST influence the analyst's response priority?",
+                options: ["The finding should be treated as Low priority because the CVSS score is below 7.0", "The finding should be closed as a false positive because domain controllers are protected by Active Directory", "Asset criticality should be ignored; CVSS alone determines patch priority", "Priority should be elevated because a domain controller is a high-value asset and SMB relay attacks targeting it can result in domain compromise"],
                 correct: 3,
-                domain: 'Vulnerability Management',
-                explanation: 'Asset criticality is a key context factor: SMB signing disabled on a domain controller is far more dangerous than on a workstation, because NTLM relay attacks can lead to domain admin compromise. CVSS alone (C) ignores business context; the finding is not a false positive (B); CVSS 5.3 alone understates the true risk (A).'
+                domain: "Vulnerability Management",
+                explanation: "Asset criticality is a key context factor: SMB signing disabled on a domain controller is far more dangerous than on a workstation, because NTLM relay attacks can lead to domain admin compromise. CVSS alone (3) ignores business context; the finding is not a false positive (2); CVSS 5.3 alone understates the true risk (1)."
             },
             {
-                q: 'An analyst runs an OpenVAS scan and observes several findings flagged as "Potential" rather than "Confirmed." A colleague suggests accepting all "Potential" findings as real vulnerabilities to avoid missing anything. What is the BEST practice for handling these findings?',
-                options: [
-                    'A. Treat all "Potential" findings as confirmed and patch immediately without further investigation',
-                    'B. Investigate each "Potential" finding with additional testing (credentialed scan or manual verification) before planning remediation',
-                    'C. Suppress all "Potential" findings to keep the report manageable',
-                    'D. Escalate all "Potential" findings as critical to management because the risk is unknown'
-                ],
+                q: "An analyst runs an OpenVAS scan and observes several findings flagged as \"Potential\" rather than \"Confirmed.\" A colleague suggests accepting all \"Potential\" findings as real vulnerabilities to avoid missing anything. What is the BEST practice for handling these findings?",
+                options: ["Treat all \"Potential\" findings as confirmed and patch immediately without further investigation", "Investigate each \"Potential\" finding with additional testing (credentialed scan or manual verification) before planning remediation", "Suppress all \"Potential\" findings to keep the report manageable", "Escalate all \"Potential\" findings as critical to management because the risk is unknown"],
                 correct: 1,
-                domain: 'Vulnerability Management',
-                explanation: '"Potential" findings in OpenVAS indicate the scanner could not confirm the vulnerability with high confidence. Best practice is to investigate further using credentialed scans or manual verification before committing remediation resources. Treating all as confirmed (A) wastes effort on false positives; suppressing all (C) risks missing real vulnerabilities; escalating all as critical (D) creates alert fatigue.'
+                domain: "Vulnerability Management",
+                explanation: "\"Potential\" findings in OpenVAS indicate the scanner could not confirm the vulnerability with high confidence. Best practice is to investigate further using credentialed scans or manual verification before committing remediation resources. Treating all as confirmed (1) wastes effort on false positives; suppressing all (3) risks missing real vulnerabilities; escalating all as critical (4) creates alert fatigue."
             },
             {
-                q: 'A Burp Suite scan identifies a "SQL Injection" finding with risk "High" and confidence "Tentative" on a search endpoint. The development team asks what "Tentative" means for Burp findings. Which explanation is MOST accurate?',
-                options: [
-                    'A. Tentative means the vulnerability was confirmed by successfully extracting database content during the scan',
-                    'B. Tentative means the finding was generated by a manual test case rather than the automated scanner',
-                    'C. Tentative means the finding only applies to authenticated sessions and was not tested on the public endpoint',
-                    'D. Tentative means Burp found heuristic indicators of SQLi but did not confirm data extraction or error-based proof'
-                ],
+                q: "A Burp Suite scan identifies a \"SQL Injection\" finding with risk \"High\" and confidence \"Tentative\" on a search endpoint. The development team asks what \"Tentative\" means for Burp findings. Which explanation is MOST accurate?",
+                options: ["Tentative means the vulnerability was confirmed by successfully extracting database content during the scan", "Tentative means the finding was generated by a manual test case rather than the automated scanner", "Tentative means the finding only applies to authenticated sessions and was not tested on the public endpoint", "Tentative means Burp found heuristic indicators of SQLi but did not confirm data extraction or error-based proof"],
                 correct: 3,
-                domain: 'Vulnerability Management',
-                explanation: 'Burp\'s "Tentative" confidence means the scanner detected patterns consistent with SQL injection (e.g., timing differences or error fragments) but could not definitively confirm exploitation. "Certain" or "Firm" would indicate confirmed extraction (A). Manual tests (B) and session scope (C) are not what the confidence level describes.'
+                domain: "Vulnerability Management",
+                explanation: "Burp's \"Tentative\" confidence means the scanner detected patterns consistent with SQL injection (e.g., timing differences or error fragments) but could not definitively confirm exploitation. \"Certain\" or \"Firm\" would indicate confirmed extraction (1). Manual tests (2) and session scope (3) are not what the confidence level describes."
             },
             {
-                q: 'A security analyst uses Nessus to scan a DMZ webserver and receives a finding for CVE-2014-6271 (Shellshock). The server runs Apache with CGI enabled. Which Nessus plugin output field is MOST useful to determine whether the scan actively verified the vulnerability versus relying on version checks?',
-                options: [
-                    'A. CVSS Base Score listed in the finding header',
-                    'B. The vulnerability publication date in the CVE reference',
-                    'C. The number of times the plugin triggered across other hosts in the scan',
-                    'D. Plugin output section showing whether Nessus sent a probe and received a confirming response'
-                ],
+                q: "A security analyst uses Nessus to scan a DMZ webserver and receives a finding for CVE-2014-6271 (Shellshock). The server runs Apache with CGI enabled. Which Nessus plugin output field is MOST useful to determine whether the scan actively verified the vulnerability versus relying on version checks?",
+                options: ["CVSS Base Score listed in the finding header", "The vulnerability publication date in the CVE reference", "The number of times the plugin triggered across other hosts in the scan", "Plugin output section showing whether Nessus sent a probe and received a confirming response"],
                 correct: 3,
-                domain: 'Vulnerability Management',
-                explanation: 'The Plugin Output field in Nessus contains the raw evidence collected: for an active check like Shellshock, it shows the probe sent and the confirming response received, indicating a true positive. CVSS (A) is a severity metric, not evidence; publication date (B) is historical context; trigger count across hosts (C) measures breadth, not verification quality.'
+                domain: "Vulnerability Management",
+                explanation: "The Plugin Output field in Nessus contains the raw evidence collected: for an active check like Shellshock, it shows the probe sent and the confirming response received, indicating a true positive. CVSS (1) is a severity metric, not evidence; publication date (2) is historical context; trigger count across hosts (3) measures breadth, not verification quality."
             },
             {
-                q: 'During a Qualys web application scan, the tool reports "Sensitive Data Exposure" because a test account password appeared in an HTTP response body. The application team argues the response is only visible to authenticated users. Which analyst action BEST addresses this disagreement?',
-                options: [
-                    'A. Accept the team\'s explanation and mark the finding as a false positive immediately',
-                    'B. Escalate the finding to the CISO without further investigation',
-                    'C. Review the scan configuration to confirm authentication context, then assess whether the credential exposure violates data handling policy regardless of authentication state',
-                    'D. Close the finding because authenticated-only exposure is not a vulnerability'
-                ],
+                q: "During a Qualys web application scan, the tool reports \"Sensitive Data Exposure\" because a test account password appeared in an HTTP response body. The application team argues the response is only visible to authenticated users. Which analyst action BEST addresses this disagreement?",
+                options: ["Accept the team's explanation and mark the finding as a false positive immediately", "Escalate the finding to the CISO without further investigation", "Review the scan configuration to confirm authentication context, then assess whether the credential exposure violates data handling policy regardless of authentication state", "Close the finding because authenticated-only exposure is not a vulnerability"],
                 correct: 2,
-                domain: 'Vulnerability Management',
-                explanation: 'The analyst must confirm scan context (authenticated vs. unauthenticated) and evaluate whether exposing credentials in responses violates policy (it typically does, since session compromise would expose the credential). Accepting the claim without verification (A) is insufficient; immediate CISO escalation (B) skips analysis; authenticated-only exposure is still a real risk (D).'
+                domain: "Vulnerability Management",
+                explanation: "The analyst must confirm scan context (authenticated vs. unauthenticated) and evaluate whether exposing credentials in responses violates policy (it typically does, since session compromise would expose the credential). Accepting the claim without verification (1) is insufficient; immediate CISO escalation (2) skips analysis; authenticated-only exposure is still a real risk (4)."
             },
             {
-                q: 'A Nessus scan produces 1,200 findings across a large enterprise network. The security team must prioritize which hosts to remediate first. Which combination of Nessus report filters is MOST effective for identifying the highest-risk hosts?',
-                options: [
-                    'A. Filter by plugin family = "Web Servers" only, regardless of severity',
-                    'B. Filter by severity = Critical and sort by plugin output length to find the most detailed findings',
-                    'C. Filter by severity = Critical, then sub-sort by asset criticality or business unit tag',
-                    'D. Filter by finding age to remediate the oldest vulnerabilities first regardless of severity'
-                ],
+                q: "A Nessus scan produces 1,200 findings across a large enterprise network. The security team must prioritize which hosts to remediate first. Which combination of Nessus report filters is MOST effective for identifying the highest-risk hosts?",
+                options: ["Filter by plugin family = \"Web Servers\" only, regardless of severity", "Filter by severity = Critical and sort by plugin output length to find the most detailed findings", "Filter by severity = Critical, then sub-sort by asset criticality or business unit tag", "Filter by finding age to remediate the oldest vulnerabilities first regardless of severity"],
                 correct: 2,
-                domain: 'Vulnerability Management',
-                explanation: 'Filtering for Critical severity and then sorting by asset criticality ensures the highest-risk combinations are addressed first. Filtering by plugin family alone (A) ignores severity; sorting by output length (B) is not a meaningful risk indicator; remediating by age first (D) ignores severity entirely.'
+                domain: "Vulnerability Management",
+                explanation: "Filtering for Critical severity and then sorting by asset criticality ensures the highest-risk combinations are addressed first. Filtering by plugin family alone (1) ignores severity; sorting by output length (2) is not a meaningful risk indicator; remediating by age first (4) ignores severity entirely."
             },
             {
-                q: 'An analyst reviewing an OWASP ZAP scan for a Node.js REST API notices "Missing Anti-CSRF Tokens" alerts on several POST endpoints. The API uses JSON and is consumed only by a mobile app, not a browser. How should the analyst MOST accurately characterize these findings?',
-                options: [
-                    'A. Mark all findings as false positives because CSRF requires a browser context and this API is consumed only by a mobile client',
-                    'B. Escalate all findings as critical because REST APIs are always vulnerable to CSRF attacks',
-                    'C. Request that ZAP be reconfigured to exclude JSON POST endpoints from CSRF checks',
-                    'D. Patch all endpoints with CSRF tokens before closing any finding'
-                ],
+                q: "An analyst reviewing an OWASP ZAP scan for a Node.js REST API notices \"Missing Anti-CSRF Tokens\" alerts on several POST endpoints. The API uses JSON and is consumed only by a mobile app, not a browser. How should the analyst MOST accurately characterize these findings?",
+                options: ["Mark all findings as false positives because CSRF requires a browser context and this API is consumed only by a mobile client", "Escalate all findings as critical because REST APIs are always vulnerable to CSRF attacks", "Request that ZAP be reconfigured to exclude JSON POST endpoints from CSRF checks", "Patch all endpoints with CSRF tokens before closing any finding"],
                 correct: 0,
-                domain: 'Vulnerability Management',
-                explanation: 'CSRF exploits the browser\'s automatic credential attachment. A REST API consumed exclusively by a mobile client using token-based auth (not browser cookies/sessions) is not vulnerable to CSRF; ZAP\'s generic scanner produces false positives in this architecture. Escalating as critical (B) misapplies the CSRF threat model; mandatory CSRF token patching (D) adds unnecessary complexity; reconfiguring ZAP (C) improves future scanning but is not the finding characterization.'
+                domain: "Vulnerability Management",
+                explanation: "CSRF exploits the browser's automatic credential attachment. A REST API consumed exclusively by a mobile client using token-based auth (not browser cookies/sessions) is not vulnerable to CSRF; ZAP's generic scanner produces false positives in this architecture. Escalating as critical (2) misapplies the CSRF threat model; mandatory CSRF token patching (4) adds unnecessary complexity; reconfiguring ZAP (3) improves future scanning but is not the finding characterization."
             },
             {
-                q: 'A security engineer receives a Nikto scan report that flags: "Allowed HTTP Methods: OPTIONS, GET, HEAD, POST, PUT, DELETE." Why is the presence of PUT and DELETE MOST significant as a security concern identified by this Nikto output?',
-                options: [
-                    'A. PUT and DELETE methods, if not properly restricted, could allow unauthorized file upload or resource deletion on the server',
-                    'B. PUT and DELETE are always blocked by web application firewalls; their presence indicates WAF misconfiguration',
-                    'C. Allowing authenticated users to use PUT and DELETE is an expected and inherently secure design pattern',
-                    'D. Nikto flagged this as informational only; exposed HTTP methods are never a vulnerability'
-                ],
+                q: "A security engineer receives a Nikto scan report that flags: \"Allowed HTTP Methods: OPTIONS, GET, HEAD, POST, PUT, DELETE.\" Why is the presence of PUT and DELETE MOST significant as a security concern identified by this Nikto output?",
+                options: ["PUT and DELETE methods, if not properly restricted, could allow unauthorized file upload or resource deletion on the server", "PUT and DELETE are always blocked by web application firewalls; their presence indicates WAF misconfiguration", "Allowing authenticated users to use PUT and DELETE is an expected and inherently secure design pattern", "Nikto flagged this as informational only; exposed HTTP methods are never a vulnerability"],
                 correct: 0,
-                domain: 'Vulnerability Management',
-                explanation: 'Unrestricted HTTP methods PUT and DELETE on a web server can allow unauthorized file uploads or resource deletion if access controls are insufficient. Nikto correctly flags this for investigation. WAF blocking is not guaranteed and bypass is possible (B); authenticated use must still be validated (C); calling it purely informational (D) underestimates the risk.'
+                domain: "Vulnerability Management",
+                explanation: "Unrestricted HTTP methods PUT and DELETE on a web server can allow unauthorized file uploads or resource deletion if access controls are insufficient. Nikto correctly flags this for investigation. WAF blocking is not guaranteed and bypass is possible (2); authenticated use must still be validated (3); calling it purely informational (4) underestimates the risk."
             },
             {
-                q: 'A vulnerability scan run against a cloud-hosted Linux server reports "OpenSSH Username Enumeration" (CVE-2018-15473) as a Medium severity finding. The server is accessible only via an internal VPN requiring MFA. How should the analyst MOST accurately classify this finding after considering context?',
-                options: [
-                    'A. Accept the risk or reduce priority because VPN-with-MFA access control significantly limits the attack surface for this finding',
-                    'B. Escalate to Critical because SSH username enumeration enables credential-stuffing attacks',
-                    'C. Remediate immediately because all CVE findings must be patched within 30 days',
-                    'D. Mark as a false positive because the CVE only applies to physical servers, not cloud-hosted instances'
-                ],
+                q: "A vulnerability scan run against a cloud-hosted Linux server reports \"OpenSSH Username Enumeration\" (CVE-2018-15473) as a Medium severity finding. The server is accessible only via an internal VPN requiring MFA. How should the analyst MOST accurately classify this finding after considering context?",
+                options: ["Accept the risk or reduce priority because VPN-with-MFA access control significantly limits the attack surface for this finding", "Escalate to Critical because SSH username enumeration enables credential-stuffing attacks", "Remediate immediately because all CVE findings must be patched within 30 days", "Mark as a false positive because the CVE only applies to physical servers, not cloud-hosted instances"],
                 correct: 0,
-                domain: 'Vulnerability Management',
-                explanation: 'Context-aware prioritization weighs access controls: a Medium finding on a host reachable only via VPN with MFA has a significantly reduced exploitability window. The analyst can document risk acceptance or defer patching. Escalating to Critical (B) ignores compensating controls; blanket 30-day rules (C) do not replace context-aware analysis; cloud vs. physical does not affect CVE applicability (D).'
+                domain: "Vulnerability Management",
+                explanation: "Context-aware prioritization weighs access controls: a Medium finding on a host reachable only via VPN with MFA has a significantly reduced exploitability window. The analyst can document risk acceptance or defer patching. Escalating to Critical (2) ignores compensating controls; blanket 30-day rules (3) do not replace context-aware analysis; cloud vs. physical does not affect CVE applicability (4)."
             }
         ];
 
@@ -659,7 +407,6 @@
         // END CONFIG — chrome below is shared. Do not edit when deriving.
         // ============================================================
 
-        // Small util: convert '#06b6d4' -> 'rgba(6, 182, 212, 0.1)' for the dim variant.
         function hexToRgba(hex, alpha) {
             const h = hex.replace('#', '');
             const r = parseInt(h.substring(0, 2), 16);
@@ -671,73 +418,79 @@
         // --- APP STATE ---
         let currentQuestionIndex = 0;
         let userAnswers = new Array(questions.length).fill(null);
+        let onResults = false;
 
-        // --- DOM ELEMENTS ---
+        // --- DOM ---
         const contentDiv = document.getElementById('examContent');
         const progressBar = document.getElementById('progressBar');
 
-        // --- INITIALIZATION ---
+        // --- INIT ---
         function init() {
-            // --- Apply CONFIG ---
             document.title = QUIZ_TITLE;
             document.getElementById('quizTitle').textContent = QUIZ_TITLE;
-            document.getElementById('quizSubtitle').textContent = QUIZ_SUBTITLE;
+            document.getElementById('quizMeta').textContent =
+                `${QUIZ_SUBTITLE} · ${questions.length}q`;
             document.documentElement.style.setProperty('--accent', ACCENT_HEX);
-            document.documentElement.style.setProperty('--accent-dim', hexToRgba(ACCENT_HEX, 0.1));
-            document.documentElement.style.setProperty('--accent-glow', hexToRgba(ACCENT_HEX, 0.4));
-            document.documentElement.style.setProperty('--accent-select', hexToRgba(ACCENT_HEX, 0.3));
-
-            // --- existing init body continues below ---
+            document.documentElement.style.setProperty('--accent-tint',  hexToRgba(ACCENT_HEX, 0.14));
+            document.documentElement.style.setProperty('--accent-hover', hexToRgba(ACCENT_HEX, 0.08));
             renderQuestion();
         }
 
-        // --- RENDER FUNCTIONS ---
-        function renderQuestion() {
-            const q = questions[currentQuestionIndex];
-            const isLastQuestion = currentQuestionIndex === questions.length - 1;
-
-            // Update Progress
-            const progress = ((currentQuestionIndex) / questions.length) * 100;
-            progressBar.style.width = `${progress}%`;
-
-            // HTML Structure for Question
-            let html = `
-                <div class="question-header">
-                    <span class="question-number">QUESTION ${currentQuestionIndex + 1} OF ${questions.length}</span>
-                    <span class="domain-tag">${q.domain}</span>
-                </div>
-
-                <div class="question-text">${q.q}</div>
-
-                <div class="options">
-                    ${q.options.map((opt, index) => {
-                        const isSelected = userAnswers[currentQuestionIndex] === index;
-                        const label = String.fromCharCode(65 + index); // A, B, C, D
-                        return `
-                            <div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(${index})">
-                                <span class="option-label">${label}</span>
-                                <span class="option-text">${opt}</span>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-
-                <div class="navigation">
-                    <button class="btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
-                        &larr; Previous
-                    </button>
-                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" ${userAnswers[currentQuestionIndex] === null ? 'disabled' : ''}>
-                        ${isLastQuestion ? 'Finish Exam' : 'Next &rarr;'}
-                    </button>
-                </div>
-            `;
-
-            contentDiv.innerHTML = html;
+        function escapeHtml(s) {
+            return String(s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
 
-        function selectOption(index) {
-            userAnswers[currentQuestionIndex] = index;
-            // Re-render to show selection state (or just toggle class for performance, but re-render is safer for state sync)
+        // --- RENDER ---
+        function renderQuestion() {
+            onResults = false;
+            const q = questions[currentQuestionIndex];
+            const isLast = currentQuestionIndex === questions.length - 1;
+            const isFirst = currentQuestionIndex === 0;
+            const picked = userAnswers[currentQuestionIndex];
+
+            progressBar.style.width = `${(currentQuestionIndex / questions.length) * 100}%`;
+
+            const optionsHtml = q.options.map((opt, i) => `
+                <button type="button"
+                        class="option ${picked === i ? 'selected' : ''}"
+                        onclick="selectOption(${i})">
+                    <span class="label">${i + 1}</span>
+                    <span class="text">${escapeHtml(opt)}</span>
+                </button>
+            `).join('');
+
+            const prevHtml = isFirst
+                ? ''
+                : `<button type="button" class="verb" onclick="prevQuestion()"><span class="key">&larr;</span>prev</button>`;
+
+            const nextLabel = isLast ? 'finish' : 'next';
+            const nextEnabled = picked !== null;
+            const nextHtml = nextEnabled
+                ? `<button type="button" class="verb" onclick="nextQuestion()"><span class="key">&#x21B5;</span>${nextLabel}</button>`
+                : `<span class="verb disabled"><span class="key">&#x21B5;</span>${nextLabel}</span>`;
+
+            contentDiv.innerHTML = `
+                <div class="q-header">
+                    <span class="count">question ${currentQuestionIndex + 1} of ${questions.length}</span>
+                    <span class="domain">[ ${escapeHtml(q.domain.toLowerCase())} ]</span>
+                </div>
+
+                <div class="stem">${escapeHtml(q.q)}</div>
+
+                <div class="options">${optionsHtml}</div>
+
+                <div class="hints">
+                    <span><span class="key">1-${q.options.length}</span>select</span>
+                    ${prevHtml ? `<span>${prevHtml}</span>` : ''}
+                    <span>${nextHtml}</span>
+                </div>
+            `;
+        }
+
+        function selectOption(i) {
+            userAnswers[currentQuestionIndex] = i;
             renderQuestion();
         }
 
@@ -749,6 +502,7 @@
         }
 
         function nextQuestion() {
+            if (userAnswers[currentQuestionIndex] === null) return;
             if (currentQuestionIndex < questions.length - 1) {
                 currentQuestionIndex++;
                 renderQuestion();
@@ -758,96 +512,87 @@
         }
 
         function showResults() {
-            // Calculate Score
+            onResults = true;
             let correctCount = 0;
-            questions.forEach((q, i) => {
-                if (userAnswers[i] === q.correct) correctCount++;
-            });
-
+            questions.forEach((q, i) => { if (userAnswers[i] === q.correct) correctCount++; });
             const score = Math.round((correctCount / questions.length) * 100);
-            const passed = score >= 83; // Approx 750/900
+            const passed = score >= 83;
             progressBar.style.width = '100%';
 
-            let html = `
-                <div class="results">
-                    <div class="score-card">
-                        <div class="subtitle">EXAM RESULTS</div>
-                        <div class="score-number">${score}</div>
-                        <div class="subtitle">SCORE / 100</div>
-                        <div class="pass-fail ${passed ? 'pass' : 'fail'}">
-                            ${passed ? 'PASS' : 'FAIL'}
+            const reviewHtml = questions.map((q, i) => {
+                const userAnswer = userAnswers[i];
+                const skipped = userAnswer === null;
+                const isCorrect = !skipped && userAnswer === q.correct;
+                const userLabel = skipped ? '—' : `${userAnswer + 1}  ${escapeHtml(q.options[userAnswer])}`;
+                const correctLabel = `${q.correct + 1}  ${escapeHtml(q.options[q.correct])}`;
+                const statusGlyph = isCorrect
+                    ? `<span class="glyph-correct">&#x2713;</span><span class="verdict correct">correct</span>`
+                    : `<span class="glyph-incorrect">&#x2717;</span><span class="verdict incorrect">${skipped ? 'skipped' : 'incorrect'}</span>`;
+                const yourLineClass = skipped ? 'skipped' : (isCorrect ? 'right' : 'wrong');
+                return `
+                    <div class="review-q ${isCorrect ? 'correct' : 'incorrect'}">
+                        <div class="status">Q.${i + 1}${statusGlyph}</div>
+                        <div class="stem-mini">${escapeHtml(q.q)}</div>
+                        <div class="ans-line ${yourLineClass}">
+                            <span class="ans-label">your answer:</span>
+                            <span class="ans-val">${userLabel}</span>
                         </div>
+                        <div class="ans-line right">
+                            <span class="ans-label">correct answer:</span>
+                            <span class="ans-val">${correctLabel}</span>
+                        </div>
+                        <div class="explanation"><span class="arrow">&rsaquo;</span>${escapeHtml(q.explanation)}</div>
                     </div>
+                `;
+            }).join('');
 
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-number">${correctCount}</div>
-                            <div class="stat-label">Correct</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">${questions.length - correctCount}</div>
-                            <div class="stat-label">Incorrect</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">${questions.length}</div>
-                            <div class="stat-label">Total Questions</div>
-                        </div>
-                    </div>
+            contentDiv.innerHTML = `
+                <div class="results-heading">results</div>
 
-                    <div class="subtitle" style="margin-bottom: 20px;">Review Answers</div>
+                <div class="score-row">
+                    <span><span class="label">score</span> <span class="score-val">${score} / 100</span></span>
+                    <span class="${passed ? 'verdict-pass' : 'verdict-fail'}">${passed ? 'pass' : 'fail'}</span>
+                    <span class="threshold">(&ge; 83 to pass)</span>
+                </div>
 
-                    ${questions.map((q, i) => {
-                        const userAnswer = userAnswers[i];
-                        const isCorrect = userAnswer === q.correct;
-                        const labelUser = String.fromCharCode(65 + userAnswer);
-                        const labelCorrect = String.fromCharCode(65 + q.correct);
+                <div class="stats-row">
+                    <span><span class="stat-label">correct</span><span class="stat-val">${correctCount}</span></span>
+                    <span><span class="stat-label">incorrect</span><span class="stat-val">${questions.length - correctCount}</span></span>
+                    <span><span class="stat-label">total</span><span class="stat-val">${questions.length}</span></span>
+                </div>
 
-                        return `
-                            <div class="review-question ${isCorrect ? 'correct' : 'incorrect'}">
-                                <div class="review-header">
-                                    <span>Question ${i + 1}</span>
-                                    <span class="review-status ${isCorrect ? 'correct' : 'incorrect'}">
-                                        ${isCorrect ? 'CORRECT' : 'INCORRECT'}
-                                    </span>
-                                </div>
-                                <div class="review-text">${q.q}</div>
+                <div class="review-heading">review<span class="dashes"></span></div>
 
-                                <div class="review-answers">
-                                    <div class="answer-line">
-                                        <strong>Your Answer:</strong>
-                                        <span style="color: ${isCorrect ? 'var(--accent)' : 'var(--accent-red)'}">
-                                            ${labelUser}. ${q.options[userAnswer]}
-                                        </span>
-                                    </div>
-                                    <div class="answer-line">
-                                        <strong>Correct Answer:</strong>
-                                        <span style="color: var(--accent)">
-                                            ${labelCorrect}. ${q.options[q.correct]}
-                                        </span>
-                                    </div>
-                                </div>
+                ${reviewHtml}
 
-                                <div class="explanation">
-                                    <div class="explanation-title">Explanation</div>
-                                    ${q.explanation}
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-
-                    <div style="text-align: center; margin-top: 40px;">
-                        <button class="btn btn-primary" onclick="location.reload()" style="display: inline-flex;">
-                            Retake Exam
-                        </button>
-                    </div>
+                <div class="retake-row">
+                    <button type="button" class="verb" onclick="location.reload()"><span class="key">&#x21B5;</span>retake</button>
                 </div>
             `;
-
-            contentDiv.innerHTML = html;
-            window.scrollTo(0,0);
+            window.scrollTo(0, 0);
         }
 
-        // Start
+        // --- KEYBOARD ---
+        window.addEventListener('keydown', (e) => {
+            const tag = document.activeElement && document.activeElement.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+            if (onResults) {
+                if (e.key === 'Enter') { e.preventDefault(); location.reload(); }
+                return;
+            }
+
+            if (/^[1-9]$/.test(e.key)) {
+                const i = Number(e.key) - 1;
+                const q = questions[currentQuestionIndex];
+                if (i < q.options.length) { e.preventDefault(); selectOption(i); }
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault(); prevQuestion();
+            } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+                e.preventDefault(); nextQuestion();
+            }
+        });
+
         init();
     </script>
 </body>

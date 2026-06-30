@@ -6,461 +6,284 @@
     <title>Shelnet Quiz</title>
     <style>
         :root {
-            --bg-color: #000000;
-            --card-bg: #0c0c0c;
-            --text-main: #ffffff;
-            --text-muted: rgba(255, 255, 255, 0.6);
-            --border-color: rgba(255, 255, 255, 0.15);
-            --accent: #3b82f6; /* Default — overridden per-quiz via ACCENT_HEX in CONFIG */
-            --accent-dim: rgba(59, 130, 246, 0.1); /* Default — overridden via setProperty in init() */
-            --accent-glow: rgba(59, 130, 246, 0.4); /* Default — overridden via setProperty in init() */
-            --accent-select: rgba(59, 130, 246, 0.3); /* Default — overridden via setProperty in init() */
-            --accent-red: #ef4444;
-            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            --font-mono: 'Courier New', Courier, monospace;
+            --bg:           #000000;
+            --text-90:      rgba(255, 255, 255, 0.90);
+            --text-70:      rgba(255, 255, 255, 0.70);
+            --text-45:      rgba(255, 255, 255, 0.45);
+            --text-30:      rgba(255, 255, 255, 0.30);
+            --rule:         rgba(255, 255, 255, 0.15);
+            --accent:       #38bdf8; /* Default — overridden per-quiz via ACCENT_HEX */
+            --accent-tint:  rgba(56, 189, 248, 0.14); /* selected-row */
+            --accent-hover: rgba(56, 189, 248, 0.08); /* hover-row */
+            --pass-green:   #43c08c;
+            --wrong-red:    #fb7185;
+            --font-mono:    'Courier New', Courier, monospace;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body { background: var(--bg); }
 
         body {
-            font-family: var(--font-sans);
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            font-family: var(--font-mono);
+            color: var(--text-90);
             min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            /* Grid Background Effect */
-            background-image:
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
+            padding: 32px 0 48px;
+            line-height: 1.5;
+            font-size: 15px;
         }
 
-        /* Selection Color */
         ::selection {
-            background: var(--accent-select);
-            color: #dbeafe;
+            background: var(--accent-tint);
+            color: #fff;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            min-height: 600px;
+        .col {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        /* --- Header --- */
+        .title-row {
             display: flex;
-            flex-direction: column;
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px 24px;
+            color: var(--text-90);
         }
 
-        /* --- Terminal Header Bar --- */
-        .terminal-bar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid var(--border-color);
-            font-family: var(--font-mono);
-            font-size: 12px;
-            color: var(--text-muted);
+        .title-row .meta {
+            color: var(--text-45);
+            font-size: 13px;
         }
 
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        .dot.red { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); }
-        .dot.yellow { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); }
-        .dot.green { background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); }
-
-        /* --- Brutal Header Section --- */
-        .header {
-            padding: 40px 40px 20px 40px;
-            border-bottom: 1px solid var(--border-color);
+        .rule {
+            border-top: 1px solid var(--rule);
+            margin: 12px 0 0;
         }
 
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-            margin-bottom: 10px;
-            line-height: 1;
-        }
-
-        .header .subtitle {
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            display: block;
-        }
-
-        /* --- Progress Bar --- */
-        .progress-container {
-            width: 100%;
+        .progress {
             height: 2px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.06);
+            margin-top: 0;
         }
 
         .progress-fill {
             height: 100%;
             background: var(--accent);
             width: 0%;
-            transition: width 0.3s ease;
-            box-shadow: 0 0 10px var(--accent);
+            transition: width 0.25s ease;
         }
 
-        /* --- Content Area --- */
-        .content {
-            padding: 40px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
+        /* --- Question --- */
+        .content { margin-top: 32px; }
 
-        .question-header {
+        .q-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px dashed var(--border-color);
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 4px 24px;
+            color: var(--text-70);
+            font-size: 13px;
         }
 
-        .question-number {
-            font-family: var(--font-mono);
-            color: var(--accent);
-            font-size: 0.9rem;
-        }
+        .q-header .count { color: var(--accent); }
+        .q-header .domain { color: var(--text-45); }
 
-        .domain-tag {
-            font-family: var(--font-mono);
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-color);
-            padding: 4px 12px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .question-text {
-            font-size: 1.25rem;
+        .stem {
+            color: var(--text-90);
+            font-size: 17px;
             line-height: 1.6;
-            margin-bottom: 40px;
-            color: #eee;
-            font-weight: 400;
+            margin: 24px 0 32px;
         }
 
-        /* --- Options --- */
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        .options { display: flex; flex-direction: column; gap: 2px; }
 
         .option {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            padding: 20px;
+            display: flex;
+            align-items: baseline;
+            gap: 18px;
+            padding: 10px 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            position: relative;
-        }
-
-        .option:hover {
-            border-color: var(--accent);
-            background: rgba(255,255,255,0.04);
-        }
-
-        .option.selected {
-            background: var(--accent-dim);
-            border-color: var(--accent);
-        }
-
-        .option-label {
-            font-family: var(--font-mono);
-            margin-right: 20px;
-            color: var(--text-muted);
-            font-weight: bold;
-            min-width: 25px;
-        }
-
-        .option.selected .option-label {
-            color: var(--accent);
-        }
-
-        .option-text {
-            flex: 1;
-            font-size: 1rem;
-            color: rgba(255,255,255,0.8);
-        }
-
-        .option.selected .option-text {
-            color: #fff;
-        }
-
-        /* --- Buttons --- */
-        .navigation {
-            display: flex;
-            justify-content: space-between;
-            margin-top: auto;
-            padding-top: 50px;
-        }
-
-        .btn {
-            padding: 12px 24px;
             background: transparent;
-            border: 1px solid var(--border-color);
-            color: #fff;
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            border: 0;
+            color: var(--text-90);
+            font: inherit;
+            text-align: left;
+            width: 100%;
+            transition: background-color 0.12s ease;
+        }
+
+        .option:hover { background: var(--accent-hover); }
+        .option.selected { background: var(--accent-tint); }
+
+        .option .label {
+            color: var(--text-45);
+            min-width: 1.5ch;
+        }
+
+        .option.selected .label { color: var(--accent); }
+
+        .option .text { flex: 1; }
+
+        /* --- Footer hints --- */
+        .hints {
+            margin-top: 32px;
+            color: var(--text-45);
+            font-size: 13px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 18px;
+        }
+
+        .hints .key { color: var(--accent); margin-right: 4px; }
+        .hints .verb { color: var(--text-90); }
+        .hints .verb:hover { text-decoration: underline; }
+        .hints .verb.disabled { color: var(--text-30); cursor: not-allowed; }
+        .hints .verb.disabled:hover { text-decoration: none; }
+
+        button.verb {
+            background: transparent;
+            border: 0;
+            font: inherit;
+            padding: 0;
             cursor: pointer;
-            transition: all 0.2s;
+        }
+
+        /* --- Results --- */
+        .results-heading {
+            color: var(--text-70);
+            font-size: 15px;
+            margin-bottom: 0;
+        }
+
+        .score-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 28px;
+            margin-top: 28px;
+            align-items: baseline;
+        }
+
+        .score-row .label { color: var(--text-45); }
+        .score-row .score-val { color: var(--text-90); }
+        .score-row .verdict-pass { color: var(--pass-green); }
+        .score-row .verdict-fail { color: var(--wrong-red); }
+        .score-row .threshold   { color: var(--text-45); }
+
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 36px;
+            margin-top: 16px;
+            align-items: baseline;
+        }
+
+        .stats-row .stat-label { color: var(--text-45); margin-right: 8px; }
+        .stats-row .stat-val   { color: var(--text-90); }
+
+        .review-heading {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            color: var(--text-70);
+            margin: 36px 0 16px;
         }
 
-        .btn:hover:not(:disabled) {
-            background: #fff;
-            color: #000;
-            border-color: #fff;
+        .review-heading .dashes {
+            color: var(--text-30);
+            flex: 1;
+            border-top: 1px solid var(--rule);
+            margin-left: 4px;
+            transform: translateY(1px);
         }
 
-        .btn-primary {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: var(--accent);
-            color: #000;
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            border-color: var(--border-color);
-        }
-
-        /* --- Results Screen --- */
-        .results {
-            animation: fadeIn 0.5s ease;
-        }
-
-        .score-card {
-            border: 1px solid var(--border-color);
-            background: rgba(255,255,255,0.02);
-            padding: 40px;
-            text-align: center;
-            margin-bottom: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Terminal scanline effect for score */
-        .score-card::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 2px;
-            background: rgba(255,255,255,0.1);
-            animation: scan 2s linear infinite;
-        }
-
-        @keyframes scan {
-            0% { top: 0%; opacity: 0; }
-            50% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-        }
-
-        .score-number {
-            font-size: 5rem;
-            font-weight: bold;
-            font-family: var(--font-mono);
-            margin: 10px 0;
-            color: #fff;
-        }
-
-        .pass-fail {
-            font-family: var(--font-mono);
-            font-size: 1.5rem;
-            padding: 10px 20px;
-            display: inline-block;
-            border: 1px solid currentColor;
-            margin-top: 20px;
-        }
-
-        .pass { color: var(--accent); }
-        .fail { color: var(--accent-red); }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #fff;
-            font-family: var(--font-mono);
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            margin-top: 5px;
-        }
-
-        /* Review Section */
-        .review-question {
-            border: 1px solid var(--border-color);
-            background: rgba(255,255,255,0.02);
-            padding: 25px;
-            margin-bottom: 20px;
-            border-left: 4px solid transparent;
-        }
-
-        .review-question.correct { border-left-color: var(--accent); }
-        .review-question.incorrect { border-left-color: var(--accent-red); }
-
-        .review-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-        }
-
-        .review-status.correct { color: var(--accent); }
-        .review-status.incorrect { color: var(--accent-red); }
-
-        .review-text {
-            font-size: 1.1rem;
-            color: #fff;
+        .review-q {
+            border-left: 2px solid var(--text-30);
+            padding: 0 0 8px 14px;
             margin-bottom: 20px;
         }
 
-        .review-answers {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-        }
+        .review-q.correct   { border-left-color: var(--accent); }
+        .review-q.incorrect { border-left-color: var(--wrong-red); }
 
-        .answer-line {
+        .review-q .status {
+            font-size: 13px;
             margin-bottom: 8px;
-            display: flex;
+            color: var(--text-70);
         }
 
-        .answer-line strong {
-            width: 140px;
-            color: var(--text-muted);
-            flex-shrink: 0;
+        .review-q .status .glyph-correct   { color: var(--accent); margin: 0 8px; }
+        .review-q .status .glyph-incorrect { color: var(--wrong-red); margin: 0 8px; }
+        .review-q .status .verdict.correct   { color: var(--accent); }
+        .review-q .status .verdict.incorrect { color: var(--wrong-red); }
+
+        .review-q .stem-mini {
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 10px;
+            line-height: 1.55;
         }
 
-        .explanation {
-            margin-top: 15px;
-            padding: 15px;
-            border-left: 2px solid var(--text-muted);
-            background: rgba(255,255,255,0.03);
-            font-size: 0.95rem;
-            color: #ccc;
+        .review-q .ans-line {
+            display: grid;
+            grid-template-columns: 18ch 1fr;
+            gap: 4px 8px;
+            font-size: 14px;
+            margin-bottom: 2px;
         }
 
-        .explanation-title {
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 5px;
+        .review-q .ans-line .ans-label { color: var(--text-45); }
+        .review-q .ans-line.right .ans-val { color: var(--accent); }
+        .review-q .ans-line.wrong .ans-val { color: var(--wrong-red); }
+        .review-q .ans-line.skipped .ans-val { color: var(--text-45); }
+
+        .review-q .explanation {
+            margin-top: 10px;
+            color: var(--text-70);
+            font-size: 14px;
+            line-height: 1.55;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .review-q .explanation .arrow { color: var(--accent); margin-right: 6px; }
+
+        .retake-row {
+            margin-top: 36px;
+            text-align: center;
+            color: var(--text-90);
         }
+
+        .retake-row .key { color: var(--accent); margin-right: 4px; }
+        .retake-row button.verb:hover { text-decoration: underline; }
 
         /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0c0c0c;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
-        }
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: var(--accent) #0c0c0c;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
+        * { scrollbar-width: thin; scrollbar-color: var(--accent) #000; }
 
-        /* Mobile Adjustments */
-        @media (max-width: 768px) {
-            .header h1 { font-size: 2rem; }
-            .content { padding: 20px; }
-            .question-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .score-number { font-size: 3rem; }
-            .navigation { flex-direction: column; gap: 15px; }
-            .btn { width: 100%; justify-content: center; }
+        /* Mobile */
+        @media (max-width: 600px) {
+            .col { padding: 0 24px; }
+            .stem { font-size: 16px; }
+            body { font-size: 14px; padding: 24px 0 36px; }
+            .review-q .ans-line { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="terminal-bar">
-            <div class="dot red"></div>
-            <div class="dot yellow"></div>
-            <div class="dot green"></div>
-            <span style="margin-left: 10px;">bash — user@shelnet-exam: ~</span>
+    <div class="col">
+        <div class="title-row">
+            <span id="quizTitle">quiz</span>
+            <span class="meta" id="quizMeta">— · — · 0q</span>
         </div>
+        <div class="rule"></div>
+        <div class="progress"><div class="progress-fill" id="progressBar"></div></div>
 
-        <div class="header">
-            <h1 id="quizTitle">Quiz Title</h1>
-            <div class="subtitle" id="quizSubtitle">C:\Shelnet\Quizzes> Objective</div>
-        </div>
-
-        <div class="progress-container">
-            <div class="progress-fill" id="progressBar"></div>
-        </div>
-
-        <div class="content" id="examContent">
-            </div>
+        <div class="content" id="examContent"></div>
     </div>
 
     <script>
@@ -468,190 +291,115 @@
         // QUIZ CONFIG — edit this block when deriving a new quiz.
         // Leave the rest of this file unchanged.
         // ============================================================
-        const QUIZ_TITLE    = 'Practice Quiz 1.5';
-        const QUIZ_SUBTITLE = 'C:\\Shelnet\\Quizzes> CS0-003 Objective 1.5';
-        const ACCENT_HEX    = '#06b6d4';
+        const QUIZ_TITLE    = "practice quiz 1.5";
+        const QUIZ_SUBTITLE = "cysa-plus · obj 1.5";
+        const ACCENT_HEX    = "#22d3ee";
 
         const questions = [
             {
-                q: 'A SOC manager is reviewing the team\'s alert handling workflow and identifies that analysts spend 40 minutes each shift manually copying IOC data from the SIEM into a spreadsheet before sharing it with the threat-intel team. The task is performed identically every shift with no judgment required. Which of the following process improvement approaches is MOST appropriate for this task?',
-                options: [
-                    'A. Identification of tasks suitable for automation',
-                    'B. Team coordination to manage automation',
-                    'C. Single pane of glass',
-                    'D. Data enrichment via orchestration'
-                ],
+                q: "A SOC manager is reviewing the team's alert handling workflow and identifies that analysts spend 40 minutes each shift manually copying IOC data from the SIEM into a spreadsheet before sharing it with the threat-intel team. The task is performed identically every shift with no judgment required. Which of the following process improvement approaches is MOST appropriate for this task?",
+                options: ["Identification of tasks suitable for automation", "Team coordination to manage automation", "Single pane of glass", "Data enrichment via orchestration"],
                 correct: 0,
-                domain: 'Security Operations',
-                explanation: 'Identifying tasks suitable for automation requires recognizing work that is repetitive, rule-based, and does not require human judgment; the manual IOC copy task matches all three criteria. A single pane of glass (C) refers to a unified dashboard view, not a process evaluation methodology.'
+                domain: "Security Operations",
+                explanation: "Identifying tasks suitable for automation requires recognizing work that is repetitive, rule-based, and does not require human judgment; the manual IOC copy task matches all three criteria. A single pane of glass (3) refers to a unified dashboard view, not a process evaluation methodology."
             },
             {
-                q: 'A SOC manager wants to automate the response to phishing alerts by having the system automatically pull email headers, enrich the sender IP against threat feeds, quarantine the message, and create an incident ticket without analyst intervention. Which of the following technologies BEST enables this multi-step automated workflow?',
-                options: [
-                    'A. SOAR',
-                    'B. API integration only',
-                    'C. SIEM',
-                    'D. EDR'
-                ],
+                q: "A SOC manager wants to automate the response to phishing alerts by having the system automatically pull email headers, enrich the sender IP against threat feeds, quarantine the message, and create an incident ticket without analyst intervention. Which of the following technologies BEST enables this multi-step automated workflow?",
+                options: ["SOAR", "API integration only", "SIEM", "EDR"],
                 correct: 0,
-                domain: 'Security Operations',
-                explanation: 'SOAR platforms execute playbooks that automate and orchestrate sequences of response actions across multiple security tools, covering enrichment, quarantine, and ticketing in a single workflow. A SIEM (C) can detect and alert on phishing but cannot natively execute the downstream response actions without orchestration.'
+                domain: "Security Operations",
+                explanation: "SOAR platforms execute playbooks that automate and orchestrate sequences of response actions across multiple security tools, covering enrichment, quarantine, and ticketing in a single workflow. A SIEM (3) can detect and alert on phishing but cannot natively execute the downstream response actions without orchestration."
             },
             {
-                q: 'A security operations team receives threat intelligence from five different vendor feeds in different formats and wants to normalize and combine them into a unified, enriched dataset before feeding them into the SIEM and EDR platforms. Which of the following streamlining capabilities does this describe?',
-                options: [
-                    'A. Single pane of glass',
-                    'B. Orchestrating threat intelligence data',
-                    'C. Webhooks',
-                    'D. Plugin integration'
-                ],
+                q: "A security operations team receives threat intelligence from five different vendor feeds in different formats and wants to normalize and combine them into a unified, enriched dataset before feeding them into the SIEM and EDR platforms. Which of the following streamlining capabilities does this describe?",
+                options: ["Single pane of glass", "Orchestrating threat intelligence data", "Webhooks", "Plugin integration"],
                 correct: 1,
-                domain: 'Security Operations',
-                explanation: 'Orchestrating threat intelligence data includes threat feed combination and data enrichment, which normalizes and merges multiple intelligence sources into a unified, higher-quality dataset. A single pane of glass (A) refers to a unified dashboard view, not the backend process of combining and enriching feed data.'
+                domain: "Security Operations",
+                explanation: "Orchestrating threat intelligence data includes threat feed combination and data enrichment, which normalizes and merges multiple intelligence sources into a unified, higher-quality dataset. A single pane of glass (1) refers to a unified dashboard view, not the backend process of combining and enriching feed data."
             },
             {
-                q: 'A security analyst is configuring the SIEM to call an external threat reputation API each time a new alert fires, passing the suspicious IP address and receiving a JSON response with risk scores and categories. The integration uses a programmatic interface without manual steps. Which of the following technology integration mechanisms is being used?',
-                options: [
-                    'A. API',
-                    'B. Plugins',
-                    'C. Webhooks',
-                    'D. Single pane of glass'
-                ],
+                q: "A security analyst is configuring the SIEM to call an external threat reputation API each time a new alert fires, passing the suspicious IP address and receiving a JSON response with risk scores and categories. The integration uses a programmatic interface without manual steps. Which of the following technology integration mechanisms is being used?",
+                options: ["API", "Plugins", "Webhooks", "Single pane of glass"],
                 correct: 0,
-                domain: 'Security Operations',
-                explanation: 'An API (Application Programming Interface) provides a programmatic interface for one system to call another and exchange data; the SIEM calling a reputation service and receiving a structured JSON response is a classic API integration pattern. Webhooks (C) are event-driven push callbacks where the external service sends data to the SIEM when an event occurs, not the pull model described here.'
+                domain: "Security Operations",
+                explanation: "An API (Application Programming Interface) provides a programmatic interface for one system to call another and exchange data; the SIEM calling a reputation service and receiving a structured JSON response is a classic API integration pattern. Webhooks (3) are event-driven push callbacks where the external service sends data to the SIEM when an event occurs, not the pull model described here."
             },
             {
-                q: 'A threat-intelligence platform is configured to push a notification to the SOAR platform the moment a new high-severity indicator is published, triggering an automated hunt. The notification is event-driven and requires no polling from the SOAR side. Which of the following technology integration mechanisms does this describe?',
-                options: [
-                    'A. Webhook',
-                    'B. Plugin',
-                    'C. API polling',
-                    'D. Single pane of glass'
-                ],
+                q: "A threat-intelligence platform is configured to push a notification to the SOAR platform the moment a new high-severity indicator is published, triggering an automated hunt. The notification is event-driven and requires no polling from the SOAR side. Which of the following technology integration mechanisms does this describe?",
+                options: ["Webhook", "Plugin", "API polling", "Single pane of glass"],
                 correct: 0,
-                domain: 'Security Operations',
-                explanation: 'A webhook is an event-driven HTTP callback that pushes data from one system to another when a specific event occurs; the threat-intel platform notifying the SOAR on indicator publication is a webhook pattern. API polling (C) would require the SOAR to periodically query the threat-intel platform for new data, which is the opposite of the push model described.'
+                domain: "Security Operations",
+                explanation: "A webhook is an event-driven HTTP callback that pushes data from one system to another when a specific event occurs; the threat-intel platform notifying the SOAR on indicator publication is a webhook pattern. API polling (3) would require the SOAR to periodically query the threat-intel platform for new data, which is the opposite of the push model described."
             },
             {
-                q: 'A security analyst is using a dashboard that displays real-time alerts from the SIEM, endpoint telemetry from the EDR, and network flow data from the firewall all in a single browser tab, eliminating the need to switch between three separate consoles. Which of the following security operations efficiency concepts does this represent?',
-                options: [
-                    'A. SOAR orchestration',
-                    'B. Single pane of glass',
-                    'C. API integration',
-                    'D. Data enrichment'
-                ],
+                q: "A security analyst is using a dashboard that displays real-time alerts from the SIEM, endpoint telemetry from the EDR, and network flow data from the firewall all in a single browser tab, eliminating the need to switch between three separate consoles. Which of the following security operations efficiency concepts does this represent?",
+                options: ["SOAR orchestration", "Single pane of glass", "API integration", "Data enrichment"],
                 correct: 1,
-                domain: 'Security Operations',
-                explanation: 'A single pane of glass provides a unified view of data from multiple security tools in one interface, reducing context switching and improving analyst efficiency. SOAR orchestration (A) automates response workflows rather than providing a unified display interface.'
+                domain: "Security Operations",
+                explanation: "A single pane of glass provides a unified view of data from multiple security tools in one interface, reducing context switching and improving analyst efficiency. SOAR orchestration (1) automates response workflows rather than providing a unified display interface."
             },
             {
-                q: 'A SOC manager is planning to automate the blocking of newly observed malicious IPs across the firewall, EDR, and proxy platforms using playbooks. Before deploying the automation, the manager schedules a cross-team review involving the network, endpoint, and threat-intel teams to agree on trigger thresholds and exception criteria. Which of the following process standardization concepts is the manager applying?',
-                options: [
-                    'A. Identification of tasks suitable for automation',
-                    'B. Minimizing human engagement',
-                    'C. Team coordination to manage and facilitate automation',
-                    'D. Single pane of glass'
-                ],
+                q: "A SOC manager is planning to automate the blocking of newly observed malicious IPs across the firewall, EDR, and proxy platforms using playbooks. Before deploying the automation, the manager schedules a cross-team review involving the network, endpoint, and threat-intel teams to agree on trigger thresholds and exception criteria. Which of the following process standardization concepts is the manager applying?",
+                options: ["Identification of tasks suitable for automation", "Minimizing human engagement", "Team coordination to manage and facilitate automation", "Single pane of glass"],
                 correct: 2,
-                domain: 'Security Operations',
-                explanation: 'Team coordination to manage and facilitate automation involves bringing together relevant stakeholders to define rules, thresholds, and exceptions before deploying automated processes. Minimizing human engagement (B) is the goal of automation after coordination is complete, not the cross-team planning step described.'
+                domain: "Security Operations",
+                explanation: "Team coordination to manage and facilitate automation involves bringing together relevant stakeholders to define rules, thresholds, and exceptions before deploying automated processes. Minimizing human engagement (2) is the goal of automation after coordination is complete, not the cross-team planning step described."
             },
             {
-                q: 'A security engineer is building an integration that extends the SIEM platform with a custom threat-intelligence lookup capability developed by a third-party vendor. The vendor packages the lookup functionality as a module that installs directly into the SIEM\'s interface and is accessible from the search toolbar. Which of the following technology integration mechanisms does this describe?',
-                options: [
-                    'A. API',
-                    'B. Webhook',
-                    'C. Single pane of glass',
-                    'D. Plugin'
-                ],
+                q: "A security engineer is building an integration that extends the SIEM platform with a custom threat-intelligence lookup capability developed by a third-party vendor. The vendor packages the lookup functionality as a module that installs directly into the SIEM's interface and is accessible from the search toolbar. Which of the following technology integration mechanisms does this describe?",
+                options: ["API", "Webhook", "Single pane of glass", "Plugin"],
                 correct: 3,
-                domain: 'Security Operations',
-                explanation: 'A plugin is a software module that extends the native capabilities of a platform by installing additional functionality into its interface; the third-party lookup module installing into the SIEM\'s toolbar is a plugin integration. An API (A) is the underlying mechanism the plugin may use internally, but the integration type described is the plugin deployment model.'
+                domain: "Security Operations",
+                explanation: "A plugin is a software module that extends the native capabilities of a platform by installing additional functionality into its interface; the third-party lookup module installing into the SIEM's toolbar is a plugin integration. An API (1) is the underlying mechanism the plugin may use internally, but the integration type described is the plugin deployment model."
             },
             {
-                q: 'A security analyst is evaluating whether the SOC\'s nightly vulnerability report generation process is a good candidate for automation. The process involves running a fixed query against the vulnerability scanner, formatting the output, and emailing it to five recipients. No analyst judgment or interpretation is involved. Which characteristic MOST supports selecting this task for automation?',
-                options: [
-                    'A. It involves security expertise',
-                    'B. It is repeatable and does not require human interaction',
-                    'C. It uses a single pane of glass dashboard',
-                    'D. It requires team coordination to execute'
-                ],
+                q: "A security analyst is evaluating whether the SOC's nightly vulnerability report generation process is a good candidate for automation. The process involves running a fixed query against the vulnerability scanner, formatting the output, and emailing it to five recipients. No analyst judgment or interpretation is involved. Which characteristic MOST supports selecting this task for automation?",
+                options: ["It involves security expertise", "It is repeatable and does not require human interaction", "It uses a single pane of glass dashboard", "It requires team coordination to execute"],
                 correct: 1,
-                domain: 'Security Operations',
-                explanation: 'Tasks that are repeatable and require no human judgment are the primary candidates for automation; the nightly report is executed the same way every night with no analyst interpretation needed. Tasks requiring security expertise (A) are precisely those that should NOT be automated without careful validation, as automation is intended for judgment-free tasks.'
+                domain: "Security Operations",
+                explanation: "Tasks that are repeatable and require no human judgment are the primary candidates for automation; the nightly report is executed the same way every night with no analyst interpretation needed. Tasks requiring security expertise (1) are precisely those that should NOT be automated without careful validation, as automation is intended for judgment-free tasks."
             },
             {
-                q: 'A SOC team receives threat-intelligence feeds with IP addresses, file hashes, and domain names, and the team wants to automatically append contextual information (geolocation, ASN, malware family) to each indicator before ingesting them into the SIEM detection layer. Which of the following streamlining concepts does this describe?',
-                options: [
-                    'A. Threat feed combination',
-                    'B. Single pane of glass',
-                    'C. Data enrichment',
-                    'D. Webhook push'
-                ],
+                q: "A SOC team receives threat-intelligence feeds with IP addresses, file hashes, and domain names, and the team wants to automatically append contextual information (geolocation, ASN, malware family) to each indicator before ingesting them into the SIEM detection layer. Which of the following streamlining concepts does this describe?",
+                options: ["Threat feed combination", "Single pane of glass", "Data enrichment", "Webhook push"],
                 correct: 2,
-                domain: 'Security Operations',
-                explanation: 'Data enrichment is the process of appending contextual information to raw indicators to make them more actionable; adding geolocation, ASN, and malware family context to raw IOCs is a canonical enrichment workflow. Threat feed combination (A) merges multiple feed sources into one dataset but does not describe the addition of contextual metadata to individual indicators.'
+                domain: "Security Operations",
+                explanation: "Data enrichment is the process of appending contextual information to raw indicators to make them more actionable; adding geolocation, ASN, and malware family context to raw IOCs is a canonical enrichment workflow. Threat feed combination (1) merges multiple feed sources into one dataset but does not describe the addition of contextual metadata to individual indicators."
             },
             {
-                q: 'A security engineer is tasked with reducing mean-time-to-respond for ransomware alerts. The engineer designs a playbook that automatically isolates the affected endpoint, creates a forensic memory snapshot, and notifies the IR team, all within seconds of an EDR alert firing. Which of the following process improvement goals does this automation BEST address?',
-                options: [
-                    'A. Single pane of glass visibility',
-                    'B. Team coordination',
-                    'C. Minimizing human engagement',
-                    'D. Threat feed combination'
-                ],
+                q: "A security engineer is tasked with reducing mean-time-to-respond for ransomware alerts. The engineer designs a playbook that automatically isolates the affected endpoint, creates a forensic memory snapshot, and notifies the IR team, all within seconds of an EDR alert firing. Which of the following process improvement goals does this automation BEST address?",
+                options: ["Single pane of glass visibility", "Team coordination", "Minimizing human engagement", "Threat feed combination"],
                 correct: 2,
-                domain: 'Security Operations',
-                explanation: 'Minimizing human engagement through automation reduces response latency and human error in time-critical workflows; the automated playbook that isolates and snapshots the endpoint without analyst intervention is a direct example. Single pane of glass (A) is a visibility concept, not a response speed or automation objective.'
+                domain: "Security Operations",
+                explanation: "Minimizing human engagement through automation reduces response latency and human error in time-critical workflows; the automated playbook that isolates and snapshots the endpoint without analyst intervention is a direct example. Single pane of glass (1) is a visibility concept, not a response speed or automation objective."
             },
             {
-                q: 'A SOC team is standardizing how analysts respond to brute-force authentication alerts. The team documents the exact steps: check the account, verify source IP reputation, assess whether the threshold was crossed, and escalate or close. Documenting these repeatable steps in an agreed-upon format enables consistent execution and future automation. Which of the following process improvement concepts does this reflect?',
-                options: [
-                    'A. Orchestrating threat intelligence data',
-                    'B. Standardize processes: identification of tasks suitable for automation',
-                    'C. Single pane of glass',
-                    'D. Data enrichment'
-                ],
+                q: "A SOC team is standardizing how analysts respond to brute-force authentication alerts. The team documents the exact steps: check the account, verify source IP reputation, assess whether the threshold was crossed, and escalate or close. Documenting these repeatable steps in an agreed-upon format enables consistent execution and future automation. Which of the following process improvement concepts does this reflect?",
+                options: ["Orchestrating threat intelligence data", "Standardize processes: identification of tasks suitable for automation", "Single pane of glass", "Data enrichment"],
                 correct: 1,
-                domain: 'Security Operations',
-                explanation: 'Standardizing processes by documenting repeatable steps creates the foundation for consistent execution and eventual automation; the brute-force playbook being documented is the standardization step that precedes automation. Orchestrating threat intelligence data (A) refers to combining and enriching feeds, not workflow documentation.'
+                domain: "Security Operations",
+                explanation: "Standardizing processes by documenting repeatable steps creates the foundation for consistent execution and eventual automation; the brute-force playbook being documented is the standardization step that precedes automation. Orchestrating threat intelligence data (1) refers to combining and enriching feeds, not workflow documentation."
             },
             {
-                q: 'A security engineer is reviewing a SOAR playbook that currently queries three separate threat-intelligence APIs sequentially, adding 90 seconds of latency per alert. The engineer refactors the playbook to query all three APIs in parallel, reducing latency to 30 seconds. Which of the following process improvement concepts is the engineer applying?',
-                options: [
-                    'A. Plugin integration',
-                    'B. Streamline operations',
-                    'C. Single pane of glass',
-                    'D. Team coordination'
-                ],
+                q: "A security engineer is reviewing a SOAR playbook that currently queries three separate threat-intelligence APIs sequentially, adding 90 seconds of latency per alert. The engineer refactors the playbook to query all three APIs in parallel, reducing latency to 30 seconds. Which of the following process improvement concepts is the engineer applying?",
+                options: ["Plugin integration", "Streamline operations", "Single pane of glass", "Team coordination"],
                 correct: 1,
-                domain: 'Security Operations',
-                explanation: 'Streamlining operations involves optimizing automated workflows to reduce friction, latency, and unnecessary steps; refactoring sequential API calls into parallel calls is a direct streamlining improvement. Plugin integration (A) refers to extending a platform with a third-party module, not optimizing an existing playbook\'s execution logic.'
+                domain: "Security Operations",
+                explanation: "Streamlining operations involves optimizing automated workflows to reduce friction, latency, and unnecessary steps; refactoring sequential API calls into parallel calls is a direct streamlining improvement. Plugin integration (1) refers to extending a platform with a third-party module, not optimizing an existing playbook's execution logic."
             },
             {
-                q: 'A SOC manager is designing a new monitoring architecture and wants analysts to see SIEM alerts, vulnerability scan results, threat-intel feeds, and case management data without opening four separate applications. The goal is to reduce context switching and improve analyst throughput. Which of the following concepts BEST describes the target architecture?',
-                options: [
-                    'A. SOAR automation',
-                    'B. Data enrichment pipeline',
-                    'C. Webhook-driven alerts',
-                    'D. Single pane of glass'
-                ],
+                q: "A SOC manager is designing a new monitoring architecture and wants analysts to see SIEM alerts, vulnerability scan results, threat-intel feeds, and case management data without opening four separate applications. The goal is to reduce context switching and improve analyst throughput. Which of the following concepts BEST describes the target architecture?",
+                options: ["SOAR automation", "Data enrichment pipeline", "Webhook-driven alerts", "Single pane of glass"],
                 correct: 3,
-                domain: 'Security Operations',
-                explanation: 'A single pane of glass consolidates data from multiple security tools into a unified interface, enabling analysts to triage and investigate without switching between applications. SOAR automation (A) executes response playbooks rather than providing the unified display described in the scenario.'
+                domain: "Security Operations",
+                explanation: "A single pane of glass consolidates data from multiple security tools into a unified interface, enabling analysts to triage and investigate without switching between applications. SOAR automation (1) executes response playbooks rather than providing the unified display described in the scenario."
             },
             {
-                q: 'A security analyst is writing a Python script that parses a JSON threat feed, extracts IP addresses, and pushes them into the firewall block list via the firewall\'s management API. Which of the following technology integration mechanisms is the script MOST directly using?',
-                options: [
-                    'A. Webhook',
-                    'B. Plugin',
-                    'C. Single pane of glass',
-                    'D. API'
-                ],
+                q: "A security analyst is writing a Python script that parses a JSON threat feed, extracts IP addresses, and pushes them into the firewall block list via the firewall's management API. Which of the following technology integration mechanisms is the script MOST directly using?",
+                options: ["Webhook", "Plugin", "Single pane of glass", "API"],
                 correct: 3,
-                domain: 'Security Operations',
-                explanation: 'An API is the programmatic interface the script uses to push IP addresses into the firewall management system; calling the firewall\'s management endpoint from Python is a direct API integration. A webhook (A) is an event-driven push notification mechanism, not the pull/push model the script uses to interact with the firewall management interface.'
+                domain: "Security Operations",
+                explanation: "An API is the programmatic interface the script uses to push IP addresses into the firewall management system; calling the firewall's management endpoint from Python is a direct API integration. A webhook (1) is an event-driven push notification mechanism, not the pull/push model the script uses to interact with the firewall management interface."
             }
         ];
 
@@ -659,7 +407,6 @@
         // END CONFIG — chrome below is shared. Do not edit when deriving.
         // ============================================================
 
-        // Small util: convert '#06b6d4' -> 'rgba(6, 182, 212, 0.1)' for the dim variant.
         function hexToRgba(hex, alpha) {
             const h = hex.replace('#', '');
             const r = parseInt(h.substring(0, 2), 16);
@@ -671,73 +418,79 @@
         // --- APP STATE ---
         let currentQuestionIndex = 0;
         let userAnswers = new Array(questions.length).fill(null);
+        let onResults = false;
 
-        // --- DOM ELEMENTS ---
+        // --- DOM ---
         const contentDiv = document.getElementById('examContent');
         const progressBar = document.getElementById('progressBar');
 
-        // --- INITIALIZATION ---
+        // --- INIT ---
         function init() {
-            // --- Apply CONFIG ---
             document.title = QUIZ_TITLE;
             document.getElementById('quizTitle').textContent = QUIZ_TITLE;
-            document.getElementById('quizSubtitle').textContent = QUIZ_SUBTITLE;
+            document.getElementById('quizMeta').textContent =
+                `${QUIZ_SUBTITLE} · ${questions.length}q`;
             document.documentElement.style.setProperty('--accent', ACCENT_HEX);
-            document.documentElement.style.setProperty('--accent-dim', hexToRgba(ACCENT_HEX, 0.1));
-            document.documentElement.style.setProperty('--accent-glow', hexToRgba(ACCENT_HEX, 0.4));
-            document.documentElement.style.setProperty('--accent-select', hexToRgba(ACCENT_HEX, 0.3));
-
-            // --- existing init body continues below ---
+            document.documentElement.style.setProperty('--accent-tint',  hexToRgba(ACCENT_HEX, 0.14));
+            document.documentElement.style.setProperty('--accent-hover', hexToRgba(ACCENT_HEX, 0.08));
             renderQuestion();
         }
 
-        // --- RENDER FUNCTIONS ---
-        function renderQuestion() {
-            const q = questions[currentQuestionIndex];
-            const isLastQuestion = currentQuestionIndex === questions.length - 1;
-
-            // Update Progress
-            const progress = ((currentQuestionIndex) / questions.length) * 100;
-            progressBar.style.width = `${progress}%`;
-
-            // HTML Structure for Question
-            let html = `
-                <div class="question-header">
-                    <span class="question-number">QUESTION ${currentQuestionIndex + 1} OF ${questions.length}</span>
-                    <span class="domain-tag">${q.domain}</span>
-                </div>
-
-                <div class="question-text">${q.q}</div>
-
-                <div class="options">
-                    ${q.options.map((opt, index) => {
-                        const isSelected = userAnswers[currentQuestionIndex] === index;
-                        const label = String.fromCharCode(65 + index); // A, B, C, D
-                        return `
-                            <div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(${index})">
-                                <span class="option-label">${label}</span>
-                                <span class="option-text">${opt}</span>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-
-                <div class="navigation">
-                    <button class="btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
-                        &larr; Previous
-                    </button>
-                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" ${userAnswers[currentQuestionIndex] === null ? 'disabled' : ''}>
-                        ${isLastQuestion ? 'Finish Exam' : 'Next &rarr;'}
-                    </button>
-                </div>
-            `;
-
-            contentDiv.innerHTML = html;
+        function escapeHtml(s) {
+            return String(s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
 
-        function selectOption(index) {
-            userAnswers[currentQuestionIndex] = index;
-            // Re-render to show selection state (or just toggle class for performance, but re-render is safer for state sync)
+        // --- RENDER ---
+        function renderQuestion() {
+            onResults = false;
+            const q = questions[currentQuestionIndex];
+            const isLast = currentQuestionIndex === questions.length - 1;
+            const isFirst = currentQuestionIndex === 0;
+            const picked = userAnswers[currentQuestionIndex];
+
+            progressBar.style.width = `${(currentQuestionIndex / questions.length) * 100}%`;
+
+            const optionsHtml = q.options.map((opt, i) => `
+                <button type="button"
+                        class="option ${picked === i ? 'selected' : ''}"
+                        onclick="selectOption(${i})">
+                    <span class="label">${i + 1}</span>
+                    <span class="text">${escapeHtml(opt)}</span>
+                </button>
+            `).join('');
+
+            const prevHtml = isFirst
+                ? ''
+                : `<button type="button" class="verb" onclick="prevQuestion()"><span class="key">&larr;</span>prev</button>`;
+
+            const nextLabel = isLast ? 'finish' : 'next';
+            const nextEnabled = picked !== null;
+            const nextHtml = nextEnabled
+                ? `<button type="button" class="verb" onclick="nextQuestion()"><span class="key">&#x21B5;</span>${nextLabel}</button>`
+                : `<span class="verb disabled"><span class="key">&#x21B5;</span>${nextLabel}</span>`;
+
+            contentDiv.innerHTML = `
+                <div class="q-header">
+                    <span class="count">question ${currentQuestionIndex + 1} of ${questions.length}</span>
+                    <span class="domain">[ ${escapeHtml(q.domain.toLowerCase())} ]</span>
+                </div>
+
+                <div class="stem">${escapeHtml(q.q)}</div>
+
+                <div class="options">${optionsHtml}</div>
+
+                <div class="hints">
+                    <span><span class="key">1-${q.options.length}</span>select</span>
+                    ${prevHtml ? `<span>${prevHtml}</span>` : ''}
+                    <span>${nextHtml}</span>
+                </div>
+            `;
+        }
+
+        function selectOption(i) {
+            userAnswers[currentQuestionIndex] = i;
             renderQuestion();
         }
 
@@ -749,6 +502,7 @@
         }
 
         function nextQuestion() {
+            if (userAnswers[currentQuestionIndex] === null) return;
             if (currentQuestionIndex < questions.length - 1) {
                 currentQuestionIndex++;
                 renderQuestion();
@@ -758,96 +512,87 @@
         }
 
         function showResults() {
-            // Calculate Score
+            onResults = true;
             let correctCount = 0;
-            questions.forEach((q, i) => {
-                if (userAnswers[i] === q.correct) correctCount++;
-            });
-
+            questions.forEach((q, i) => { if (userAnswers[i] === q.correct) correctCount++; });
             const score = Math.round((correctCount / questions.length) * 100);
-            const passed = score >= 83; // Approx 750/900
+            const passed = score >= 83;
             progressBar.style.width = '100%';
 
-            let html = `
-                <div class="results">
-                    <div class="score-card">
-                        <div class="subtitle">EXAM RESULTS</div>
-                        <div class="score-number">${score}</div>
-                        <div class="subtitle">SCORE / 100</div>
-                        <div class="pass-fail ${passed ? 'pass' : 'fail'}">
-                            ${passed ? 'PASS' : 'FAIL'}
+            const reviewHtml = questions.map((q, i) => {
+                const userAnswer = userAnswers[i];
+                const skipped = userAnswer === null;
+                const isCorrect = !skipped && userAnswer === q.correct;
+                const userLabel = skipped ? '—' : `${userAnswer + 1}  ${escapeHtml(q.options[userAnswer])}`;
+                const correctLabel = `${q.correct + 1}  ${escapeHtml(q.options[q.correct])}`;
+                const statusGlyph = isCorrect
+                    ? `<span class="glyph-correct">&#x2713;</span><span class="verdict correct">correct</span>`
+                    : `<span class="glyph-incorrect">&#x2717;</span><span class="verdict incorrect">${skipped ? 'skipped' : 'incorrect'}</span>`;
+                const yourLineClass = skipped ? 'skipped' : (isCorrect ? 'right' : 'wrong');
+                return `
+                    <div class="review-q ${isCorrect ? 'correct' : 'incorrect'}">
+                        <div class="status">Q.${i + 1}${statusGlyph}</div>
+                        <div class="stem-mini">${escapeHtml(q.q)}</div>
+                        <div class="ans-line ${yourLineClass}">
+                            <span class="ans-label">your answer:</span>
+                            <span class="ans-val">${userLabel}</span>
                         </div>
+                        <div class="ans-line right">
+                            <span class="ans-label">correct answer:</span>
+                            <span class="ans-val">${correctLabel}</span>
+                        </div>
+                        <div class="explanation"><span class="arrow">&rsaquo;</span>${escapeHtml(q.explanation)}</div>
                     </div>
+                `;
+            }).join('');
 
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-number">${correctCount}</div>
-                            <div class="stat-label">Correct</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">${questions.length - correctCount}</div>
-                            <div class="stat-label">Incorrect</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">${questions.length}</div>
-                            <div class="stat-label">Total Questions</div>
-                        </div>
-                    </div>
+            contentDiv.innerHTML = `
+                <div class="results-heading">results</div>
 
-                    <div class="subtitle" style="margin-bottom: 20px;">Review Answers</div>
+                <div class="score-row">
+                    <span><span class="label">score</span> <span class="score-val">${score} / 100</span></span>
+                    <span class="${passed ? 'verdict-pass' : 'verdict-fail'}">${passed ? 'pass' : 'fail'}</span>
+                    <span class="threshold">(&ge; 83 to pass)</span>
+                </div>
 
-                    ${questions.map((q, i) => {
-                        const userAnswer = userAnswers[i];
-                        const isCorrect = userAnswer === q.correct;
-                        const labelUser = String.fromCharCode(65 + userAnswer);
-                        const labelCorrect = String.fromCharCode(65 + q.correct);
+                <div class="stats-row">
+                    <span><span class="stat-label">correct</span><span class="stat-val">${correctCount}</span></span>
+                    <span><span class="stat-label">incorrect</span><span class="stat-val">${questions.length - correctCount}</span></span>
+                    <span><span class="stat-label">total</span><span class="stat-val">${questions.length}</span></span>
+                </div>
 
-                        return `
-                            <div class="review-question ${isCorrect ? 'correct' : 'incorrect'}">
-                                <div class="review-header">
-                                    <span>Question ${i + 1}</span>
-                                    <span class="review-status ${isCorrect ? 'correct' : 'incorrect'}">
-                                        ${isCorrect ? 'CORRECT' : 'INCORRECT'}
-                                    </span>
-                                </div>
-                                <div class="review-text">${q.q}</div>
+                <div class="review-heading">review<span class="dashes"></span></div>
 
-                                <div class="review-answers">
-                                    <div class="answer-line">
-                                        <strong>Your Answer:</strong>
-                                        <span style="color: ${isCorrect ? 'var(--accent)' : 'var(--accent-red)'}">
-                                            ${labelUser}. ${q.options[userAnswer]}
-                                        </span>
-                                    </div>
-                                    <div class="answer-line">
-                                        <strong>Correct Answer:</strong>
-                                        <span style="color: var(--accent)">
-                                            ${labelCorrect}. ${q.options[q.correct]}
-                                        </span>
-                                    </div>
-                                </div>
+                ${reviewHtml}
 
-                                <div class="explanation">
-                                    <div class="explanation-title">Explanation</div>
-                                    ${q.explanation}
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-
-                    <div style="text-align: center; margin-top: 40px;">
-                        <button class="btn btn-primary" onclick="location.reload()" style="display: inline-flex;">
-                            Retake Exam
-                        </button>
-                    </div>
+                <div class="retake-row">
+                    <button type="button" class="verb" onclick="location.reload()"><span class="key">&#x21B5;</span>retake</button>
                 </div>
             `;
-
-            contentDiv.innerHTML = html;
-            window.scrollTo(0,0);
+            window.scrollTo(0, 0);
         }
 
-        // Start
+        // --- KEYBOARD ---
+        window.addEventListener('keydown', (e) => {
+            const tag = document.activeElement && document.activeElement.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+            if (onResults) {
+                if (e.key === 'Enter') { e.preventDefault(); location.reload(); }
+                return;
+            }
+
+            if (/^[1-9]$/.test(e.key)) {
+                const i = Number(e.key) - 1;
+                const q = questions[currentQuestionIndex];
+                if (i < q.options.length) { e.preventDefault(); selectOption(i); }
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault(); prevQuestion();
+            } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+                e.preventDefault(); nextQuestion();
+            }
+        });
+
         init();
     </script>
 </body>

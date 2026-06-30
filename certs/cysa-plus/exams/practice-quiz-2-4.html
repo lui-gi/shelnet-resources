@@ -6,461 +6,284 @@
     <title>Shelnet Quiz</title>
     <style>
         :root {
-            --bg-color: #000000;
-            --card-bg: #0c0c0c;
-            --text-main: #ffffff;
-            --text-muted: rgba(255, 255, 255, 0.6);
-            --border-color: rgba(255, 255, 255, 0.15);
-            --accent: #3b82f6; /* Default — overridden per-quiz via ACCENT_HEX in CONFIG */
-            --accent-dim: rgba(59, 130, 246, 0.1); /* Default — overridden via setProperty in init() */
-            --accent-glow: rgba(59, 130, 246, 0.4); /* Default — overridden via setProperty in init() */
-            --accent-select: rgba(59, 130, 246, 0.3); /* Default — overridden via setProperty in init() */
-            --accent-red: #ef4444;
-            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            --font-mono: 'Courier New', Courier, monospace;
+            --bg:           #000000;
+            --text-90:      rgba(255, 255, 255, 0.90);
+            --text-70:      rgba(255, 255, 255, 0.70);
+            --text-45:      rgba(255, 255, 255, 0.45);
+            --text-30:      rgba(255, 255, 255, 0.30);
+            --rule:         rgba(255, 255, 255, 0.15);
+            --accent:       #38bdf8; /* Default — overridden per-quiz via ACCENT_HEX */
+            --accent-tint:  rgba(56, 189, 248, 0.14); /* selected-row */
+            --accent-hover: rgba(56, 189, 248, 0.08); /* hover-row */
+            --pass-green:   #43c08c;
+            --wrong-red:    #fb7185;
+            --font-mono:    'Courier New', Courier, monospace;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body { background: var(--bg); }
 
         body {
-            font-family: var(--font-sans);
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            font-family: var(--font-mono);
+            color: var(--text-90);
             min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            /* Grid Background Effect */
-            background-image:
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
+            padding: 32px 0 48px;
+            line-height: 1.5;
+            font-size: 15px;
         }
 
-        /* Selection Color */
         ::selection {
-            background: var(--accent-select);
-            color: #dbeafe;
+            background: var(--accent-tint);
+            color: #fff;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            min-height: 600px;
+        .col {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        /* --- Header --- */
+        .title-row {
             display: flex;
-            flex-direction: column;
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px 24px;
+            color: var(--text-90);
         }
 
-        /* --- Terminal Header Bar --- */
-        .terminal-bar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid var(--border-color);
-            font-family: var(--font-mono);
-            font-size: 12px;
-            color: var(--text-muted);
+        .title-row .meta {
+            color: var(--text-45);
+            font-size: 13px;
         }
 
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        .dot.red { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); }
-        .dot.yellow { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); }
-        .dot.green { background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); }
-
-        /* --- Brutal Header Section --- */
-        .header {
-            padding: 40px 40px 20px 40px;
-            border-bottom: 1px solid var(--border-color);
+        .rule {
+            border-top: 1px solid var(--rule);
+            margin: 12px 0 0;
         }
 
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-            margin-bottom: 10px;
-            line-height: 1;
-        }
-
-        .header .subtitle {
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            display: block;
-        }
-
-        /* --- Progress Bar --- */
-        .progress-container {
-            width: 100%;
+        .progress {
             height: 2px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.06);
+            margin-top: 0;
         }
 
         .progress-fill {
             height: 100%;
             background: var(--accent);
             width: 0%;
-            transition: width 0.3s ease;
-            box-shadow: 0 0 10px var(--accent);
+            transition: width 0.25s ease;
         }
 
-        /* --- Content Area --- */
-        .content {
-            padding: 40px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
+        /* --- Question --- */
+        .content { margin-top: 32px; }
 
-        .question-header {
+        .q-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px dashed var(--border-color);
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 4px 24px;
+            color: var(--text-70);
+            font-size: 13px;
         }
 
-        .question-number {
-            font-family: var(--font-mono);
-            color: var(--accent);
-            font-size: 0.9rem;
-        }
+        .q-header .count { color: var(--accent); }
+        .q-header .domain { color: var(--text-45); }
 
-        .domain-tag {
-            font-family: var(--font-mono);
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-color);
-            padding: 4px 12px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .question-text {
-            font-size: 1.25rem;
+        .stem {
+            color: var(--text-90);
+            font-size: 17px;
             line-height: 1.6;
-            margin-bottom: 40px;
-            color: #eee;
-            font-weight: 400;
+            margin: 24px 0 32px;
         }
 
-        /* --- Options --- */
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        .options { display: flex; flex-direction: column; gap: 2px; }
 
         .option {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            padding: 20px;
+            display: flex;
+            align-items: baseline;
+            gap: 18px;
+            padding: 10px 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            position: relative;
-        }
-
-        .option:hover {
-            border-color: var(--accent);
-            background: rgba(255,255,255,0.04);
-        }
-
-        .option.selected {
-            background: var(--accent-dim);
-            border-color: var(--accent);
-        }
-
-        .option-label {
-            font-family: var(--font-mono);
-            margin-right: 20px;
-            color: var(--text-muted);
-            font-weight: bold;
-            min-width: 25px;
-        }
-
-        .option.selected .option-label {
-            color: var(--accent);
-        }
-
-        .option-text {
-            flex: 1;
-            font-size: 1rem;
-            color: rgba(255,255,255,0.8);
-        }
-
-        .option.selected .option-text {
-            color: #fff;
-        }
-
-        /* --- Buttons --- */
-        .navigation {
-            display: flex;
-            justify-content: space-between;
-            margin-top: auto;
-            padding-top: 50px;
-        }
-
-        .btn {
-            padding: 12px 24px;
             background: transparent;
-            border: 1px solid var(--border-color);
-            color: #fff;
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            border: 0;
+            color: var(--text-90);
+            font: inherit;
+            text-align: left;
+            width: 100%;
+            transition: background-color 0.12s ease;
+        }
+
+        .option:hover { background: var(--accent-hover); }
+        .option.selected { background: var(--accent-tint); }
+
+        .option .label {
+            color: var(--text-45);
+            min-width: 1.5ch;
+        }
+
+        .option.selected .label { color: var(--accent); }
+
+        .option .text { flex: 1; }
+
+        /* --- Footer hints --- */
+        .hints {
+            margin-top: 32px;
+            color: var(--text-45);
+            font-size: 13px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 18px;
+        }
+
+        .hints .key { color: var(--accent); margin-right: 4px; }
+        .hints .verb { color: var(--text-90); }
+        .hints .verb:hover { text-decoration: underline; }
+        .hints .verb.disabled { color: var(--text-30); cursor: not-allowed; }
+        .hints .verb.disabled:hover { text-decoration: none; }
+
+        button.verb {
+            background: transparent;
+            border: 0;
+            font: inherit;
+            padding: 0;
             cursor: pointer;
-            transition: all 0.2s;
+        }
+
+        /* --- Results --- */
+        .results-heading {
+            color: var(--text-70);
+            font-size: 15px;
+            margin-bottom: 0;
+        }
+
+        .score-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 28px;
+            margin-top: 28px;
+            align-items: baseline;
+        }
+
+        .score-row .label { color: var(--text-45); }
+        .score-row .score-val { color: var(--text-90); }
+        .score-row .verdict-pass { color: var(--pass-green); }
+        .score-row .verdict-fail { color: var(--wrong-red); }
+        .score-row .threshold   { color: var(--text-45); }
+
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 36px;
+            margin-top: 16px;
+            align-items: baseline;
+        }
+
+        .stats-row .stat-label { color: var(--text-45); margin-right: 8px; }
+        .stats-row .stat-val   { color: var(--text-90); }
+
+        .review-heading {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            color: var(--text-70);
+            margin: 36px 0 16px;
         }
 
-        .btn:hover:not(:disabled) {
-            background: #fff;
-            color: #000;
-            border-color: #fff;
+        .review-heading .dashes {
+            color: var(--text-30);
+            flex: 1;
+            border-top: 1px solid var(--rule);
+            margin-left: 4px;
+            transform: translateY(1px);
         }
 
-        .btn-primary {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: var(--accent);
-            color: #000;
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            border-color: var(--border-color);
-        }
-
-        /* --- Results Screen --- */
-        .results {
-            animation: fadeIn 0.5s ease;
-        }
-
-        .score-card {
-            border: 1px solid var(--border-color);
-            background: rgba(255,255,255,0.02);
-            padding: 40px;
-            text-align: center;
-            margin-bottom: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Terminal scanline effect for score */
-        .score-card::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 2px;
-            background: rgba(255,255,255,0.1);
-            animation: scan 2s linear infinite;
-        }
-
-        @keyframes scan {
-            0% { top: 0%; opacity: 0; }
-            50% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-        }
-
-        .score-number {
-            font-size: 5rem;
-            font-weight: bold;
-            font-family: var(--font-mono);
-            margin: 10px 0;
-            color: #fff;
-        }
-
-        .pass-fail {
-            font-family: var(--font-mono);
-            font-size: 1.5rem;
-            padding: 10px 20px;
-            display: inline-block;
-            border: 1px solid currentColor;
-            margin-top: 20px;
-        }
-
-        .pass { color: var(--accent); }
-        .fail { color: var(--accent-red); }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #fff;
-            font-family: var(--font-mono);
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            margin-top: 5px;
-        }
-
-        /* Review Section */
-        .review-question {
-            border: 1px solid var(--border-color);
-            background: rgba(255,255,255,0.02);
-            padding: 25px;
-            margin-bottom: 20px;
-            border-left: 4px solid transparent;
-        }
-
-        .review-question.correct { border-left-color: var(--accent); }
-        .review-question.incorrect { border-left-color: var(--accent-red); }
-
-        .review-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-        }
-
-        .review-status.correct { color: var(--accent); }
-        .review-status.incorrect { color: var(--accent-red); }
-
-        .review-text {
-            font-size: 1.1rem;
-            color: #fff;
+        .review-q {
+            border-left: 2px solid var(--text-30);
+            padding: 0 0 8px 14px;
             margin-bottom: 20px;
         }
 
-        .review-answers {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-        }
+        .review-q.correct   { border-left-color: var(--accent); }
+        .review-q.incorrect { border-left-color: var(--wrong-red); }
 
-        .answer-line {
+        .review-q .status {
+            font-size: 13px;
             margin-bottom: 8px;
-            display: flex;
+            color: var(--text-70);
         }
 
-        .answer-line strong {
-            width: 140px;
-            color: var(--text-muted);
-            flex-shrink: 0;
+        .review-q .status .glyph-correct   { color: var(--accent); margin: 0 8px; }
+        .review-q .status .glyph-incorrect { color: var(--wrong-red); margin: 0 8px; }
+        .review-q .status .verdict.correct   { color: var(--accent); }
+        .review-q .status .verdict.incorrect { color: var(--wrong-red); }
+
+        .review-q .stem-mini {
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 10px;
+            line-height: 1.55;
         }
 
-        .explanation {
-            margin-top: 15px;
-            padding: 15px;
-            border-left: 2px solid var(--text-muted);
-            background: rgba(255,255,255,0.03);
-            font-size: 0.95rem;
-            color: #ccc;
+        .review-q .ans-line {
+            display: grid;
+            grid-template-columns: 18ch 1fr;
+            gap: 4px 8px;
+            font-size: 14px;
+            margin-bottom: 2px;
         }
 
-        .explanation-title {
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 5px;
+        .review-q .ans-line .ans-label { color: var(--text-45); }
+        .review-q .ans-line.right .ans-val { color: var(--accent); }
+        .review-q .ans-line.wrong .ans-val { color: var(--wrong-red); }
+        .review-q .ans-line.skipped .ans-val { color: var(--text-45); }
+
+        .review-q .explanation {
+            margin-top: 10px;
+            color: var(--text-70);
+            font-size: 14px;
+            line-height: 1.55;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .review-q .explanation .arrow { color: var(--accent); margin-right: 6px; }
+
+        .retake-row {
+            margin-top: 36px;
+            text-align: center;
+            color: var(--text-90);
         }
+
+        .retake-row .key { color: var(--accent); margin-right: 4px; }
+        .retake-row button.verb:hover { text-decoration: underline; }
 
         /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0c0c0c;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
-        }
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: var(--accent) #0c0c0c;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
+        * { scrollbar-width: thin; scrollbar-color: var(--accent) #000; }
 
-        /* Mobile Adjustments */
-        @media (max-width: 768px) {
-            .header h1 { font-size: 2rem; }
-            .content { padding: 20px; }
-            .question-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .score-number { font-size: 3rem; }
-            .navigation { flex-direction: column; gap: 15px; }
-            .btn { width: 100%; justify-content: center; }
+        /* Mobile */
+        @media (max-width: 600px) {
+            .col { padding: 0 24px; }
+            .stem { font-size: 16px; }
+            body { font-size: 14px; padding: 24px 0 36px; }
+            .review-q .ans-line { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="terminal-bar">
-            <div class="dot red"></div>
-            <div class="dot yellow"></div>
-            <div class="dot green"></div>
-            <span style="margin-left: 10px;">bash — user@shelnet-exam: ~</span>
+    <div class="col">
+        <div class="title-row">
+            <span id="quizTitle">quiz</span>
+            <span class="meta" id="quizMeta">— · — · 0q</span>
         </div>
+        <div class="rule"></div>
+        <div class="progress"><div class="progress-fill" id="progressBar"></div></div>
 
-        <div class="header">
-            <h1 id="quizTitle">Quiz Title</h1>
-            <div class="subtitle" id="quizSubtitle">C:\Shelnet\Quizzes> Objective</div>
-        </div>
-
-        <div class="progress-container">
-            <div class="progress-fill" id="progressBar"></div>
-        </div>
-
-        <div class="content" id="examContent">
-            </div>
+        <div class="content" id="examContent"></div>
     </div>
 
     <script>
@@ -468,190 +291,115 @@
         // QUIZ CONFIG — edit this block when deriving a new quiz.
         // Leave the rest of this file unchanged.
         // ============================================================
-        const QUIZ_TITLE    = 'Practice Quiz 2.4';
-        const QUIZ_SUBTITLE = 'C:\\Shelnet\\Quizzes> CS0-003 Objective 2.4';
-        const ACCENT_HEX    = '#06b6d4';
+        const QUIZ_TITLE    = "practice quiz 2.4";
+        const QUIZ_SUBTITLE = "cysa-plus · obj 2.4";
+        const ACCENT_HEX    = "#22d3ee";
 
         const questions = [
             {
-                q: 'A developer reports that a web application search feature reflects user-supplied input directly in the page response without sanitization. A penetration tester confirms that JavaScript injected in the search parameter executes in the browser. Which control BEST mitigates this reflected XSS vulnerability?',
-                options: [
-                    'A. Output encoding of user-controlled data before rendering it in the HTML response',
-                    'B. Input length validation to reject search terms longer than 256 characters',
-                    'C. Requiring users to authenticate before accessing the search feature',
-                    'D. Encrypting the search parameter in transit using TLS'
-                ],
+                q: "A developer reports that a web application search feature reflects user-supplied input directly in the page response without sanitization. A penetration tester confirms that JavaScript injected in the search parameter executes in the browser. Which control BEST mitigates this reflected XSS vulnerability?",
+                options: ["Output encoding of user-controlled data before rendering it in the HTML response", "Input length validation to reject search terms longer than 256 characters", "Requiring users to authenticate before accessing the search feature", "Encrypting the search parameter in transit using TLS"],
                 correct: 0,
-                domain: 'Vulnerability Management',
-                explanation: 'Output encoding (HTML entity encoding) neutralizes injected script by converting characters like < > into harmless display entities, preventing the browser from executing the injected payload. Input length validation (B) limits attack surface but does not prevent XSS payloads within the length limit; authentication (C) does not mitigate XSS; TLS (D) protects data in transit but not from injection.'
+                domain: "Vulnerability Management",
+                explanation: "Output encoding (HTML entity encoding) neutralizes injected script by converting characters like < > into harmless display entities, preventing the browser from executing the injected payload. Input length validation (2) limits attack surface but does not prevent XSS payloads within the length limit; authentication (3) does not mitigate XSS; TLS (4) protects data in transit but not from injection."
             },
             {
-                q: 'An application security team discovers that a legacy PHP web application concatenates user input directly into SQL query strings without any sanitization. This allows an attacker to modify query logic and extract database contents. Which control BEST mitigates SQL injection in this application?',
-                options: [
-                    'A. Replacing string concatenation with parameterized queries (prepared statements) so user input is treated as data, not SQL syntax',
-                    'B. Enforcing HTTPS to encrypt the SQL query in transit between the browser and server',
-                    'C. Validating that user input does not contain the characters SELECT or DROP',
-                    'D. Storing database credentials in environment variables instead of source code'
-                ],
+                q: "An application security team discovers that a legacy PHP web application concatenates user input directly into SQL query strings without any sanitization. This allows an attacker to modify query logic and extract database contents. Which control BEST mitigates SQL injection in this application?",
+                options: ["Replacing string concatenation with parameterized queries (prepared statements) so user input is treated as data, not SQL syntax", "Enforcing HTTPS to encrypt the SQL query in transit between the browser and server", "Validating that user input does not contain the characters SELECT or DROP", "Storing database credentials in environment variables instead of source code"],
                 correct: 0,
-                domain: 'Vulnerability Management',
-                explanation: 'Parameterized queries separate SQL code from user data at the database driver level, making injection structurally impossible. HTTPS (B) protects transit but not the injection itself; keyword blocklisting (C) is bypassable through encoding, whitespace, and alternative syntax; credential management (D) improves security hygiene but does not prevent injection.'
+                domain: "Vulnerability Management",
+                explanation: "Parameterized queries separate SQL code from user data at the database driver level, making injection structurally impossible. HTTPS (2) protects transit but not the injection itself; keyword blocklisting (3) is bypassable through encoding, whitespace, and alternative syntax; credential management (4) improves security hygiene but does not prevent injection."
             },
             {
-                q: 'A security engineer reviews a web application and finds that server-side code makes outbound HTTP requests to URLs constructed from user-supplied parameters without any allow-listing. An attacker has demonstrated they can use this to reach internal AWS metadata endpoints. Which control BEST mitigates this SSRF vulnerability?',
-                options: [
-                    'A. Blocking all outbound HTTP from the web server at the network firewall',
-                    'B. Implementing a strict allowlist of permitted destination URLs or hostnames, and rejecting requests to internal or link-local address ranges',
-                    'C. Requiring the user to log in before accessing the affected feature',
-                    'D. Rate-limiting HTTP requests from any single IP to 10 per minute'
-                ],
+                q: "A security engineer reviews a web application and finds that server-side code makes outbound HTTP requests to URLs constructed from user-supplied parameters without any allow-listing. An attacker has demonstrated they can use this to reach internal AWS metadata endpoints. Which control BEST mitigates this SSRF vulnerability?",
+                options: ["Blocking all outbound HTTP from the web server at the network firewall", "Implementing a strict allowlist of permitted destination URLs or hostnames, and rejecting requests to internal or link-local address ranges", "Requiring the user to log in before accessing the affected feature", "Rate-limiting HTTP requests from any single IP to 10 per minute"],
                 correct: 1,
-                domain: 'Vulnerability Management',
-                explanation: 'An allowlist of permitted outbound destinations is the primary SSRF control: it prevents the server from being used as a proxy to internal addresses. Blocking all outbound HTTP (A) would break legitimate functionality; authentication (C) does not prevent an authenticated attacker from exploiting SSRF; rate-limiting (D) limits attack speed but does not block the vector.'
+                domain: "Vulnerability Management",
+                explanation: "An allowlist of permitted outbound destinations is the primary SSRF control: it prevents the server from being used as a proxy to internal addresses. Blocking all outbound HTTP (1) would break legitimate functionality; authentication (3) does not prevent an authenticated attacker from exploiting SSRF; rate-limiting (4) limits attack speed but does not block the vector."
             },
             {
-                q: 'A web application allows users to upload avatar images. A security analyst discovers that the application executes PHP files uploaded with a .jpg extension because the web server is misconfigured. An attacker exploited this to run arbitrary OS commands. Which control BEST prevents remote code execution via this upload feature?',
-                options: [
-                    'A. Limit file upload size to 1 MB to prevent large payloads from being stored',
-                    'B. Validate file content by checking the magic bytes and MIME type, enforce allowlisted extensions, store files outside the web root, and disable execution permissions on the upload directory',
-                    'C. Require users to solve a CAPTCHA before uploading to slow down automated attacks',
-                    'D. Log all upload events to a SIEM for post-incident analysis'
-                ],
+                q: "A web application allows users to upload avatar images. A security analyst discovers that the application executes PHP files uploaded with a .jpg extension because the web server is misconfigured. An attacker exploited this to run arbitrary OS commands. Which control BEST prevents remote code execution via this upload feature?",
+                options: ["Limit file upload size to 1 MB to prevent large payloads from being stored", "Validate file content by checking the magic bytes and MIME type, enforce allowlisted extensions, store files outside the web root, and disable execution permissions on the upload directory", "Require users to solve a CAPTCHA before uploading to slow down automated attacks", "Log all upload events to a SIEM for post-incident analysis"],
                 correct: 1,
-                domain: 'Vulnerability Management',
-                explanation: 'Defense-in-depth for file upload RCE requires content validation (magic bytes + MIME), allowlisted extensions, storage outside the web root, and non-executable permissions on the upload directory. Size limits (A) and CAPTCHAs (C) do not prevent execution of an uploaded file; logging (D) aids detection but does not prevent the attack.'
+                domain: "Vulnerability Management",
+                explanation: "Defense-in-depth for file upload RCE requires content validation (magic bytes + MIME), allowlisted extensions, storage outside the web root, and non-executable permissions on the upload directory. Size limits (1) and CAPTCHAs (3) do not prevent execution of an uploaded file; logging (4) aids detection but does not prevent the attack."
             },
             {
-                q: 'A security analyst is investigating a CSRF attack against a financial web application. An attacker crafted a malicious page that triggers a fund-transfer POST request when a logged-in user visits the page, because the bank uses session cookies without any origin verification. Which control MOST directly mitigates CSRF?',
-                options: [
-                    'A. Enforcing HTTPS on all pages of the application',
-                    'B. Adding synchronizer token (CSRF token) validation on all state-changing requests, ensuring each form submission includes a secret unpredictable value tied to the user session',
-                    'C. Hashing the user password with bcrypt before storing it in the database',
-                    'D. Implementing MFA for all user logins'
-                ],
+                q: "A security analyst is investigating a CSRF attack against a financial web application. An attacker crafted a malicious page that triggers a fund-transfer POST request when a logged-in user visits the page, because the bank uses session cookies without any origin verification. Which control MOST directly mitigates CSRF?",
+                options: ["Enforcing HTTPS on all pages of the application", "Adding synchronizer token (CSRF token) validation on all state-changing requests, ensuring each form submission includes a secret unpredictable value tied to the user session", "Hashing the user password with bcrypt before storing it in the database", "Implementing MFA for all user logins"],
                 correct: 1,
-                domain: 'Vulnerability Management',
-                explanation: 'CSRF tokens (synchronizer tokens) are the standard mitigation: the server generates an unpredictable per-session token embedded in forms, and validates it on each state-changing request. The attacker\'s forged request cannot include the correct token. HTTPS (A) protects data in transit; password hashing (C) and MFA (D) protect authentication but not CSRF.'
+                domain: "Vulnerability Management",
+                explanation: "CSRF tokens (synchronizer tokens) are the standard mitigation: the server generates an unpredictable per-session token embedded in forms, and validates it on each state-changing request. The attacker's forged request cannot include the correct token. HTTPS (1) protects data in transit; password hashing (3) and MFA (4) protect authentication but not CSRF."
             },
             {
-                q: 'An analyst discovers a directory traversal vulnerability in a web application that allows attackers to read files outside the web root by supplying paths like ../../etc/passwd in a filename parameter. Which control BEST mitigates path traversal?',
-                options: [
-                    'A. Canonicalize file paths after construction and verify they remain within the allowed base directory before file access',
-                    'B. Encrypt the filename parameter in the URL to prevent attackers from modifying it',
-                    'C. Increase web server logging to detect traversal attempts via SIEM alerts',
-                    'D. Require HTTP POST instead of GET for all file access requests'
-                ],
+                q: "An analyst discovers a directory traversal vulnerability in a web application that allows attackers to read files outside the web root by supplying paths like ../../etc/passwd in a filename parameter. Which control BEST mitigates path traversal?",
+                options: ["Canonicalize file paths after construction and verify they remain within the allowed base directory before file access", "Encrypt the filename parameter in the URL to prevent attackers from modifying it", "Increase web server logging to detect traversal attempts via SIEM alerts", "Require HTTP POST instead of GET for all file access requests"],
                 correct: 0,
-                domain: 'Vulnerability Management',
-                explanation: 'Path canonicalization resolves relative path sequences (../../) and checks that the resulting path is within the permitted base directory before any file access. URL encryption (B) is not a standard control and can be bypassed; logging (C) detects but does not prevent traversal; HTTP method (D) is irrelevant to path traversal.'
+                domain: "Vulnerability Management",
+                explanation: "Path canonicalization resolves relative path sequences (../../) and checks that the resulting path is within the permitted base directory before any file access. URL encryption (2) is not a standard control and can be bypassed; logging (3) detects but does not prevent traversal; HTTP method (4) is irrelevant to path traversal."
             },
             {
-                q: 'A security review finds that an e-commerce application allows users to view order details by supplying an order ID in the URL (e.g., /orders/1234). By changing the ID to another customer\'s order number, a user can view that customer\'s order. Which vulnerability does this describe, and what is the BEST control?',
-                options: [
-                    'A. SQLi; mitigate with parameterized queries',
-                    'B. Buffer overflow; mitigate with input length validation',
-                    'C. IDOR (Insecure Direct Object Reference); mitigate by enforcing authorization checks to verify the requesting user owns the requested resource',
-                    'D. XSS (Cross-Site Scripting); mitigate with output encoding'
-                ],
+                q: "A security review finds that an e-commerce application allows users to view order details by supplying an order ID in the URL (e.g., /orders/1234). By changing the ID to another customer's order number, a user can view that customer's order. Which vulnerability does this describe, and what is the BEST control?",
+                options: ["SQLi; mitigate with parameterized queries", "Buffer overflow; mitigate with input length validation", "IDOR (Insecure Direct Object Reference); mitigate by enforcing authorization checks to verify the requesting user owns the requested resource", "XSS (Cross-Site Scripting); mitigate with output encoding"],
                 correct: 2,
-                domain: 'Vulnerability Management',
-                explanation: 'IDOR occurs when an application exposes a direct reference to an internal object (such as a database record ID) without verifying the requester is authorized to access that specific object. The mitigation is server-side authorization enforcement (not just authentication). SQL injection (A), buffer overflow (B), and XSS (D) are different vulnerability classes with different controls.'
+                domain: "Vulnerability Management",
+                explanation: "IDOR occurs when an application exposes a direct reference to an internal object (such as a database record ID) without verifying the requester is authorized to access that specific object. The mitigation is server-side authorization enforcement (not just authentication). SQL injection (1), buffer overflow (2), and XSS (4) are different vulnerability classes with different controls."
             },
             {
-                q: 'A security assessment reveals a heap overflow vulnerability in a C application that processes network packets. An attacker can send a specially crafted packet to corrupt heap memory and overwrite function pointers. Which controls MOST reduce the exploitability of this heap overflow?',
-                options: [
-                    'A. Enabling ASLR (Address Space Layout Randomization) and stack canaries on the target OS, and rewriting the vulnerable function with bounds-checked memory operations',
-                    'B. Requiring all users to authenticate with MFA before sending network packets',
-                    'C. Encrypting all network packets with TLS to prevent attackers from injecting malformed data',
-                    'D. Adding firewall rules to rate-limit inbound connections to 100 per second'
-                ],
+                q: "A security assessment reveals a heap overflow vulnerability in a C application that processes network packets. An attacker can send a specially crafted packet to corrupt heap memory and overwrite function pointers. Which controls MOST reduce the exploitability of this heap overflow?",
+                options: ["Enabling ASLR (Address Space Layout Randomization) and stack canaries on the target OS, and rewriting the vulnerable function with bounds-checked memory operations", "Requiring all users to authenticate with MFA before sending network packets", "Encrypting all network packets with TLS to prevent attackers from injecting malformed data", "Adding firewall rules to rate-limit inbound connections to 100 per second"],
                 correct: 0,
-                domain: 'Vulnerability Management',
-                explanation: 'Heap overflow exploitability is reduced by ASLR (randomizes memory layout, making address guessing harder), heap metadata protection, and most directly by fixing the bounds-checking bug in the vulnerable function. MFA (B) is an authentication control, not a memory safety control; TLS (C) authenticates the channel but does not validate packet content; rate-limiting (D) reduces attack speed but does not prevent exploitation.'
+                domain: "Vulnerability Management",
+                explanation: "Heap overflow exploitability is reduced by ASLR (randomizes memory layout, making address guessing harder), heap metadata protection, and most directly by fixing the bounds-checking bug in the vulnerable function. MFA (2) is an authentication control, not a memory safety control; TLS (3) authenticates the channel but does not validate packet content; rate-limiting (4) reduces attack speed but does not prevent exploitation."
             },
             {
-                q: 'A web application uses an ML model trained on customer review data. A security researcher demonstrates that by injecting carefully crafted text into product reviews, the model\'s classification behavior is manipulated to flag legitimate negative reviews as positive. Which attack type does this describe, and what is the BEST preventive control?',
-                options: [
-                    'A. XSS attack; mitigate with output encoding',
-                    'B. SQLi; mitigate with parameterized queries',
-                    'C. Data poisoning; mitigate with input validation on training data, anomaly detection on incoming training samples, and adversarial training techniques',
-                    'D. CSRF attack; mitigate with synchronizer tokens'
-                ],
+                q: "A web application uses an ML model trained on customer review data. A security researcher demonstrates that by injecting carefully crafted text into product reviews, the model's classification behavior is manipulated to flag legitimate negative reviews as positive. Which attack type does this describe, and what is the BEST preventive control?",
+                options: ["XSS attack; mitigate with output encoding", "SQLi; mitigate with parameterized queries", "Data poisoning; mitigate with input validation on training data, anomaly detection on incoming training samples, and adversarial training techniques", "CSRF attack; mitigate with synchronizer tokens"],
                 correct: 2,
-                domain: 'Vulnerability Management',
-                explanation: 'Data poisoning attacks corrupt ML training pipelines by injecting adversarial samples that shift model behavior. Controls include validating and sanitizing training data, detecting statistical anomalies in new training samples, and using adversarial training. XSS (A), SQL injection (B), and CSRF (D) are web application attacks unrelated to ML model integrity.'
+                domain: "Vulnerability Management",
+                explanation: "Data poisoning attacks corrupt ML training pipelines by injecting adversarial samples that shift model behavior. Controls include validating and sanitizing training data, detecting statistical anomalies in new training samples, and using adversarial training. XSS (1), SQL injection (2), and CSRF (4) are web application attacks unrelated to ML model integrity."
             },
             {
-                q: 'A software team deploys a file parsing library that processes untrusted serialized Java objects received over the network. A security researcher demonstrates that deserializing a crafted payload triggers arbitrary code execution via a gadget chain in a third-party library. Which control BEST mitigates insecure deserialization?',
-                options: [
-                    'A. Encrypting serialized objects before transmission to prevent tampering',
-                    'B. Adding a WAF rule to block HTTP requests with a Content-Type of application/octet-stream',
-                    'C. Replacing Java object deserialization with a data-only format such as JSON or XML for untrusted input, or implementing deserialization allow-listing to restrict which classes can be instantiated',
-                    'D. Requiring authentication before the deserialization endpoint is accessible'
-                ],
+                q: "A software team deploys a file parsing library that processes untrusted serialized Java objects received over the network. A security researcher demonstrates that deserializing a crafted payload triggers arbitrary code execution via a gadget chain in a third-party library. Which control BEST mitigates insecure deserialization?",
+                options: ["Encrypting serialized objects before transmission to prevent tampering", "Adding a WAF rule to block HTTP requests with a Content-Type of application/octet-stream", "Replacing Java object deserialization with a data-only format such as JSON or XML for untrusted input, or implementing deserialization allow-listing to restrict which classes can be instantiated", "Requiring authentication before the deserialization endpoint is accessible"],
                 correct: 2,
-                domain: 'Vulnerability Management',
-                explanation: 'Insecure deserialization is best mitigated by avoiding native serialization for untrusted data (use JSON/XML instead) or strictly allow-listing which classes may be instantiated during deserialization. Encryption (A) protects integrity in transit but an attacker can still craft a valid encrypted payload if they have the key; WAF rules (B) can be bypassed; authentication (D) limits who can exploit the endpoint but does not prevent exploitation by authenticated users or stolen credentials.'
+                domain: "Vulnerability Management",
+                explanation: "Insecure deserialization is best mitigated by avoiding native serialization for untrusted data (use JSON/XML instead) or strictly allow-listing which classes may be instantiated during deserialization. Encryption (1) protects integrity in transit but an attacker can still craft a valid encrypted payload if they have the key; WAF rules (2) can be bypassed; authentication (4) limits who can exploit the endpoint but does not prevent exploitation by authenticated users or stolen credentials."
             },
             {
-                q: 'A web application stores uploaded profile pictures in a world-readable S3 bucket without any access controls. An attacker enumerates the bucket and downloads all user photos. Which vulnerability category BEST describes this finding, and what is the BEST control?',
-                options: [
-                    'A. Cryptographic failure; mitigate by encrypting bucket contents with AES-256',
-                    'B. Injection flaw; mitigate with parameterized queries on file metadata',
-                    'C. Identification and authentication failure; mitigate with MFA for S3 access',
-                    'D. Security misconfiguration; mitigate by restricting bucket ACLs and enabling bucket policies that deny public access'
-                ],
+                q: "A web application stores uploaded profile pictures in a world-readable S3 bucket without any access controls. An attacker enumerates the bucket and downloads all user photos. Which vulnerability category BEST describes this finding, and what is the BEST control?",
+                options: ["Cryptographic failure; mitigate by encrypting bucket contents with AES-256", "Injection flaw; mitigate with parameterized queries on file metadata", "Identification and authentication failure; mitigate with MFA for S3 access", "Security misconfiguration; mitigate by restricting bucket ACLs and enabling bucket policies that deny public access"],
                 correct: 3,
-                domain: 'Vulnerability Management',
-                explanation: 'World-readable S3 buckets are a classic security misconfiguration. The correct control is restricting bucket ACLs and enabling the S3 Block Public Access policy. Encryption at rest (A) would prevent content exposure to an unauthenticated reader only if combined with proper access controls; injection (B) is unrelated to bucket exposure; MFA (C) applies to console access, not bucket policy enforcement.'
+                domain: "Vulnerability Management",
+                explanation: "World-readable S3 buckets are a classic security misconfiguration. The correct control is restricting bucket ACLs and enabling the S3 Block Public Access policy. Encryption at rest (1) would prevent content exposure to an unauthenticated reader only if combined with proper access controls; injection (2) is unrelated to bucket exposure; MFA (3) applies to console access, not bucket policy enforcement."
             },
             {
-                q: 'A security team discovers that a web application uses an end-of-life version of a JavaScript front-end framework with a known XSS vulnerability in its HTML sanitizer. The development team cannot upgrade immediately due to compatibility constraints. Which compensating control MOST reduces risk while the upgrade is planned?',
-                options: [
-                    'A. Disable JavaScript in the browser for all users until the upgrade is complete',
-                    'B. Change the framework license to open source to allow community patches',
-                    'C. Archive the application and notify users that it is unavailable until further notice',
-                    'D. Deploy a WAF rule to detect and block known XSS payload patterns targeting the framework vulnerability'
-                ],
+                q: "A security team discovers that a web application uses an end-of-life version of a JavaScript front-end framework with a known XSS vulnerability in its HTML sanitizer. The development team cannot upgrade immediately due to compatibility constraints. Which compensating control MOST reduces risk while the upgrade is planned?",
+                options: ["Disable JavaScript in the browser for all users until the upgrade is complete", "Change the framework license to open source to allow community patches", "Archive the application and notify users that it is unavailable until further notice", "Deploy a WAF rule to detect and block known XSS payload patterns targeting the framework vulnerability"],
                 correct: 3,
-                domain: 'Vulnerability Management',
-                explanation: 'When an upgrade is blocked, a WAF rule targeting the specific XSS payload pattern for the known CVE provides a compensating control that reduces exploitability without breaking the application. Disabling JavaScript (A) would break the application entirely; license changes (B) do not address the security vulnerability; taking the application offline (C) is a business decision that goes beyond compensating control.'
+                domain: "Vulnerability Management",
+                explanation: "When an upgrade is blocked, a WAF rule targeting the specific XSS payload pattern for the known CVE provides a compensating control that reduces exploitability without breaking the application. Disabling JavaScript (1) would break the application entirely; license changes (2) do not address the security vulnerability; taking the application offline (3) is a business decision that goes beyond compensating control."
             },
             {
-                q: 'A vulnerability scan identifies that a web application includes a user-controlled variable in a server-side template string (Python Jinja2). A penetration tester confirms that injecting template syntax causes the server to evaluate expressions and return sensitive data. Which control BEST mitigates server-side template injection (SSTI)?',
-                options: [
-                    'A. Encode template output using HTML entity encoding before sending the response to the browser',
-                    'B. Switch from Python to a compiled language such as Go to prevent template injection',
-                    'C. Add rate-limiting on the affected endpoint to slow down template injection probing',
-                    'D. Avoid passing user-controlled input to template engines; if required, sandbox the template engine and enforce a strict allowlist of permitted template expressions'
-                ],
+                q: "A vulnerability scan identifies that a web application includes a user-controlled variable in a server-side template string (Python Jinja2). A penetration tester confirms that injecting template syntax causes the server to evaluate expressions and return sensitive data. Which control BEST mitigates server-side template injection (SSTI)?",
+                options: ["Encode template output using HTML entity encoding before sending the response to the browser", "Switch from Python to a compiled language such as Go to prevent template injection", "Add rate-limiting on the affected endpoint to slow down template injection probing", "Avoid passing user-controlled input to template engines; if required, sandbox the template engine and enforce a strict allowlist of permitted template expressions"],
                 correct: 3,
-                domain: 'Vulnerability Management',
-                explanation: 'SSTI is prevented by never passing user-controlled input to template engines, or if necessary, sandboxing the template environment and restricting available expressions. HTML entity encoding (A) prevents XSS output in a browser but does not stop server-side evaluation; switching languages (B) does not prevent SSTI if the same pattern is used; rate-limiting (C) slows but does not prevent exploitation.'
+                domain: "Vulnerability Management",
+                explanation: "SSTI is prevented by never passing user-controlled input to template engines, or if necessary, sandboxing the template environment and restricting available expressions. HTML entity encoding (1) prevents XSS output in a browser but does not stop server-side evaluation; switching languages (2) does not prevent SSTI if the same pattern is used; rate-limiting (3) slows but does not prevent exploitation."
             },
             {
-                q: 'A penetration tester discovered a privilege escalation vulnerability in a Linux web application: the server process runs as root and a path traversal flaw allows writing arbitrary files. An attacker could write a cron job to achieve persistent root access. Which control MOST directly reduces the impact of this privilege escalation chain?',
-                options: [
-                    'A. Require MFA for the web application admin panel',
-                    'B. Log all write operations to a central SIEM for forensic review',
-                    'C. Encrypt the web application\'s configuration files at rest',
-                    'D. Run the web application process as a dedicated low-privilege service account with only the permissions required for its function'
-                ],
+                q: "A penetration tester discovered a privilege escalation vulnerability in a Linux web application: the server process runs as root and a path traversal flaw allows writing arbitrary files. An attacker could write a cron job to achieve persistent root access. Which control MOST directly reduces the impact of this privilege escalation chain?",
+                options: ["Require MFA for the web application admin panel", "Log all write operations to a central SIEM for forensic review", "Encrypt the web application's configuration files at rest", "Run the web application process as a dedicated low-privilege service account with only the permissions required for its function"],
                 correct: 3,
-                domain: 'Vulnerability Management',
-                explanation: 'Principle of least privilege applied to service accounts is the direct control: if the web application runs as a low-privilege user rather than root, a successful path traversal still cannot write to root-owned directories or create root cron jobs. MFA (A) protects admin panel logins; logging (B) aids detection but does not prevent the escalation; encryption (C) protects data at rest but not runtime privilege.'
+                domain: "Vulnerability Management",
+                explanation: "Principle of least privilege applied to service accounts is the direct control: if the web application runs as a low-privilege user rather than root, a successful path traversal still cannot write to root-owned directories or create root cron jobs. MFA (1) protects admin panel logins; logging (2) aids detection but does not prevent the escalation; encryption (3) protects data at rest but not runtime privilege."
             },
             {
-                q: 'A penetration tester demonstrates that a web application is vulnerable to persistent (stored) XSS: a malicious script stored in a user profile field executes in the browser of any administrator who views that profile. Which combination of controls BEST addresses persistent XSS?',
-                options: [
-                    'A. Requiring administrators to use a different browser than regular users',
-                    'B. Storing user profile data in an encrypted database column',
-                    'C. Input validation to reject script tags on input, plus output encoding when rendering stored content in HTML',
-                    'D. Adding session timeout to limit the window of admin session hijacking'
-                ],
+                q: "A penetration tester demonstrates that a web application is vulnerable to persistent (stored) XSS: a malicious script stored in a user profile field executes in the browser of any administrator who views that profile. Which combination of controls BEST addresses persistent XSS?",
+                options: ["Requiring administrators to use a different browser than regular users", "Storing user profile data in an encrypted database column", "Input validation to reject script tags on input, plus output encoding when rendering stored content in HTML", "Adding session timeout to limit the window of admin session hijacking"],
                 correct: 2,
-                domain: 'Vulnerability Management',
-                explanation: 'Persistent XSS requires defense at both storage (input validation to reduce what is stored) and rendering (output encoding to neutralize payloads that were stored). Defense-in-depth applies: input validation reduces but cannot always block all payloads, so output encoding at render is the critical final control. Different browsers (A) offer no real protection; encryption (B) protects data at rest, not rendering; session timeout (D) limits hijacking impact but does not prevent the XSS.'
+                domain: "Vulnerability Management",
+                explanation: "Persistent XSS requires defense at both storage (input validation to reduce what is stored) and rendering (output encoding to neutralize payloads that were stored). Defense-in-depth applies: input validation reduces but cannot always block all payloads, so output encoding at render is the critical final control. Different browsers (1) offer no real protection; encryption (2) protects data at rest, not rendering; session timeout (4) limits hijacking impact but does not prevent the XSS."
             }
         ];
 
@@ -659,7 +407,6 @@
         // END CONFIG — chrome below is shared. Do not edit when deriving.
         // ============================================================
 
-        // Small util: convert '#06b6d4' -> 'rgba(6, 182, 212, 0.1)' for the dim variant.
         function hexToRgba(hex, alpha) {
             const h = hex.replace('#', '');
             const r = parseInt(h.substring(0, 2), 16);
@@ -671,73 +418,79 @@
         // --- APP STATE ---
         let currentQuestionIndex = 0;
         let userAnswers = new Array(questions.length).fill(null);
+        let onResults = false;
 
-        // --- DOM ELEMENTS ---
+        // --- DOM ---
         const contentDiv = document.getElementById('examContent');
         const progressBar = document.getElementById('progressBar');
 
-        // --- INITIALIZATION ---
+        // --- INIT ---
         function init() {
-            // --- Apply CONFIG ---
             document.title = QUIZ_TITLE;
             document.getElementById('quizTitle').textContent = QUIZ_TITLE;
-            document.getElementById('quizSubtitle').textContent = QUIZ_SUBTITLE;
+            document.getElementById('quizMeta').textContent =
+                `${QUIZ_SUBTITLE} · ${questions.length}q`;
             document.documentElement.style.setProperty('--accent', ACCENT_HEX);
-            document.documentElement.style.setProperty('--accent-dim', hexToRgba(ACCENT_HEX, 0.1));
-            document.documentElement.style.setProperty('--accent-glow', hexToRgba(ACCENT_HEX, 0.4));
-            document.documentElement.style.setProperty('--accent-select', hexToRgba(ACCENT_HEX, 0.3));
-
-            // --- existing init body continues below ---
+            document.documentElement.style.setProperty('--accent-tint',  hexToRgba(ACCENT_HEX, 0.14));
+            document.documentElement.style.setProperty('--accent-hover', hexToRgba(ACCENT_HEX, 0.08));
             renderQuestion();
         }
 
-        // --- RENDER FUNCTIONS ---
-        function renderQuestion() {
-            const q = questions[currentQuestionIndex];
-            const isLastQuestion = currentQuestionIndex === questions.length - 1;
-
-            // Update Progress
-            const progress = ((currentQuestionIndex) / questions.length) * 100;
-            progressBar.style.width = `${progress}%`;
-
-            // HTML Structure for Question
-            let html = `
-                <div class="question-header">
-                    <span class="question-number">QUESTION ${currentQuestionIndex + 1} OF ${questions.length}</span>
-                    <span class="domain-tag">${q.domain}</span>
-                </div>
-
-                <div class="question-text">${q.q}</div>
-
-                <div class="options">
-                    ${q.options.map((opt, index) => {
-                        const isSelected = userAnswers[currentQuestionIndex] === index;
-                        const label = String.fromCharCode(65 + index); // A, B, C, D
-                        return `
-                            <div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(${index})">
-                                <span class="option-label">${label}</span>
-                                <span class="option-text">${opt}</span>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-
-                <div class="navigation">
-                    <button class="btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
-                        &larr; Previous
-                    </button>
-                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" ${userAnswers[currentQuestionIndex] === null ? 'disabled' : ''}>
-                        ${isLastQuestion ? 'Finish Exam' : 'Next &rarr;'}
-                    </button>
-                </div>
-            `;
-
-            contentDiv.innerHTML = html;
+        function escapeHtml(s) {
+            return String(s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
 
-        function selectOption(index) {
-            userAnswers[currentQuestionIndex] = index;
-            // Re-render to show selection state (or just toggle class for performance, but re-render is safer for state sync)
+        // --- RENDER ---
+        function renderQuestion() {
+            onResults = false;
+            const q = questions[currentQuestionIndex];
+            const isLast = currentQuestionIndex === questions.length - 1;
+            const isFirst = currentQuestionIndex === 0;
+            const picked = userAnswers[currentQuestionIndex];
+
+            progressBar.style.width = `${(currentQuestionIndex / questions.length) * 100}%`;
+
+            const optionsHtml = q.options.map((opt, i) => `
+                <button type="button"
+                        class="option ${picked === i ? 'selected' : ''}"
+                        onclick="selectOption(${i})">
+                    <span class="label">${i + 1}</span>
+                    <span class="text">${escapeHtml(opt)}</span>
+                </button>
+            `).join('');
+
+            const prevHtml = isFirst
+                ? ''
+                : `<button type="button" class="verb" onclick="prevQuestion()"><span class="key">&larr;</span>prev</button>`;
+
+            const nextLabel = isLast ? 'finish' : 'next';
+            const nextEnabled = picked !== null;
+            const nextHtml = nextEnabled
+                ? `<button type="button" class="verb" onclick="nextQuestion()"><span class="key">&#x21B5;</span>${nextLabel}</button>`
+                : `<span class="verb disabled"><span class="key">&#x21B5;</span>${nextLabel}</span>`;
+
+            contentDiv.innerHTML = `
+                <div class="q-header">
+                    <span class="count">question ${currentQuestionIndex + 1} of ${questions.length}</span>
+                    <span class="domain">[ ${escapeHtml(q.domain.toLowerCase())} ]</span>
+                </div>
+
+                <div class="stem">${escapeHtml(q.q)}</div>
+
+                <div class="options">${optionsHtml}</div>
+
+                <div class="hints">
+                    <span><span class="key">1-${q.options.length}</span>select</span>
+                    ${prevHtml ? `<span>${prevHtml}</span>` : ''}
+                    <span>${nextHtml}</span>
+                </div>
+            `;
+        }
+
+        function selectOption(i) {
+            userAnswers[currentQuestionIndex] = i;
             renderQuestion();
         }
 
@@ -749,6 +502,7 @@
         }
 
         function nextQuestion() {
+            if (userAnswers[currentQuestionIndex] === null) return;
             if (currentQuestionIndex < questions.length - 1) {
                 currentQuestionIndex++;
                 renderQuestion();
@@ -758,96 +512,87 @@
         }
 
         function showResults() {
-            // Calculate Score
+            onResults = true;
             let correctCount = 0;
-            questions.forEach((q, i) => {
-                if (userAnswers[i] === q.correct) correctCount++;
-            });
-
+            questions.forEach((q, i) => { if (userAnswers[i] === q.correct) correctCount++; });
             const score = Math.round((correctCount / questions.length) * 100);
-            const passed = score >= 83; // Approx 750/900
+            const passed = score >= 83;
             progressBar.style.width = '100%';
 
-            let html = `
-                <div class="results">
-                    <div class="score-card">
-                        <div class="subtitle">EXAM RESULTS</div>
-                        <div class="score-number">${score}</div>
-                        <div class="subtitle">SCORE / 100</div>
-                        <div class="pass-fail ${passed ? 'pass' : 'fail'}">
-                            ${passed ? 'PASS' : 'FAIL'}
+            const reviewHtml = questions.map((q, i) => {
+                const userAnswer = userAnswers[i];
+                const skipped = userAnswer === null;
+                const isCorrect = !skipped && userAnswer === q.correct;
+                const userLabel = skipped ? '—' : `${userAnswer + 1}  ${escapeHtml(q.options[userAnswer])}`;
+                const correctLabel = `${q.correct + 1}  ${escapeHtml(q.options[q.correct])}`;
+                const statusGlyph = isCorrect
+                    ? `<span class="glyph-correct">&#x2713;</span><span class="verdict correct">correct</span>`
+                    : `<span class="glyph-incorrect">&#x2717;</span><span class="verdict incorrect">${skipped ? 'skipped' : 'incorrect'}</span>`;
+                const yourLineClass = skipped ? 'skipped' : (isCorrect ? 'right' : 'wrong');
+                return `
+                    <div class="review-q ${isCorrect ? 'correct' : 'incorrect'}">
+                        <div class="status">Q.${i + 1}${statusGlyph}</div>
+                        <div class="stem-mini">${escapeHtml(q.q)}</div>
+                        <div class="ans-line ${yourLineClass}">
+                            <span class="ans-label">your answer:</span>
+                            <span class="ans-val">${userLabel}</span>
                         </div>
+                        <div class="ans-line right">
+                            <span class="ans-label">correct answer:</span>
+                            <span class="ans-val">${correctLabel}</span>
+                        </div>
+                        <div class="explanation"><span class="arrow">&rsaquo;</span>${escapeHtml(q.explanation)}</div>
                     </div>
+                `;
+            }).join('');
 
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-number">${correctCount}</div>
-                            <div class="stat-label">Correct</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">${questions.length - correctCount}</div>
-                            <div class="stat-label">Incorrect</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">${questions.length}</div>
-                            <div class="stat-label">Total Questions</div>
-                        </div>
-                    </div>
+            contentDiv.innerHTML = `
+                <div class="results-heading">results</div>
 
-                    <div class="subtitle" style="margin-bottom: 20px;">Review Answers</div>
+                <div class="score-row">
+                    <span><span class="label">score</span> <span class="score-val">${score} / 100</span></span>
+                    <span class="${passed ? 'verdict-pass' : 'verdict-fail'}">${passed ? 'pass' : 'fail'}</span>
+                    <span class="threshold">(&ge; 83 to pass)</span>
+                </div>
 
-                    ${questions.map((q, i) => {
-                        const userAnswer = userAnswers[i];
-                        const isCorrect = userAnswer === q.correct;
-                        const labelUser = String.fromCharCode(65 + userAnswer);
-                        const labelCorrect = String.fromCharCode(65 + q.correct);
+                <div class="stats-row">
+                    <span><span class="stat-label">correct</span><span class="stat-val">${correctCount}</span></span>
+                    <span><span class="stat-label">incorrect</span><span class="stat-val">${questions.length - correctCount}</span></span>
+                    <span><span class="stat-label">total</span><span class="stat-val">${questions.length}</span></span>
+                </div>
 
-                        return `
-                            <div class="review-question ${isCorrect ? 'correct' : 'incorrect'}">
-                                <div class="review-header">
-                                    <span>Question ${i + 1}</span>
-                                    <span class="review-status ${isCorrect ? 'correct' : 'incorrect'}">
-                                        ${isCorrect ? 'CORRECT' : 'INCORRECT'}
-                                    </span>
-                                </div>
-                                <div class="review-text">${q.q}</div>
+                <div class="review-heading">review<span class="dashes"></span></div>
 
-                                <div class="review-answers">
-                                    <div class="answer-line">
-                                        <strong>Your Answer:</strong>
-                                        <span style="color: ${isCorrect ? 'var(--accent)' : 'var(--accent-red)'}">
-                                            ${labelUser}. ${q.options[userAnswer]}
-                                        </span>
-                                    </div>
-                                    <div class="answer-line">
-                                        <strong>Correct Answer:</strong>
-                                        <span style="color: var(--accent)">
-                                            ${labelCorrect}. ${q.options[q.correct]}
-                                        </span>
-                                    </div>
-                                </div>
+                ${reviewHtml}
 
-                                <div class="explanation">
-                                    <div class="explanation-title">Explanation</div>
-                                    ${q.explanation}
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-
-                    <div style="text-align: center; margin-top: 40px;">
-                        <button class="btn btn-primary" onclick="location.reload()" style="display: inline-flex;">
-                            Retake Exam
-                        </button>
-                    </div>
+                <div class="retake-row">
+                    <button type="button" class="verb" onclick="location.reload()"><span class="key">&#x21B5;</span>retake</button>
                 </div>
             `;
-
-            contentDiv.innerHTML = html;
-            window.scrollTo(0,0);
+            window.scrollTo(0, 0);
         }
 
-        // Start
+        // --- KEYBOARD ---
+        window.addEventListener('keydown', (e) => {
+            const tag = document.activeElement && document.activeElement.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+            if (onResults) {
+                if (e.key === 'Enter') { e.preventDefault(); location.reload(); }
+                return;
+            }
+
+            if (/^[1-9]$/.test(e.key)) {
+                const i = Number(e.key) - 1;
+                const q = questions[currentQuestionIndex];
+                if (i < q.options.length) { e.preventDefault(); selectOption(i); }
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault(); prevQuestion();
+            } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+                e.preventDefault(); nextQuestion();
+            }
+        });
+
         init();
     </script>
 </body>
