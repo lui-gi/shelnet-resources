@@ -3,459 +3,299 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shelnet Security+ Practice Quiz 1.2</title>
+    <title>Shelnet Quiz</title>
     <style>
         :root {
-            --bg-color: #000000;
-            --card-bg: #0c0c0c;
-            --text-main: #ffffff;
-            --text-muted: rgba(255, 255, 255, 0.6);
-            --border-color: rgba(255, 255, 255, 0.15);
-            --accent-blue: #3b82f6; /* Tailwind blue-500 */
-            --accent-blue-dim: rgba(59, 130, 246, 0.1);
-            --accent-red: #ef4444;
-            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            --font-mono: 'Courier New', Courier, monospace;
+            --bg:           #000000;
+            --text-90:      rgba(255, 255, 255, 0.90);
+            --text-70:      rgba(255, 255, 255, 0.70);
+            --text-45:      rgba(255, 255, 255, 0.45);
+            --text-30:      rgba(255, 255, 255, 0.30);
+            --rule:         rgba(255, 255, 255, 0.15);
+            --accent:       #38bdf8; /* Default — overridden per-quiz via ACCENT_HEX */
+            --accent-tint:  rgba(56, 189, 248, 0.14); /* selected-row */
+            --accent-hover: rgba(56, 189, 248, 0.08); /* hover-row */
+            --pass-green:   #43c08c;
+            --wrong-red:    #fb7185;
+            --font-mono:    'Courier New', Courier, monospace;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body { background: var(--bg); }
 
         body {
-            font-family: var(--font-sans);
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            font-family: var(--font-mono);
+            color: var(--text-90);
             min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            /* Grid Background Effect from App.jsx */
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), 
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
+            padding: 32px 0 48px;
+            line-height: 1.5;
+            font-size: 15px;
         }
 
-        /* Selection Color */
         ::selection {
-            background: rgba(59, 130, 246, 0.3);
-            color: #dbeafe;
+            background: var(--accent-tint);
+            color: #fff;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        .col {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 40px;
         }
 
-        /* --- Terminal Header Bar --- */
-        .terminal-bar {
+        /* --- Header --- */
+        .title-row {
             display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid var(--border-color);
-            font-family: var(--font-mono);
-            font-size: 12px;
-            color: var(--text-muted);
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px 24px;
+            color: var(--text-90);
         }
 
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        .dot.red { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); }
-        .dot.yellow { background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); }
-        .dot.green { background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); }
-
-        /* --- Brutal Header Section --- */
-        .header {
-            padding: 40px 40px 20px 40px;
-            border-bottom: 1px solid var(--border-color);
+        .title-row .meta {
+            color: var(--text-45);
+            font-size: 13px;
         }
 
-        .header h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-            margin-bottom: 10px;
-            line-height: 1;
+        .rule {
+            border-top: 1px solid var(--rule);
+            margin: 12px 0 0;
         }
 
-        .header .subtitle {
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            display: block;
-        }
-
-        /* --- Progress Bar --- */
-        .progress-container {
-            width: 100%;
+        .progress {
             height: 2px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.06);
+            margin-top: 0;
         }
 
         .progress-fill {
             height: 100%;
-            background: var(--accent-blue);
+            background: var(--accent);
             width: 0%;
-            transition: width 0.3s ease;
-            box-shadow: 0 0 10px var(--accent-blue);
+            transition: width 0.25s ease;
         }
 
-        /* --- Content Area --- */
-        .content {
-            padding: 40px;
-        }
+        /* --- Question --- */
+        .content { margin-top: 32px; }
 
-        .question-header {
+        .q-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px dashed var(--border-color);
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 4px 24px;
+            color: var(--text-70);
+            font-size: 13px;
         }
 
-        .question-number {
-            font-family: var(--font-mono);
-            color: var(--accent-blue);
-            font-size: 0.9rem;
-        }
+        .q-header .count { color: var(--accent); }
+        .q-header .domain { color: var(--text-45); }
 
-        .domain-tag {
-            font-family: var(--font-mono);
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-color);
-            padding: 4px 12px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .question-text {
-            font-size: 1.25rem;
+        .stem {
+            color: var(--text-90);
+            font-size: 17px;
             line-height: 1.6;
-            margin-bottom: 40px;
-            color: #eee;
-            font-weight: 400;
+            margin: 24px 0 32px;
         }
 
-        /* --- Options --- */
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        .options { display: flex; flex-direction: column; gap: 2px; }
 
         .option {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            padding: 20px;
+            display: flex;
+            align-items: baseline;
+            gap: 18px;
+            padding: 10px 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            position: relative;
-        }
-
-        .option:hover {
-            border-color: var(--accent-blue);
-            background: rgba(255,255,255,0.04);
-        }
-
-        .option.selected {
-            background: var(--accent-blue-dim);
-            border-color: var(--accent-blue);
-        }
-
-        .option-label {
-            font-family: var(--font-mono);
-            margin-right: 20px;
-            color: var(--text-muted);
-            font-weight: bold;
-        }
-
-        .option.selected .option-label {
-            color: var(--accent-blue);
-        }
-
-        .option-text {
-            flex: 1;
-            font-size: 1rem;
-            color: rgba(255,255,255,0.8);
-        }
-
-        .option.selected .option-text {
-            color: #fff;
-        }
-
-        /* --- Buttons --- */
-        .navigation {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 50px;
-            padding-top: 30px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .btn {
-            padding: 12px 24px;
             background: transparent;
-            border: 1px solid var(--border-color);
-            color: #fff;
-            font-family: var(--font-mono);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            border: 0;
+            color: var(--text-90);
+            font: inherit;
+            text-align: left;
+            width: 100%;
+            transition: background-color 0.12s ease;
+        }
+
+        .option:hover { background: var(--accent-hover); }
+        .option.selected { background: var(--accent-tint); }
+
+        .option .label {
+            color: var(--text-45);
+            min-width: 1.5ch;
+        }
+
+        .option.selected .label { color: var(--accent); }
+
+        .option .text { flex: 1; }
+
+        /* --- Footer hints --- */
+        .hints {
+            margin-top: 32px;
+            color: var(--text-45);
+            font-size: 13px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 18px;
+        }
+
+        .hints .key { color: var(--accent); margin-right: 4px; }
+        .hints .verb { color: var(--text-90); }
+        .hints .verb:hover { text-decoration: underline; }
+        .hints .verb.disabled { color: var(--text-30); cursor: not-allowed; }
+        .hints .verb.disabled:hover { text-decoration: none; }
+
+        button.verb {
+            background: transparent;
+            border: 0;
+            font: inherit;
+            padding: 0;
             cursor: pointer;
-            transition: all 0.2s;
+        }
+
+        /* --- Results --- */
+        .results-heading {
+            color: var(--text-70);
+            font-size: 15px;
+            margin-bottom: 0;
+        }
+
+        .score-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 28px;
+            margin-top: 28px;
+            align-items: baseline;
+        }
+
+        .score-row .label { color: var(--text-45); }
+        .score-row .score-val { color: var(--text-90); }
+        .score-row .verdict-pass { color: var(--pass-green); }
+        .score-row .verdict-fail { color: var(--wrong-red); }
+        .score-row .threshold   { color: var(--text-45); }
+
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 36px;
+            margin-top: 16px;
+            align-items: baseline;
+        }
+
+        .stats-row .stat-label { color: var(--text-45); margin-right: 8px; }
+        .stats-row .stat-val   { color: var(--text-90); }
+
+        .review-heading {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            color: var(--text-70);
+            margin: 36px 0 16px;
         }
 
-        .btn:hover:not(:disabled) {
-            background: #fff;
-            color: #000;
-            border-color: #fff;
+        .review-heading .dashes {
+            color: var(--text-30);
+            flex: 1;
+            border-top: 1px solid var(--rule);
+            margin-left: 4px;
+            transform: translateY(1px);
         }
 
-        .btn-primary {
-            border-color: var(--accent-blue);
-            color: var(--accent-blue);
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: var(--accent-blue);
-            color: #000;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
-        }
-
-        .btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            border-color: var(--border-color);
-        }
-
-        /* --- Results Screen --- */
-        .results {
-            animation: fadeIn 0.5s ease;
-        }
-
-        .score-card {
-            border: 1px solid var(--border-color);
-            background: rgba(255,255,255,0.02);
-            padding: 40px;
-            text-align: center;
-            margin-bottom: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Terminal scanline effect for score */
-        .score-card::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 2px;
-            background: rgba(255,255,255,0.1);
-            animation: scan 2s linear infinite;
-        }
-
-        @keyframes scan {
-            0% { top: 0%; opacity: 0; }
-            50% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-        }
-
-        .score-number {
-            font-size: 5rem;
-            font-weight: bold;
-            font-family: var(--font-mono);
-            margin: 10px 0;
-            color: #fff;
-        }
-
-        .pass-fail {
-            font-family: var(--font-mono);
-            font-size: 1.5rem;
-            padding: 10px 20px;
-            display: inline-block;
-            border: 1px solid currentColor;
-            margin-top: 20px;
-        }
-
-        .pass { color: var(--accent-blue); }
-        .fail { color: var(--accent-red); }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #fff;
-            font-family: var(--font-mono);
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            margin-top: 5px;
-        }
-
-        /* Review Section */
-        .review-question {
-            border: 1px solid var(--border-color);
-            background: rgba(255,255,255,0.02);
-            padding: 25px;
-            margin-bottom: 20px;
-            border-left: 4px solid transparent;
-        }
-
-        .review-question.correct { border-left-color: var(--accent-blue); }
-        .review-question.incorrect { border-left-color: var(--accent-red); }
-
-        .review-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-        }
-
-        .review-status.correct { color: var(--accent-blue); }
-        .review-status.incorrect { color: var(--accent-red); }
-
-        .review-text {
-            font-size: 1.1rem;
-            color: #fff;
+        .review-q {
+            border-left: 2px solid var(--text-30);
+            padding: 0 0 8px 14px;
             margin-bottom: 20px;
         }
 
-        .review-answers {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-        }
+        .review-q.correct   { border-left-color: var(--accent); }
+        .review-q.incorrect { border-left-color: var(--wrong-red); }
 
-        .answer-line {
+        .review-q .status {
+            font-size: 13px;
             margin-bottom: 8px;
-            display: flex;
+            color: var(--text-70);
         }
 
-        .answer-line strong {
-            width: 140px;
-            color: var(--text-muted);
-            flex-shrink: 0;
+        .review-q .status .glyph-correct   { color: var(--accent); margin: 0 8px; }
+        .review-q .status .glyph-incorrect { color: var(--wrong-red); margin: 0 8px; }
+        .review-q .status .verdict.correct   { color: var(--accent); }
+        .review-q .status .verdict.incorrect { color: var(--wrong-red); }
+
+        .review-q .stem-mini {
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 10px;
+            line-height: 1.55;
         }
 
-        .explanation {
-            margin-top: 15px;
-            padding: 15px;
-            border-left: 2px solid var(--text-muted);
-            background: rgba(255,255,255,0.03);
-            font-size: 0.95rem;
-            color: #ccc;
-        }
-        
-        .explanation-title {
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 5px;
+        .review-q .ans-line {
+            display: grid;
+            grid-template-columns: 18ch 1fr;
+            gap: 4px 8px;
+            font-size: 14px;
+            margin-bottom: 2px;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .review-q .ans-line .ans-label { color: var(--text-45); }
+        .review-q .ans-line.right .ans-val { color: var(--accent); }
+        .review-q .ans-line.wrong .ans-val { color: var(--wrong-red); }
+        .review-q .ans-line.skipped .ans-val { color: var(--text-45); }
+
+        .review-q .explanation {
+            margin-top: 10px;
+            color: var(--text-70);
+            font-size: 14px;
+            line-height: 1.55;
         }
+
+        .review-q .explanation .arrow { color: var(--accent); margin-right: 6px; }
+
+        .retake-row {
+            margin-top: 36px;
+            text-align: center;
+            color: var(--text-90);
+        }
+
+        .retake-row .key { color: var(--accent); margin-right: 4px; }
+        .retake-row button.verb:hover { text-decoration: underline; }
 
         /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0c0c0c;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #3b82f6;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #2563eb;
-        }
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: #3b82f6 #0c0c0c;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
+        * { scrollbar-width: thin; scrollbar-color: var(--accent) #000; }
 
-        /* Mobile Adjustments */
-        @media (max-width: 768px) {
-            .header h1 { font-size: 2rem; }
-            .content { padding: 20px; }
-            .question-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .score-number { font-size: 3rem; }
+        /* Mobile */
+        @media (max-width: 600px) {
+            .col { padding: 0 24px; }
+            .stem { font-size: 16px; }
+            body { font-size: 14px; padding: 24px 0 36px; }
+            .review-q .ans-line { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="terminal-bar">
-            <div class="dot red"></div>
-            <div class="dot yellow"></div>
-            <div class="dot green"></div>
-            <span style="margin-left: 10px;">bash — user@shelnet-exam: ~</span>
+    <div class="col">
+        <div class="title-row">
+            <span id="quizTitle">quiz</span>
+            <span class="meta" id="quizMeta">— · — · 0q</span>
         </div>
+        <div class="rule"></div>
+        <div class="progress"><div class="progress-fill" id="progressBar"></div></div>
 
-        <div class="header">
-            <h1>Practice Quiz 1.2</h1>
-            <div class="subtitle">C:\Shelnet\Exams> SY0-701 Objective 1.2</div>
-        </div>
-        
-        <div class="progress-container">
-            <div class="progress-fill" id="progressBar"></div>
-        </div>
-
-        <div class="content" id="examContent">
-            </div>
+        <div class="content" id="examContent"></div>
     </div>
 
     <script>
-        // Data generated from context
-        const quizData = [
+        // ============================================================
+        // QUIZ CONFIG — edit this block when deriving a new quiz.
+        // Leave the rest of this file unchanged.
+        // ============================================================
+        const QUIZ_TITLE    = 'practice quiz 1.2';
+        const QUIZ_SUBTITLE = 'sec-plus · obj 1.2';
+        const ACCENT_HEX    = '#38bdf8';
+
+        const questions = [
             {
                 q: "A Chief Information Security Officer (CISO) is reviewing the organization's current security posture against a new set of industry compliance standards. The CISO identifies specific areas where the current controls do not meet the required standards and creates a plan to address these deficiencies. Which of the following concepts is the CISO performing?",
                 options: ["Zero Trust", "Gap analysis", "Honeytoken deployment", "Non-repudiation"],
@@ -563,37 +403,95 @@
             }
         ];
 
+        // ============================================================
+        // END CONFIG — chrome below is shared. Do not edit when deriving.
+        // ============================================================
+
+        function hexToRgba(hex, alpha) {
+            const h = hex.replace('#', '');
+            const r = parseInt(h.substring(0, 2), 16);
+            const g = parseInt(h.substring(2, 4), 16);
+            const b = parseInt(h.substring(4, 6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // --- APP STATE ---
         let currentQuestionIndex = 0;
-        let userAnswers = new Array(quizData.length).fill(null);
-        
-        const examContent = document.getElementById('examContent');
+        let userAnswers = new Array(questions.length).fill(null);
+        let onResults = false;
+
+        // --- DOM ---
+        const contentDiv = document.getElementById('examContent');
         const progressBar = document.getElementById('progressBar');
 
+        // --- INIT ---
         function init() {
+            document.title = QUIZ_TITLE;
+            document.getElementById('quizTitle').textContent = QUIZ_TITLE;
+            document.getElementById('quizMeta').textContent =
+                `${QUIZ_SUBTITLE} · ${questions.length}q`;
+            document.documentElement.style.setProperty('--accent', ACCENT_HEX);
+            document.documentElement.style.setProperty('--accent-tint',  hexToRgba(ACCENT_HEX, 0.14));
+            document.documentElement.style.setProperty('--accent-hover', hexToRgba(ACCENT_HEX, 0.08));
             renderQuestion();
-            updateProgress();
         }
 
-        function updateProgress() {
-            // Calculate progress based on answered questions, not just index
-            const answeredCount = userAnswers.filter(a => a !== null).length;
-            const percentage = (answeredCount / quizData.length) * 100;
-            progressBar.style.width = `${percentage}%`;
+        function escapeHtml(s) {
+            return String(s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
 
-        function handleOptionClick(optionIndex) {
-            userAnswers[currentQuestionIndex] = optionIndex;
-            renderQuestion(); // Re-render to show selection state
-            updateProgress();
+        // --- RENDER ---
+        function renderQuestion() {
+            onResults = false;
+            const q = questions[currentQuestionIndex];
+            const isLast = currentQuestionIndex === questions.length - 1;
+            const isFirst = currentQuestionIndex === 0;
+            const picked = userAnswers[currentQuestionIndex];
+
+            progressBar.style.width = `${(currentQuestionIndex / questions.length) * 100}%`;
+
+            const optionsHtml = q.options.map((opt, i) => `
+                <button type="button"
+                        class="option ${picked === i ? 'selected' : ''}"
+                        onclick="selectOption(${i})">
+                    <span class="label">${i + 1}</span>
+                    <span class="text">${escapeHtml(opt)}</span>
+                </button>
+            `).join('');
+
+            const prevHtml = isFirst
+                ? ''
+                : `<button type="button" class="verb" onclick="prevQuestion()"><span class="key">&larr;</span>prev</button>`;
+
+            const nextLabel = isLast ? 'finish' : 'next';
+            const nextEnabled = picked !== null;
+            const nextHtml = nextEnabled
+                ? `<button type="button" class="verb" onclick="nextQuestion()"><span class="key">&#x21B5;</span>${nextLabel}</button>`
+                : `<span class="verb disabled"><span class="key">&#x21B5;</span>${nextLabel}</span>`;
+
+            contentDiv.innerHTML = `
+                <div class="q-header">
+                    <span class="count">question ${currentQuestionIndex + 1} of ${questions.length}</span>
+                    <span class="domain">[ ${escapeHtml(q.domain.toLowerCase())} ]</span>
+                </div>
+
+                <div class="stem">${escapeHtml(q.q)}</div>
+
+                <div class="options">${optionsHtml}</div>
+
+                <div class="hints">
+                    <span><span class="key">1-${q.options.length}</span>select</span>
+                    ${prevHtml ? `<span>${prevHtml}</span>` : ''}
+                    <span>${nextHtml}</span>
+                </div>
+            `;
         }
 
-        function nextQuestion() {
-            if (currentQuestionIndex < quizData.length - 1) {
-                currentQuestionIndex++;
-                renderQuestion();
-            } else {
-                finishQuiz();
-            }
+        function selectOption(i) {
+            userAnswers[currentQuestionIndex] = i;
+            renderQuestion();
         }
 
         function prevQuestion() {
@@ -603,132 +501,99 @@
             }
         }
 
-        function renderQuestion() {
-            const q = quizData[currentQuestionIndex];
-            const selectedOption = userAnswers[currentQuestionIndex];
-            const letters = ['A', 'B', 'C', 'D'];
-
-            let html = `
-                <div class="question-header">
-                    <span class="question-number">QUESTION ${currentQuestionIndex + 1} OF ${quizData.length}</span>
-                    <span class="domain-tag">${q.domain}</span>
-                </div>
-                <div class="question-text">${q.q}</div>
-                <div class="options">
-            `;
-
-            q.options.forEach((opt, idx) => {
-                const isSelected = selectedOption === idx ? 'selected' : '';
-                html += `
-                    <div class="option ${isSelected}" onclick="handleOptionClick(${idx})">
-                        <span class="option-label">${letters[idx]}</span>
-                        <span class="option-text">${opt}</span>
-                    </div>
-                `;
-            });
-
-            html += `
-                </div>
-                <div class="navigation">
-                    <button class="btn" onclick="prevQuestion()" ${currentQuestionIndex === 0 ? 'disabled' : ''}>
-                        &larr; Previous
-                    </button>
-                    <button class="btn btn-primary" onclick="nextQuestion()" ${selectedOption === null ? 'disabled' : ''}>
-                        ${currentQuestionIndex === quizData.length - 1 ? 'Finish Exam' : 'Next Question'} &rarr;
-                    </button>
-                </div>
-            `;
-
-            examContent.innerHTML = html;
+        function nextQuestion() {
+            if (userAnswers[currentQuestionIndex] === null) return;
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                showResults();
+            }
         }
 
-        function finishQuiz() {
-            const score = userAnswers.reduce((acc, ans, idx) => {
-                return acc + (ans === quizData[idx].correct ? 1 : 0);
-            }, 0);
-
-            const percentage = Math.round((score / quizData.length) * 100);
-            const passed = percentage >= 83; // CompTIA standard is roughly 750/900 (~83%)
-
-            let html = `
-                <div class="results">
-                    <div class="score-card">
-                        <div class="score-number">${percentage}%</div>
-                        <div class="pass-fail ${passed ? 'pass' : 'fail'}">
-                            ${passed ? 'PASS' : 'FAIL'}
-                        </div>
-                    </div>
-
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-number" style="color: var(--accent-blue)">${score}</div>
-                            <div class="stat-label">Correct</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number" style="color: var(--accent-red)">${quizData.length - score}</div>
-                            <div class="stat-label">Incorrect</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">${quizData.length}</div>
-                            <div class="stat-label">Total Questions</div>
-                        </div>
-                    </div>
-
-                    <h2 style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Review</h2>
-            `;
-
-            quizData.forEach((q, idx) => {
-                const userAnsIdx = userAnswers[idx];
-                const isCorrect = userAnsIdx === q.correct;
-                const letters = ['A', 'B', 'C', 'D'];
-
-                html += `
-                    <div class="review-question ${isCorrect ? 'correct' : 'incorrect'}">
-                        <div class="review-header">
-                            <span>Question ${idx + 1}</span>
-                            <span class="review-status ${isCorrect ? 'correct' : 'incorrect'}">
-                                ${isCorrect ? 'CORRECT' : 'INCORRECT'}
-                            </span>
-                        </div>
-                        <div class="review-text">${q.q}</div>
-                        
-                        <div class="review-answers">
-                            <div class="answer-line">
-                                <strong>Your Answer:</strong>
-                                <span style="color: ${isCorrect ? 'var(--accent-blue)' : 'var(--accent-red)'}">
-                                    ${letters[userAnsIdx]}: ${q.options[userAnsIdx]}
-                                </span>
-                            </div>
-                            <div class="answer-line">
-                                <strong>Correct Answer:</strong>
-                                <span style="color: var(--accent-blue)">
-                                    ${letters[q.correct]}: ${q.options[q.correct]}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="explanation">
-                            <div class="explanation-title">Explanation</div>
-                            ${q.explanation}
-                        </div>
-                    </div>
-                `;
-            });
-
-            html += `
-                <div style="text-align: center; margin-top: 40px;">
-                    <button class="btn btn-primary" onclick="location.reload()">Retake Exam</button>
-                </div>
-                </div>
-            `;
-
-            examContent.innerHTML = html;
+        function showResults() {
+            onResults = true;
+            let correctCount = 0;
+            questions.forEach((q, i) => { if (userAnswers[i] === q.correct) correctCount++; });
+            const score = Math.round((correctCount / questions.length) * 100);
+            const passed = score >= 83;
             progressBar.style.width = '100%';
+
+            const reviewHtml = questions.map((q, i) => {
+                const userAnswer = userAnswers[i];
+                const skipped = userAnswer === null;
+                const isCorrect = !skipped && userAnswer === q.correct;
+                const userLabel = skipped ? '—' : `${userAnswer + 1}  ${escapeHtml(q.options[userAnswer])}`;
+                const correctLabel = `${q.correct + 1}  ${escapeHtml(q.options[q.correct])}`;
+                const statusGlyph = isCorrect
+                    ? `<span class="glyph-correct">&#x2713;</span><span class="verdict correct">correct</span>`
+                    : `<span class="glyph-incorrect">&#x2717;</span><span class="verdict incorrect">${skipped ? 'skipped' : 'incorrect'}</span>`;
+                const yourLineClass = skipped ? 'skipped' : (isCorrect ? 'right' : 'wrong');
+                return `
+                    <div class="review-q ${isCorrect ? 'correct' : 'incorrect'}">
+                        <div class="status">Q.${i + 1}${statusGlyph}</div>
+                        <div class="stem-mini">${escapeHtml(q.q)}</div>
+                        <div class="ans-line ${yourLineClass}">
+                            <span class="ans-label">your answer:</span>
+                            <span class="ans-val">${userLabel}</span>
+                        </div>
+                        <div class="ans-line right">
+                            <span class="ans-label">correct answer:</span>
+                            <span class="ans-val">${correctLabel}</span>
+                        </div>
+                        <div class="explanation"><span class="arrow">&rsaquo;</span>${escapeHtml(q.explanation)}</div>
+                    </div>
+                `;
+            }).join('');
+
+            contentDiv.innerHTML = `
+                <div class="results-heading">results</div>
+
+                <div class="score-row">
+                    <span><span class="label">score</span> <span class="score-val">${score} / 100</span></span>
+                    <span class="${passed ? 'verdict-pass' : 'verdict-fail'}">${passed ? 'pass' : 'fail'}</span>
+                    <span class="threshold">(&ge; 83 to pass)</span>
+                </div>
+
+                <div class="stats-row">
+                    <span><span class="stat-label">correct</span><span class="stat-val">${correctCount}</span></span>
+                    <span><span class="stat-label">incorrect</span><span class="stat-val">${questions.length - correctCount}</span></span>
+                    <span><span class="stat-label">total</span><span class="stat-val">${questions.length}</span></span>
+                </div>
+
+                <div class="review-heading">review<span class="dashes"></span></div>
+
+                ${reviewHtml}
+
+                <div class="retake-row">
+                    <button type="button" class="verb" onclick="location.reload()"><span class="key">&#x21B5;</span>retake</button>
+                </div>
+            `;
+            window.scrollTo(0, 0);
         }
 
-        // Start
-        init();
+        // --- KEYBOARD ---
+        window.addEventListener('keydown', (e) => {
+            const tag = document.activeElement && document.activeElement.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
+            if (onResults) {
+                if (e.key === 'Enter') { e.preventDefault(); location.reload(); }
+                return;
+            }
+
+            if (/^[1-9]$/.test(e.key)) {
+                const i = Number(e.key) - 1;
+                const q = questions[currentQuestionIndex];
+                if (i < q.options.length) { e.preventDefault(); selectOption(i); }
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault(); prevQuestion();
+            } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+                e.preventDefault(); nextQuestion();
+            }
+        });
+
+        init();
     </script>
 </body>
 </html>
